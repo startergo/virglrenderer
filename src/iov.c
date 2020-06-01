@@ -143,6 +143,90 @@ size_t vrend_read_from_iovec_cb(const struct iovec *iov, int iovlen,
 
 }
 
+static void vrend_advance_iovec_iter(struct vrend_iovec_iter* restrict it, size_t relative_offset)
+{
+  it->current_offset += relative_offset;
+  while(it->current_offset >= it->iov->iov_len && it->iov != it->iov_end) {
+    it->current_offset -= it->iov->iov_len;
+    it->previous_offset += it->iov->iov_len;
+    ++it->iov;
+  }
+}
+
+void vrend_init_iovec_iter(struct vrend_iovec_iter* restrict it,
+                           const struct iovec *iov_begin, int iovlen)
+{
+  it->iov_begin = it->iov = iov_begin;
+  it->iov_end = iov_begin + iovlen;
+  it->current_offset = 0;
+  it->previous_offset = 0;
+  it->previous_offset = (size_t)-1;
+}
+
+void vrend_clear_iovec_iter(struct vrend_iovec_iter* restrict it) {
+  vrend_init_iovec_iter(it, NULL, 0);
+}
+
+size_t vrend_get_iovec_iter_size(struct vrend_iovec_iter *it) {
+  if (it->cached_total_size != (size_t)-1)
+    return it->cached_total_size;
+  it->cached_total_size = 0;
+  for (const struct iovec* iov = it->iov_begin; iov != it->iov_end; ++iov) {
+    it->cached_total_size += iov->iov_len;
+  }
+  return it->cached_total_size;
+}
+
+void vrend_seek_iovec_iter(struct vrend_iovec_iter* restrict it,
+                           size_t target_offset)
+{
+  size_t total_offset = it->previous_offset + it->current_offset;
+  if (target_offset >= total_offset)
+    vrend_advance_iovec_iter(it, target_offset - total_offset);
+  else {
+    // Assume starting over
+    it->current_offset = 0;
+    it->iov = it->iov_begin;
+    it->previous_offset = 0;
+    vrend_advance_iovec_iter(it, target_offset);
+  }
+}
+
+size_t vrend_read_mult_from_iovec_iter(struct vrend_iovec_iter* restrict it,
+                                      char *buf, size_t bytes,
+                                      int num, uint32_t skip_bytes,
+                                      int buf_skip_bytes)
+{
+  size_t read = 0;
+  size_t len;
+  size_t item_bytes;
+  int num_countdown = num;
+
+  while (num_countdown > 0 && it->iov != it->iov_end) {
+    item_bytes = bytes;
+    char* block_buf = buf;
+    while (item_bytes > 0 && it->iov != it->iov_end) {
+      len = it->iov->iov_len - it->current_offset;
+
+      if (item_bytes < len)
+        len = item_bytes;
+
+      memcpy(block_buf, (char*)it->iov->iov_base + it->current_offset, len);
+      read += len;
+      block_buf += len;
+      item_bytes -= len;
+      vrend_advance_iovec_iter(it, len);
+    }
+    --num_countdown;
+    if (num_countdown > 0) {
+      vrend_advance_iovec_iter(it, skip_bytes);
+      buf += buf_skip_bytes;
+    }
+  }
+  assert(read == num * bytes);
+  return read;
+}
+
 /**
  * Copy data from one iovec to another iovec.
  *

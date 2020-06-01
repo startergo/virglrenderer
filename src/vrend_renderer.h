@@ -97,6 +97,9 @@ struct vrend_resource {
    /* IOV pointing to shared guest memory storage for this resource. */
    const struct iovec *iov;
    uint32_t num_iovs;
+   /* Accesses to IOV are often coherent, so this iterator allows
+    * for faster consecutive accesses. */
+   struct vrend_iovec_iter iov_iter;
    uint64_t mipmap_offsets[VR_MAX_TEXTURE_2D_LEVELS];
    void *gbm_bo, *egl_image;
    void *aux_plane_egl_image[VIRGL_GBM_MAX_PLANES];
