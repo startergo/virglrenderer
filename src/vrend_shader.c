@@ -6264,13 +6264,25 @@ static void emit_ios_indirect_generics_output(const struct dump_ctx *ctx,
          char blockvarame[64];
          get_blockvarname(blockvarame, stage_prefix, &ctx->generic_ios.output_range.io, postfix);
 
-         emit_hdrf(glsl_strbufs, "out %s {\n  vec4 %s[%d]; \n} %s;\n", blockname,
-                   ctx->generic_ios.output_range.io.glsl_name, size, blockvarame);
-      } else
-         emit_hdrf(glsl_strbufs, "out vec4 %s%s[%d];\n",
-                   ctx->generic_ios.output_range.io.glsl_name,
-                   postfix,
-                   size);
+         if (size == 1) {
+            emit_hdrf(glsl_strbufs, "out %s {\n  vec4 %s; \n} %s;\n", blockname,
+                      ctx->generic_ios.output_range.io.glsl_name, blockvarame);
+         } else {
+            emit_hdrf(glsl_strbufs, "out %s {\n  vec4 %s[%d]; \n} %s;\n", blockname,
+                      ctx->generic_ios.output_range.io.glsl_name, size, blockvarame);
+         }
+      } else {
+         if (size == 1) {
+            emit_hdrf(glsl_strbufs, "out vec4 %s%s;\n",
+                      ctx->generic_ios.output_range.io.glsl_name,
+                      postfix);
+         } else {
+            emit_hdrf(glsl_strbufs, "out vec4 %s%s[%d];\n",
+                      ctx->generic_ios.output_range.io.glsl_name,
+                      postfix,
+                      size);
+         }
+      }
    }
 }
 
