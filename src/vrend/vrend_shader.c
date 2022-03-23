@@ -5820,7 +5820,15 @@ iter_instruction(struct tgsi_iterate_context *iter,
       emit_buff(&ctx->glsl_strbufs, "%s = %s(ivec4(%s));\n", dsts[0], get_string(dinfo.dstconv), srcs[0]);
       break;
    case TGSI_OPCODE_D2F:
-      emit_buff(&ctx->glsl_strbufs, "%s = %s(%s);\n", dsts[0], get_string(dinfo.dstconv), srcs[0]);
+      if (inst->Dst[0].Register.WriteMask == TGSI_WRITEMASK_XYZW) {
+         emit_buff(&ctx->glsl_strbufs, "%s.xy = vec2(float(%s.x), float(%s.y));\n", dsts[0], srcs[0], srcs[0]);
+      } else {
+         if (inst->Dst[0].Register.WriteMask & TGSI_WRITEMASK_X)
+            emit_buff(&ctx->glsl_strbufs, "%s = %s(%s.x);\n", dsts[0], get_string(dinfo.dstconv), srcs[0]);
+
+         if (inst->Dst[0].Register.WriteMask & TGSI_WRITEMASK_Y)
+            emit_buff(&ctx->glsl_strbufs, "%s = %s(%s.y);\n", dsts[0], get_string(dinfo.dstconv), srcs[0]);
+      }
       break;
    case TGSI_OPCODE_U2F:
       emit_buff(&ctx->glsl_strbufs, "%s = %s(uvec4(%s)%s);\n", dsts[0], get_string(dinfo.dstconv), srcs[0], writemask);
