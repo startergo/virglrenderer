@@ -216,6 +216,34 @@ struct vrend_shader_cfg {
    uint32_t has_cull_distance : 1;
 };
 
+struct vrend_shader_io {
+   char glsl_name[128];
+
+   unsigned sid : 16;
+   unsigned first : 16;
+   unsigned last : 16;
+   unsigned array_id : 10;
+   unsigned interpolate : 4;
+   unsigned location : 2;
+
+   unsigned name : 8;
+   unsigned stream : 2;
+   unsigned usage_mask : 4;
+   unsigned type : 2;
+   unsigned num_components : 3;
+   unsigned swizzle_offset : 3;
+
+   unsigned layout_location : 1;
+   unsigned invariant : 1;
+   unsigned precise : 1;
+   unsigned glsl_predefined_no_emit : 1;
+   unsigned glsl_no_index : 1;
+   unsigned glsl_gl_block : 1;
+   unsigned override_no_wm : 1;
+   unsigned is_int : 1;
+   unsigned fbfetch_used : 1;
+};
+
 struct vrend_context;
 
 #define SHADER_MAX_STRINGS 3
@@ -261,5 +289,26 @@ static inline void vrend_shader_sampler_views_mask_set(
 {
    mask[index / 64] |= 1ull << (index % 64);
 }
+
+enum io_decl_type {
+   decl_plain,
+   decl_block
+};
+
+struct tgsi_full_src_register;
+struct tgsi_full_dst_register;
+
+void vrend_shader_write_io_as_src(struct vrend_strbuf *buf,
+                                  const  char *arrayname,
+                                  const struct vrend_shader_io *io,
+                                  const struct tgsi_full_src_register *src,
+                                  enum io_decl_type decl_type);
+
+void vrend_shader_write_io_as_dst(struct vrend_strbuf *buf,
+                                  const  char *arrayname,
+                                  const struct vrend_shader_io *io,
+                                  const struct tgsi_full_dst_register *src,
+                                  enum io_decl_type decl_type);
+
 
 #endif
