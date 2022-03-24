@@ -969,6 +969,47 @@ static void get_swizzle_offset_and_num_components(struct vrend_shader_io *io)
    io->num_components = num_comp;
 }
 
+static struct vrend_shader_io *
+find_overlapping_io(struct vrend_shader_io io[static 64],
+                    uint32_t num_io,
+                    const struct tgsi_full_declaration *decl)
+{
+   for (uint32_t j = 0; j < num_io - 1; j++) {
+      if (io[j].interpolate == decl->Interp.Interpolate &&
+          io[j].name == decl->Semantic.Name &&
+          ((io[j].first <= decl->Range.First &&
+            io[j].last > decl->Range.First) ||
+           (io[j].first < decl->Range.Last &&
+            io[j].last >= decl->Range.Last))) {
+         return &io[j];
+      }
+   }
+   return NULL;
+}
+
+static void
+map_overlapping_io_array(struct vrend_shader_io io[static 64],
+                         struct vrend_shader_io *new_io,
+                         uint32_t num_io,
+                         const struct tgsi_full_declaration *decl)
+{
+   struct vrend_shader_io *overlap_io = find_overlapping_io(io, num_io, decl);
+   if (overlap_io) {
+      int delta = new_io->first - overlap_io->first;
+      if (delta >= 0) {
+         new_io->array_offset = delta;
+         new_io->overlapping_array = overlap_io;
+         overlap_io->last = MAX2(overlap_io->last, new_io->last);
+      } else if (delta < 0) {
+         overlap_io->overlapping_array = new_io;
+         overlap_io->array_offset = -delta;
+         new_io->last = MAX2(overlap_io->last, new_io->last);
+      }
+      overlap_io->usage_mask |= new_io->usage_mask;
+      new_io->usage_mask = overlap_io->usage_mask;
+   }
+}
+
 static boolean
 iter_declaration(struct tgsi_iterate_context *iter,
                  struct tgsi_full_declaration *decl)
@@ -1016,12 +1057,15 @@ iter_declaration(struct tgsi_iterate_context *iter,
       ctx->inputs[i].glsl_no_index = false;
       ctx->inputs[i].override_no_wm = ctx->inputs[i].num_components == 1;
       ctx->inputs[i].glsl_gl_block = false;
+      ctx->inputs[i].overlapping_array = NULL;
 
       if (iter->processor.Processor == TGSI_PROCESSOR_FRAGMENT &&
           decl->Interp.Location == TGSI_INTERPOLATE_LOC_SAMPLE) {
          ctx->shader_req_bits |= SHADER_REQ_GPU_SHADER5;
          ctx->has_sample_input = true;
       }
+
+      map_overlapping_io_array(ctx->inputs, &ctx->inputs[i], ctx->num_inputs, decl);
 
       if (ctx->inputs[i].first != ctx->inputs[i].last)
          ctx->glsl_ver_required = require_glsl_ver(ctx, 150);
@@ -1291,6 +1335,9 @@ iter_declaration(struct tgsi_iterate_context *iter,
       ctx->outputs[i].override_no_wm = ctx->outputs[i].num_components == 1;
       ctx->outputs[i].is_int = false;
       ctx->outputs[i].fbfetch_used = false;
+      ctx->outputs[i].overlapping_array = NULL;
+
+      map_overlapping_io_array(ctx->outputs, &ctx->outputs[i], ctx->num_outputs, decl);
 
       name_prefix = get_stage_output_name_prefix(iter->processor.Processor);
 
@@ -3658,8 +3705,8 @@ static void get_destination_info_generic(const struct dump_ctx *ctx,
    enum io_decl_type decl_type = decl_plain;
    if (io->first != io->last && prefer_generic_io_block(ctx, io_out)) {
       get_blockvarname(outvarname, stage_prefix,  io, blkarray);
-      decl_type = decl_block;
       blkarray = outvarname;
+      decl_type = decl_block;
    }
    vrend_shader_write_io_as_dst(result, blkarray, io, dst_reg, decl_type);
    strbuf_appendf(result, "%s", wm);
@@ -4877,14 +4924,16 @@ static bool evaluate_layout_overlays(unsigned nio, struct vrend_shader_io *io,
       if ((io[i].name != TGSI_SEMANTIC_GENERIC &&
           io[i].name != TGSI_SEMANTIC_PATCH) ||
           io[i].usage_mask == 0xf ||
-          io[i].layout_location > 0)
+          io[i].layout_location > 0 ||
+          io[i].overlapping_array)
          continue;
 
       for (unsigned j = i + 1; j < nio ; ++j) {
          if ((io[j].name != TGSI_SEMANTIC_GENERIC &&
              io[j].name != TGSI_SEMANTIC_PATCH) ||
              io[j].usage_mask == 0xf ||
-             io[j].layout_location > 0)
+             io[j].layout_location > 0 ||
+             io[j].overlapping_array)
             continue;
 
          /* Do the definition ranges overlap? */
@@ -6265,6 +6314,9 @@ emit_ios_generic(const struct dump_ctx *ctx,
    const char *t = type[3];
 
    char layout[128] = "";
+
+   if (io->overlapping_array)
+      return;
 
    if (io->layout_location > 0) {
       /* we need to define a layout here because interleaved arrays might be emited */
@@ -7700,25 +7752,32 @@ void vrend_shader_write_io_as_src(struct vrend_strbuf *result,
                                   const struct tgsi_full_src_register *src,
                                   enum io_decl_type decl_type)
 {
+
+
    if (io->first == io->last) {
-      strbuf_appendf(result, "%s%s", io->glsl_name, array_or_varname);
+      if (io->overlapping_array)
+         strbuf_appendf(result, "%s%s[%d]", io->overlapping_array->glsl_name,
+                        array_or_varname, io->array_offset);
+      else
+         strbuf_appendf(result, "%s%s", io->glsl_name, array_or_varname);
+
    } else {
+      const struct vrend_shader_io *base = io->overlapping_array ? io->overlapping_array : io;
+      const int offset = src->Register.Index - io->first + io->array_offset;
+
       if (decl_type == decl_block) {
          if (src->Register.Indirect)
-            strbuf_appendf(result, "%s.%s[addr%d + %d]", array_or_varname, io->glsl_name,
-                           src->Indirect.Index, src->Register.Index - io->first);
+            strbuf_appendf(result, "%s.%s[addr%d + %d]", array_or_varname, base->glsl_name,
+                           src->Indirect.Index, offset);
          else
-            strbuf_appendf(result, "%s.%s[%d]", array_or_varname, io->glsl_name,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s.%s[%d]", array_or_varname, base->glsl_name, offset);
       } else {
          if (src->Register.Indirect)
-            strbuf_appendf(result, "%s%s[addr%d + %d]", io->glsl_name,
-                           array_or_varname, src->Indirect.Index,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s%s[addr%d + %d]", base->glsl_name,
+                           array_or_varname, src->Indirect.Index, offset);
          else
-            strbuf_appendf(result, "%s%s[%d]", io->glsl_name,
-                           array_or_varname,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s%s[%d]", base->glsl_name,
+                           array_or_varname, offset);
       }
    }
 }
@@ -7729,25 +7788,30 @@ void vrend_shader_write_io_as_dst(struct vrend_strbuf *result,
                                   const struct tgsi_full_dst_register *src,
                                   enum io_decl_type decl_type)
 {
+
    if (io->first == io->last) {
-      strbuf_appendf(result, "%s%s", io->glsl_name, array_or_varname);
+      if (io->overlapping_array)
+         strbuf_appendf(result, "%s%s[%d]", io->overlapping_array->glsl_name,
+                        array_or_varname, io->array_offset);
+      else
+         strbuf_appendf(result, "%s%s", io->glsl_name, array_or_varname);
    } else {
+      const struct vrend_shader_io *base = io->overlapping_array ? io->overlapping_array : io;
+      const int offset = src->Register.Index - io->first + io->array_offset;
+
       if (decl_type == decl_block) {
          if (src->Register.Indirect)
-            strbuf_appendf(result, "%s.%s[addr%d + %d]", array_or_varname, io->glsl_name,
-                           src->Indirect.Index, src->Register.Index - io->first);
+            strbuf_appendf(result, "%s.%s[addr%d + %d]", array_or_varname, base->glsl_name,
+                           src->Indirect.Index, offset);
          else
-            strbuf_appendf(result, "%s.%s[%d]", array_or_varname, io->glsl_name,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s.%s[%d]", array_or_varname, base->glsl_name, offset);
       } else {
          if (src->Register.Indirect)
-            strbuf_appendf(result, "%s%s[addr%d + %d]", io->glsl_name,
-                           array_or_varname, src->Indirect.Index,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s%s[addr%d + %d]", base->glsl_name,
+                           array_or_varname, src->Indirect.Index, offset);
          else
-            strbuf_appendf(result, "%s%s[%d]", io->glsl_name,
-                           array_or_varname,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s%s[%d]", base->glsl_name,
+                           array_or_varname, offset);
       }
    }
 }
