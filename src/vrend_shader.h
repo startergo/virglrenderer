@@ -218,7 +218,7 @@ struct vrend_shader_cfg {
 
 struct vrend_shader_io {
    char glsl_name[128];
-
+   struct vrend_shader_io *overlapping_array;
    unsigned sid : 16;
    unsigned first : 16;
    unsigned last : 16;
@@ -226,12 +226,12 @@ struct vrend_shader_io {
    unsigned interpolate : 4;
    unsigned location : 2;
 
+   unsigned array_offset : 8;
    unsigned name : 8;
    unsigned stream : 2;
    unsigned usage_mask : 4;
    unsigned type : 2;
    unsigned num_components : 3;
-   unsigned swizzle_offset : 3;
 
    unsigned layout_location : 1;
    unsigned invariant : 1;
