@@ -134,7 +134,6 @@ struct vrend_shader_io {
    unsigned usage_mask : 4;
    unsigned type : 2;
    unsigned num_components : 3;
-   unsigned swizzle_offset : 3;
 
    unsigned layout_location : 1;
    unsigned invariant : 1;
@@ -1008,13 +1007,45 @@ static enum vec_type get_type(uint32_t signed_int_mask,
       return VEC_FLOAT;
 }
 
-static void get_swizzle_offset_and_num_components(struct vrend_shader_io *io)
+static struct vrend_shader_io *
+find_overlapping_io(struct vrend_shader_io io[static 64],
+                    uint32_t num_io,
+                    const struct tgsi_full_declaration *decl)
 {
-   unsigned mask_temp = io->usage_mask;
-   int start, num_comp;
-   u_bit_scan_consecutive_range(&mask_temp, &start, &num_comp);
-   io->swizzle_offset = start;
-   io->num_components = num_comp;
+   for (uint32_t j = 0; j < num_io - 1; j++) {
+      if (io[j].interpolate == decl->Interp.Interpolate &&
+          io[j].name == decl->Semantic.Name &&
+          ((io[j].first <= decl->Range.First &&
+            io[j].last > decl->Range.First) ||
+           (io[j].first < decl->Range.Last &&
+            io[j].last >= decl->Range.Last))) {
+         return &io[j];
+      }
+   }
+   return NULL;
+}
+
+static void
+map_overlapping_io_array(struct vrend_shader_io io[static 64],
+                         struct vrend_shader_io *new_io,
+                         uint32_t num_io,
+                         const struct tgsi_full_declaration *decl)
+{
+   struct vrend_shader_io *overlap_io = find_overlapping_io(io, num_io, decl);
+   if (overlap_io) {
+      int delta = new_io->first - overlap_io->first;
+      if (delta >= 0) {
+         new_io->array_offset = delta;
+         new_io->overlapping_array = overlap_io;
+         overlap_io->last = MAX2(overlap_io->last, new_io->last);
+      } else if (delta < 0) {
+         overlap_io->overlapping_array = new_io;
+         overlap_io->array_offset = -delta;
+         new_io->last = MAX2(overlap_io->last, new_io->last);
+      }
+      overlap_io->usage_mask |= new_io->usage_mask;
+      new_io->usage_mask = overlap_io->usage_mask;
+   }
 }
 
 static boolean
@@ -1058,18 +1089,21 @@ iter_declaration(struct tgsi_iterate_context *iter,
       ctx->inputs[i].last = decl->Range.Last;
       ctx->inputs[i].array_id = decl->Declaration.Array ? decl->Array.ArrayID : 0;
       ctx->inputs[i].usage_mask = decl->Declaration.UsageMask;
-      get_swizzle_offset_and_num_components(&ctx->inputs[i]);
+      ctx->inputs[i].num_components = 4;
 
       ctx->inputs[i].glsl_predefined_no_emit = false;
       ctx->inputs[i].glsl_no_index = false;
       ctx->inputs[i].override_no_wm = ctx->inputs[i].num_components == 1;
       ctx->inputs[i].glsl_gl_block = false;
+      ctx->inputs[i].overlapping_array = NULL;
 
       if (iter->processor.Processor == TGSI_PROCESSOR_FRAGMENT &&
           decl->Interp.Location == TGSI_INTERPOLATE_LOC_SAMPLE) {
          ctx->shader_req_bits |= SHADER_REQ_GPU_SHADER5;
          ctx->has_sample_input = true;
       }
+
+      map_overlapping_io_array(ctx->inputs, &ctx->inputs[i], ctx->num_inputs, decl);
 
       if (ctx->inputs[i].first != ctx->inputs[i].last)
          ctx->glsl_ver_required = require_glsl_ver(ctx, 150);
@@ -1241,7 +1275,6 @@ iter_declaration(struct tgsi_iterate_context *iter,
             ctx->inputs[i].glsl_predefined_no_emit = true;
             ctx->inputs[i].glsl_no_index = true;
             ctx->inputs[i].num_components = 4;
-            ctx->inputs[i].swizzle_offset = 0;
             ctx->inputs[i].usage_mask = 0xf;
          }
          break;
@@ -1257,7 +1290,6 @@ iter_declaration(struct tgsi_iterate_context *iter,
                ctx->inputs[i].glsl_predefined_no_emit = true;
                ctx->inputs[i].glsl_no_index = true;
                ctx->inputs[i].num_components = 4;
-               ctx->inputs[i].swizzle_offset = 0;
                ctx->inputs[i].usage_mask = 0xf;
                break;
             }
@@ -1283,7 +1315,6 @@ iter_declaration(struct tgsi_iterate_context *iter,
          if (ctx->inputs[i].name == TGSI_SEMANTIC_FOG){
             ctx->inputs[i].usage_mask = 0xf;
             ctx->inputs[i].num_components = 4;
-            ctx->inputs[i].swizzle_offset = 0;
             ctx->inputs[i].override_no_wm = false;
             snprintf(ctx->inputs[i].glsl_name, 128, "%s_f%d", name_prefix, ctx->inputs[i].sid);
          } else if (ctx->inputs[i].name == TGSI_SEMANTIC_COLOR)
@@ -1333,12 +1364,15 @@ iter_declaration(struct tgsi_iterate_context *iter,
       ctx->outputs[i].layout_location = 0;
       ctx->outputs[i].array_id = decl->Declaration.Array ? decl->Array.ArrayID : 0;
       ctx->outputs[i].usage_mask = decl->Declaration.UsageMask;
-      get_swizzle_offset_and_num_components(&ctx->outputs[i]);
+      ctx->outputs[i].num_components = 4;
       ctx->outputs[i].glsl_predefined_no_emit = false;
       ctx->outputs[i].glsl_no_index = false;
       ctx->outputs[i].override_no_wm = ctx->outputs[i].num_components == 1;
       ctx->outputs[i].is_int = false;
       ctx->outputs[i].fbfetch_used = false;
+      ctx->outputs[i].overlapping_array = NULL;
+
+      map_overlapping_io_array(ctx->outputs, &ctx->outputs[i], ctx->num_outputs, decl);
 
       name_prefix = get_stage_output_name_prefix(iter->processor.Processor);
 
@@ -1530,7 +1564,6 @@ iter_declaration(struct tgsi_iterate_context *iter,
          if (ctx->outputs[i].name == TGSI_SEMANTIC_FOG) {
             ctx->outputs[i].usage_mask = 0xf;
             ctx->outputs[i].num_components = 4;
-            ctx->outputs[i].swizzle_offset = 0;
             ctx->outputs[i].override_no_wm = false;
             snprintf(ctx->outputs[i].glsl_name, 64, "%s_f%d", name_prefix, ctx->outputs[i].sid);
          } else if (ctx->outputs[i].name == TGSI_SEMANTIC_COLOR)
@@ -3690,11 +3723,11 @@ static const char *reswizzle_dest(const struct vrend_shader_io *io, const struct
 {
    if (io->usage_mask != 0xf) {
       if (io->num_components > 1) {
-         int real_wm = dst_reg->Register.WriteMask >> io->swizzle_offset;
+         const int wm = dst_reg->Register.WriteMask;
          int k = 1;
          reswizzled[0] = '.';
          for (int i = 0; i < io->num_components; ++i) {
-            if (real_wm & (1 << i))
+            if (wm & (1 << i))
                reswizzled[k++] = get_swiz_char(i);
          }
          reswizzled[k] = 0;
@@ -3723,8 +3756,8 @@ static void get_destination_info_generic(const struct dump_ctx *ctx,
    enum io_decl_type decl_type = decl_plain;
    if (io->first != io->last && prefer_generic_io_block(ctx, io_out)) {
       get_blockvarname(outvarname, stage_prefix,  io, blkarray);
-      decl_type = decl_block;
       blkarray = outvarname;
+      decl_type = decl_block;
    }
    vrend_shader_write_io_as_dst(result, blkarray, io, dst_reg, decl_type);
    strbuf_appendf(result, "%s", wm);
@@ -3980,15 +4013,15 @@ static const char *shift_swizzles(const struct vrend_shader_io *io, const struct
          swizzle_shifted[swz_offset++] = '.';
          for (int i = 0; i < 4; ++i) {
             switch (i) {
-            case 0: swizzle_shifted[swz_offset++] = get_swiz_char(src->Register.SwizzleX - io->swizzle_offset);
+            case 0: swizzle_shifted[swz_offset++] = get_swiz_char(src->Register.SwizzleX);
                break;
-            case 1: swizzle_shifted[swz_offset++] = get_swiz_char(src->Register.SwizzleY - io->swizzle_offset);
+            case 1: swizzle_shifted[swz_offset++] = get_swiz_char(src->Register.SwizzleY);
                break;
-            case 2: swizzle_shifted[swz_offset++] = src->Register.SwizzleZ - io->swizzle_offset < io->num_components ?
-                                                       get_swiz_char(src->Register.SwizzleZ - io->swizzle_offset) : 'x';
+            case 2: swizzle_shifted[swz_offset++] = src->Register.SwizzleZ < io->num_components ?
+                                                       get_swiz_char(src->Register.SwizzleZ) : 'x';
                break;
-            case 3: swizzle_shifted[swz_offset++] = src->Register.SwizzleW - io->swizzle_offset < io->num_components ?
-                                                       get_swiz_char(src->Register.SwizzleW - io->swizzle_offset) : 'x';
+            case 3: swizzle_shifted[swz_offset++] = src->Register.SwizzleW < io->num_components ?
+                                                       get_swiz_char(src->Register.SwizzleW) : 'x';
             }
          }
          swizzle_shifted[swz_offset] = 0;
@@ -4661,11 +4694,9 @@ void rewrite_io_ranged(struct dump_ctx *ctx)
 
       ctx->generic_ios.input_range.io.num_components = 4;
       ctx->generic_ios.input_range.io.usage_mask = 0xf;
-      ctx->generic_ios.input_range.io.swizzle_offset = 0;
 
       ctx->patch_ios.input_range.io.num_components = 4;
       ctx->patch_ios.input_range.io.usage_mask = 0xf;
-      ctx->patch_ios.input_range.io.swizzle_offset = 0;
 
       if (prefer_generic_io_block(ctx, io_in))
           ctx->glsl_ver_required = require_glsl_ver(ctx, 150);
@@ -4722,12 +4753,9 @@ void rewrite_io_ranged(struct dump_ctx *ctx)
 
       ctx->generic_ios.output_range.io.num_components = 4;
       ctx->generic_ios.output_range.io.usage_mask = 0xf;
-      ctx->generic_ios.output_range.io.swizzle_offset = 0;
 
       ctx->patch_ios.output_range.io.num_components = 4;
       ctx->patch_ios.output_range.io.usage_mask = 0xf;
-      ctx->patch_ios.output_range.io.swizzle_offset = 0;
-
 
       if (prefer_generic_io_block(ctx, io_out))
           ctx->glsl_ver_required = require_glsl_ver(ctx, 150);
@@ -4781,7 +4809,6 @@ void rewrite_components(unsigned nio, struct vrend_shader_io *io,
 
       io[i].usage_mask = 0xf;
       io[i].num_components = 4;
-      io[i].swizzle_offset = 0;
       io[i].override_no_wm = false;
    }
 
@@ -4906,9 +4933,7 @@ static bool apply_prev_layout(const struct vrend_shader_key *key,
                   io->usage_mask = (uint8_t)layout->usage_mask;
                   io->layout_location = layout->location;
                   io->array_id = layout->array_id;
-
-                  get_swizzle_offset_and_num_components(io);
-                  require_enhanced_layouts |= io->swizzle_offset > 0;
+                  io->num_components = 4;
                   if (io->num_components == 1)
                      io->override_no_wm = true;
                   if (i_input < *num_inputs - 1) {
@@ -4942,14 +4967,16 @@ static bool evaluate_layout_overlays(unsigned nio, struct vrend_shader_io *io,
       if ((io[i].name != TGSI_SEMANTIC_GENERIC &&
           io[i].name != TGSI_SEMANTIC_PATCH) ||
           io[i].usage_mask == 0xf ||
-          io[i].layout_location > 0)
+          io[i].layout_location > 0 ||
+          io[i].overlapping_array)
          continue;
 
       for (unsigned j = i + 1; j < nio ; ++j) {
          if ((io[j].name != TGSI_SEMANTIC_GENERIC &&
              io[j].name != TGSI_SEMANTIC_PATCH) ||
              io[j].usage_mask == 0xf ||
-             io[j].layout_location > 0)
+             io[j].layout_location > 0 ||
+             io[j].overlapping_array)
             continue;
 
          /* Do the definition ranges overlap? */
@@ -6331,13 +6358,11 @@ emit_ios_generic(const struct dump_ctx *ctx,
 
    char layout[128] = "";
 
+   if (io->overlapping_array)
+      return;
+
    if (io->layout_location > 0) {
-      /* we need to define a layout here because interleaved arrays might be emited */
-      if (io->swizzle_offset)
-         snprintf(layout, sizeof(layout), "layout(location = %d, component = %d)\n",
-                 io->layout_location - 1, io->swizzle_offset);
-      else
-         snprintf(layout, sizeof(layout), "layout(location = %d)\n", io->layout_location - 1);
+      snprintf(layout, sizeof(layout), "layout(location = %d)\n", io->layout_location - 1);
    }
 
    if (io->usage_mask != 0xf && io->name == TGSI_SEMANTIC_GENERIC)
@@ -6470,11 +6495,7 @@ emit_ios_patch(struct vrend_glsl_strbufs *glsl_strbufs,
 
    if (io->layout_location > 0) {
       /* we need to define a layout here because interleaved arrays might be emited */
-      if (io->swizzle_offset)
-         emit_hdrf(glsl_strbufs, "layout(location = %d, component = %d)\n",
-                 io->layout_location - 1, io->swizzle_offset);
-      else
-         emit_hdrf(glsl_strbufs, "layout(location = %d)\n", io->layout_location - 1);
+      emit_hdrf(glsl_strbufs, "layout(location = %d)\n", io->layout_location - 1);
    }
 
    if (io->usage_mask != 0xf)
@@ -7576,8 +7597,7 @@ iter_vs_declaration(struct tgsi_iterate_context *iter,
       ctx->inputs[i].last = decl->Range.Last;
       ctx->inputs[i].array_id = decl->Declaration.Array ? decl->Array.ArrayID : 0;
       ctx->inputs[i].usage_mask = decl->Declaration.UsageMask;
-      get_swizzle_offset_and_num_components(&ctx->inputs[i]);
-
+      ctx->inputs[i].num_components = 4;      
       ctx->inputs[i].glsl_predefined_no_emit = false;
       ctx->inputs[i].glsl_no_index = false;
       ctx->inputs[i].override_no_wm = ctx->inputs[i].num_components == 1;
@@ -7634,7 +7654,6 @@ iter_vs_declaration(struct tgsi_iterate_context *iter,
          if (ctx->inputs[i].name == TGSI_SEMANTIC_FOG){
             ctx->inputs[i].usage_mask = 0xf;
             ctx->inputs[i].num_components = 4;
-            ctx->inputs[i].swizzle_offset = 0;
             ctx->inputs[i].override_no_wm = false;
             snprintf(ctx->inputs[i].glsl_name, 64, "%s_f%d", shader_in_prefix, ctx->inputs[i].sid);
             snprintf(ctx->outputs[i].glsl_name, 64, "%s_f%d", shader_out_prefix, ctx->inputs[i].sid);
@@ -7766,25 +7785,32 @@ void vrend_shader_write_io_as_src(struct vrend_strbuf *result,
                                   const struct tgsi_full_src_register *src,
                                   enum io_decl_type decl_type)
 {
+
+
    if (io->first == io->last) {
-      strbuf_appendf(result, "%s%s", io->glsl_name, array_or_varname);
+      if (io->overlapping_array)
+         strbuf_appendf(result, "%s%s[%d]", io->overlapping_array->glsl_name,
+                        array_or_varname, io->array_offset);
+      else
+         strbuf_appendf(result, "%s%s", io->glsl_name, array_or_varname);
+
    } else {
+      const struct vrend_shader_io *base = io->overlapping_array ? io->overlapping_array : io;
+      const int offset = src->Register.Index - io->first + io->array_offset;
+
       if (decl_type == decl_block) {
          if (src->Register.Indirect)
-            strbuf_appendf(result, "%s.%s[addr%d + %d]", array_or_varname, io->glsl_name,
-                           src->Indirect.Index, src->Register.Index - io->first);
+            strbuf_appendf(result, "%s.%s[addr%d + %d]", array_or_varname, base->glsl_name,
+                           src->Indirect.Index, offset);
          else
-            strbuf_appendf(result, "%s.%s[%d]", array_or_varname, io->glsl_name,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s.%s[%d]", array_or_varname, base->glsl_name, offset);
       } else {
          if (src->Register.Indirect)
-            strbuf_appendf(result, "%s%s[addr%d + %d]", io->glsl_name,
-                           array_or_varname, src->Indirect.Index,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s%s[addr%d + %d]", base->glsl_name,
+                           array_or_varname, src->Indirect.Index, offset);
          else
-            strbuf_appendf(result, "%s%s[%d]", io->glsl_name,
-                           array_or_varname,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s%s[%d]", base->glsl_name,
+                           array_or_varname, offset);
       }
    }
 }
@@ -7796,25 +7822,30 @@ void vrend_shader_write_io_as_dst(struct vrend_strbuf *result,
                                   const struct tgsi_full_dst_register *src,
                                   enum io_decl_type decl_type)
 {
+
    if (io->first == io->last) {
-      strbuf_appendf(result, "%s%s", io->glsl_name, array_or_varname);
+      if (io->overlapping_array)
+         strbuf_appendf(result, "%s%s[%d]", io->overlapping_array->glsl_name,
+                        array_or_varname, io->array_offset);
+      else
+         strbuf_appendf(result, "%s%s", io->glsl_name, array_or_varname);
    } else {
+      const struct vrend_shader_io *base = io->overlapping_array ? io->overlapping_array : io;
+      const int offset = src->Register.Index - io->first + io->array_offset;
+
       if (decl_type == decl_block) {
          if (src->Register.Indirect)
-            strbuf_appendf(result, "%s.%s[addr%d + %d]", array_or_varname, io->glsl_name,
-                           src->Indirect.Index, src->Register.Index - io->first);
+            strbuf_appendf(result, "%s.%s[addr%d + %d]", array_or_varname, base->glsl_name,
+                           src->Indirect.Index, offset);
          else
-            strbuf_appendf(result, "%s.%s[%d]", array_or_varname, io->glsl_name,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s.%s[%d]", array_or_varname, base->glsl_name, offset);
       } else {
          if (src->Register.Indirect)
-            strbuf_appendf(result, "%s%s[addr%d + %d]", io->glsl_name,
-                           array_or_varname, src->Indirect.Index,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s%s[addr%d + %d]", base->glsl_name,
+                           array_or_varname, src->Indirect.Index, offset);
          else
-            strbuf_appendf(result, "%s%s[%d]", io->glsl_name,
-                           array_or_varname,
-                           src->Register.Index - io->first);
+            strbuf_appendf(result, "%s%s[%d]", base->glsl_name,
+                           array_or_varname, offset);
       }
    }
 }
