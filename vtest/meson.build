@@ -22,39 +22,39 @@
 #
 
 virgl_test_server_sources = [
-   'util.c',
-   'util.h',
-   'vtest_shm.c',
-   'vtest_shm.h',
-   'vtest_server.c',
-   'vtest_renderer.c',
-   'vtest_protocol.h',
-   'vtest.h'
+  'util.c',
+  'util.h',
+  'vtest_shm.c',
+  'vtest_shm.h',
+  'vtest_server.c',
+  'vtest_renderer.c',
+  'vtest_protocol.h',
+  'vtest.h'
 ]
 
 
 virgl_test_server = executable(
-   'virgl_test_server',
-   virgl_test_server_sources,
-   dependencies : [libvirglrenderer_dep, gallium_dep],
-   install : true
+  'virgl_test_server',
+  virgl_test_server_sources,
+  dependencies : [libvirglrenderer_dep, gallium_dep],
+  install : true
 )
 
 if with_fuzzer
-   assert(cc.has_argument('-fsanitize=fuzzer'),
-          'Fuzzer enabled but compiler does not support "-fsanitize=fuzzer"')
+  assert(cc.has_argument('-fsanitize=fuzzer'),
+         'Fuzzer enabled but compiler does not support "-fsanitize=fuzzer"')
 
-   vtest_obj = virgl_test_server.extract_objects(['util.c',
-                                                  'vtest_shm.c',
-                                                  'vtest_renderer.c'
-                                                 ])
+  vtest_obj = virgl_test_server.extract_objects(['util.c',
+                                                 'vtest_shm.c',
+                                                 'vtest_renderer.c'
+                                                ])
 
-   vtest_fuzzer = executable(
-      'vtest_fuzzer',
-      'vtest_fuzzer.c',
-      c_args : [ '-fsanitize=fuzzer' ],
-      link_args : [ '-fsanitize=fuzzer' ],
-      objects : vtest_obj,
-      dependencies : libvirglrenderer_dep
-   )
+  vtest_fuzzer = executable(
+    'vtest_fuzzer',
+    'vtest_fuzzer.c',
+    c_args : [ '-fsanitize=fuzzer' ],
+    link_args : [ '-fsanitize=fuzzer' ],
+    objects : vtest_obj,
+    dependencies : libvirglrenderer_dep
+  )
 endif

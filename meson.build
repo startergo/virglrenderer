@@ -22,12 +22,12 @@
 #
 
 project(
-   'virglrenderer', 'c',
-   version: '0.9.0',
-   license : 'MIT',
-   meson_version : '>= 0.49',
-   default_options : ['buildtype=release', 'b_ndebug=if-release',
-                      'warning_level=3', 'c_std=gnu11']
+  'virglrenderer', 'c',
+  version: '0.9.0',
+  license : 'MIT',
+  meson_version : '>= 0.49',
+  default_options : ['buildtype=release', 'b_ndebug=if-release',
+                     'warning_level=3', 'c_std=gnu11']
 )
 
 # To change only before doing a release:
@@ -49,27 +49,27 @@ if cc.get_id() == 'gcc' and cc.version().version_compare('< 4.1')
 endif
 
 warnings = [
-   '-Werror=implicit-function-declaration',
-   '-Werror=missing-prototypes',
-   '-Wmissing-prototypes',
-   '-Werror=int-to-pointer-cast',
-   '-Wno-overlength-strings',
+  '-Werror=implicit-function-declaration',
+  '-Werror=missing-prototypes',
+  '-Wmissing-prototypes',
+  '-Werror=int-to-pointer-cast',
+  '-Wno-overlength-strings',
 ]
 
 foreach w : warnings
-   if cc.has_argument(w)
-      add_project_arguments(w, language : 'c')
-   endif
+  if cc.has_argument(w)
+    add_project_arguments(w, language : 'c')
+  endif
 endforeach
 
 flags = [
-   '-fvisibility=hidden',
+  '-fvisibility=hidden',
 ]
 
 foreach f : flags
-   if cc.has_argument(f)
-      add_project_arguments(f, language : 'c')
-   endif
+  if cc.has_argument(f)
+    add_project_arguments(f, language : 'c')
+  endif
 endforeach
 
 prog_python = import('python').find_installation('python3')
@@ -88,34 +88,34 @@ with_tracing = get_option('tracing')
 
 if with_tracing != 'none'
   if not cc.compiles('void f(void* v){} int main () { void *dummy __attribute__((cleanup (f))) = 0;}')
-     error('Tracing requires compiler support for __attribute__((cleanup))')
+    error('Tracing requires compiler support for __attribute__((cleanup))')
 endif
 
 endif
 
 if with_tracing == 'percetto'
-   # percetto uses C++ internally, so we need to link with C++.
-   # TODO: remove -lstdc++ when percetto is a shared library.
-   add_project_link_arguments('-lstdc++', language : 'c')
-   percetto_dep = dependency('percetto', version : '>=0.0.8')
-   conf_data.set('ENABLE_TRACING', 'TRACE_WITH_PERCETTO')
+  # percetto uses C++ internally, so we need to link with C++.
+  # TODO: remove -lstdc++ when percetto is a shared library.
+  add_project_link_arguments('-lstdc++', language : 'c')
+  percetto_dep = dependency('percetto', version : '>=0.0.8')
+  conf_data.set('ENABLE_TRACING', 'TRACE_WITH_PERCETTO')
 endif
 
 if with_tracing == 'perfetto'
-   vperfetto_min_dep = dependency('vperfetto_min')
-   conf_data.set('ENABLE_TRACING', 'TRACE_WITH_PERFETTO')
+  vperfetto_min_dep = dependency('vperfetto_min')
+  conf_data.set('ENABLE_TRACING', 'TRACE_WITH_PERFETTO')
 endif
 
 if with_tracing == 'stderr'
-   conf_data.set('ENABLE_TRACING', 'TRACE_WITH_STDERR')
+  conf_data.set('ENABLE_TRACING', 'TRACE_WITH_STDERR')
 endif
 
 if cc.has_header('sys/uio.h')
-   conf_data.set('HAVE_SYS_UIO_H', 1)
+  conf_data.set('HAVE_SYS_UIO_H', 1)
 endif
 
 if cc.has_header('dlfcn.h')
-   conf_data.set('HAVE_DLFCN_H', 1)
+  conf_data.set('HAVE_DLFCN_H', 1)
 endif
 
 if thread_dep.found() and host_machine.system() != 'windows'
@@ -130,7 +130,7 @@ if thread_dep.found() and host_machine.system() != 'windows'
 endif
 
 if cc.has_header('sys/eventfd.h')
-   conf_data.set('HAVE_EVENTFD_H', 1)
+  conf_data.set('HAVE_EVENTFD_H', 1)
 endif
 
 if cc.has_header('sys/select.h')
@@ -149,7 +149,7 @@ supported_function_attributes = cc.get_supported_function_attributes([
   'returns_nonnull', 'unused', 'warn_unused_result', 'weak',
 ])
 foreach a : supported_function_attributes
-    conf_data.set('HAVE_FUNC_ATTRIBUTE_@0@'.format(a.to_upper()), 1)
+  conf_data.set('HAVE_FUNC_ATTRIBUTE_@0@'.format(a.to_upper()), 1)
 endforeach
 
 foreach f : ['memfd_create', 'strtok_r', 'timespec_get']
@@ -189,7 +189,7 @@ else
 endif
 
 if get_option('buildtype') == 'debug'
-   add_global_arguments('-DDEBUG=1', language : 'c')
+  add_global_arguments('-DDEBUG=1', language : 'c')
 endif
 
 platforms = get_option('platforms')
@@ -206,76 +206,76 @@ have_glx = false
 
 with_minigbm_allocation = get_option('minigbm_allocation')
 if with_minigbm_allocation
-   conf_data.set('ENABLE_MINIGBM_ALLOCATION', 1)
-   _gbm_ver = '18.0.0'
+  conf_data.set('ENABLE_MINIGBM_ALLOCATION', 1)
+  _gbm_ver = '18.0.0'
 else
-   _gbm_ver = '0.0.0'
+  _gbm_ver = '0.0.0'
 endif
 
 if with_egl
-   if cc.has_header('epoxy/egl.h', dependencies: epoxy_dep) and epoxy_dep.get_pkgconfig_variable('epoxy_has_egl') == '1'
-      gbm_dep = dependency('gbm', version: '>= ' + _gbm_ver, required: require_egl)
-      have_egl = gbm_dep.found()
-      if (have_egl)
-         conf_data.set('HAVE_EPOXY_EGL_H', 1)
-      else
-         assert(not require_egl,
-                'egl was explicitely requested which requires gbm, and this is not available')
-      endif
-   else
+  if cc.has_header('epoxy/egl.h', dependencies: epoxy_dep) and epoxy_dep.get_pkgconfig_variable('epoxy_has_egl') == '1'
+    gbm_dep = dependency('gbm', version: '>= ' + _gbm_ver, required: require_egl)
+    have_egl = gbm_dep.found()
+    if (have_egl)
+      conf_data.set('HAVE_EPOXY_EGL_H', 1)
+    else
       assert(not require_egl,
-             'egl was explicitely requested but it is not supported by epoxy')
-   endif
+             'egl was explicitely requested which requires gbm, and this is not available')
+    endif
+  else
+    assert(not require_egl,
+           'egl was explicitely requested but it is not supported by epoxy')
+  endif
 endif
 
 if with_glx
-   if cc.has_header('epoxy/glx.h', dependencies: epoxy_dep) and epoxy_dep.get_pkgconfig_variable('epoxy_has_glx') == '1'
-      glx_dep = dependency('x11', required: require_glx)
-      have_glx = glx_dep.found()
-      conf_data.set('HAVE_EPOXY_GLX_H', 1)
-   else
-      assert(not require_glx,
-             'glx was explicitely requested but it is not supported by epoxy')
-   endif
+  if cc.has_header('epoxy/glx.h', dependencies: epoxy_dep) and epoxy_dep.get_pkgconfig_variable('epoxy_has_glx') == '1'
+    glx_dep = dependency('x11', required: require_glx)
+    have_glx = glx_dep.found()
+    conf_data.set('HAVE_EPOXY_GLX_H', 1)
+  else
+    assert(not require_glx,
+           'glx was explicitely requested but it is not supported by epoxy')
+  endif
 endif
 
 with_venus = get_option('venus-experimental')
 with_venus_validate = get_option('venus-validate')
 if with_venus
-   venus_dep = dependency('vulkan')
-   conf_data.set('ENABLE_VENUS', 1)
+  venus_dep = dependency('vulkan')
+  conf_data.set('ENABLE_VENUS', 1)
 
-   if with_venus_validate
-      conf_data.set('ENABLE_VENUS_VALIDATE', 1)
-   endif
+  if with_venus_validate
+    conf_data.set('ENABLE_VENUS_VALIDATE', 1)
+  endif
 endif
 
 with_render_server = get_option('render-server')
 with_render_server_worker = get_option('render-server-worker')
 render_server_install_dir = get_option('prefix') / get_option('libexecdir')
 if with_render_server
-   if not with_venus
-      error('render server makes no sense without venus currently')
-   endif
+  if not with_venus
+    error('render server makes no sense without venus currently')
+  endif
 
-   conf_data.set('ENABLE_RENDER_SERVER', 1)
-   conf_data.set('RENDER_SERVER_EXEC_PATH',
-                 '"' + render_server_install_dir / 'virgl_render_server' + '"')
+  conf_data.set('ENABLE_RENDER_SERVER', 1)
+  conf_data.set('RENDER_SERVER_EXEC_PATH',
+                '"' + render_server_install_dir / 'virgl_render_server' + '"')
 
-   if with_render_server_worker == 'process'
-      conf_data.set('ENABLE_RENDER_SERVER_WORKER_PROCESS', 1)
-   elif with_render_server_worker == 'thread'
-      conf_data.set('ENABLE_RENDER_SERVER_WORKER_THREAD', 1)
-   elif with_render_server_worker == 'minijail'
-      conf_data.set('ENABLE_RENDER_SERVER_WORKER_MINIJAIL', 1)
-      minijail_dep = dependency('libminijail')
-   else
-     error('unknown render server worker ' + with_render_server_worker)
-   endif
+  if with_render_server_worker == 'process'
+    conf_data.set('ENABLE_RENDER_SERVER_WORKER_PROCESS', 1)
+  elif with_render_server_worker == 'thread'
+    conf_data.set('ENABLE_RENDER_SERVER_WORKER_THREAD', 1)
+  elif with_render_server_worker == 'minijail'
+    conf_data.set('ENABLE_RENDER_SERVER_WORKER_MINIJAIL', 1)
+    minijail_dep = dependency('libminijail')
+  else
+    error('unknown render server worker ' + with_render_server_worker)
+  endif
 endif
 
 if cc.compiles('void __attribute__((hidden)) func() {}')
-   conf_data.set('HAVE_FUNC_ATTRIBUTE_VISIBILITY', 1)
+  conf_data.set('HAVE_FUNC_ATTRIBUTE_VISIBILITY', 1)
 endif
 
 configure_file(input : 'config.h.meson',
@@ -309,21 +309,21 @@ subdir('src')
 subdir('vtest')
 
 if with_render_server
-subdir('server')
+  subdir('server')
 endif
 
 if with_tests
-   assert(have_egl, 'Tests require EGL, but it is not available')
-   subdir('tests')
+  assert(have_egl, 'Tests require EGL, but it is not available')
+  subdir('tests')
 endif
 
 lines = [
-   '',
-   'prefix:    ' + get_option('prefix'),
-   'libdir:    ' + get_option('libdir'),
-   '',
-   'c_args:    ' + (' ').join(get_option('c_args')),
-   '',
+  '',
+  'prefix:    ' + get_option('prefix'),
+  'libdir:    ' + get_option('libdir'),
+  '',
+  'c_args:    ' + (' ').join(get_option('c_args')),
+  '',
 ]
 
 lines += 'egl:       ' + (have_egl ? 'yes' : 'no')
@@ -335,7 +335,7 @@ lines += 'venus:     ' + (with_venus ? 'yes' : 'no' )
 lines += ''
 lines += 'render server: ' + (with_render_server ? 'yes' : 'no')
 if with_render_server
-lines += 'render server worker: ' + with_render_server_worker
+  lines += 'render server worker: ' + with_render_server_worker
 endif
 lines += ''
 lines += 'tests:     ' + (with_tests ? 'yes' : 'no' )

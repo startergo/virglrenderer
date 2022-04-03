@@ -25,19 +25,19 @@ assert(cc.has_argument('-fsanitize=fuzzer'),
        'Fuzzer enabled but compiler does not support "-fsanitize=fuzzer"')
 
 virgl_fuzzer = executable(
-   'virgl_fuzzer',
-   'virgl_fuzzer.c',
-   c_args : [ '-fsanitize=fuzzer' ],
-   link_args : [ '-fsanitize=fuzzer' ],
-   dependencies : [libvirglrenderer_dep, gallium_dep, epoxy_dep]
+  'virgl_fuzzer',
+  'virgl_fuzzer.c',
+  c_args : [ '-fsanitize=fuzzer' ],
+  link_args : [ '-fsanitize=fuzzer' ],
+  dependencies : [libvirglrenderer_dep, gallium_dep, epoxy_dep]
 )
 
 if with_venus
-   virgl_venus_fuzzer = executable(
-      'virgl_venus_fuzzer',
-      'virgl_venus_fuzzer.c',
-      c_args : [ '-fsanitize=fuzzer' ],
-      link_args : [ '-fsanitize=fuzzer' ],
-      dependencies : [libvirglrenderer_dep]
-   )
+  virgl_venus_fuzzer = executable(
+    'virgl_venus_fuzzer',
+    'virgl_venus_fuzzer.c',
+    c_args : [ '-fsanitize=fuzzer' ],
+    link_args : [ '-fsanitize=fuzzer' ],
+    dependencies : [libvirglrenderer_dep]
+  )
 endif
