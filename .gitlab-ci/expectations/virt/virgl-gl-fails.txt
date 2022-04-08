@@ -174,17 +174,34 @@ spec@arb_es2_compatibility@texwrap formats bordercolor,Fail
 spec@arb_es2_compatibility@texwrap formats bordercolor@GL_RGB565- border color only,Fail
 spec@arb_es2_compatibility@texwrap formats bordercolor-swizzled,Fail
 spec@arb_es2_compatibility@texwrap formats bordercolor-swizzled@GL_RGB565- swizzled- border color only,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic@Basic,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic@glScissor,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic@glViewport,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic@MS4,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic@Per-sample,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-roundup-samples,Fail
 spec@arb_get_texture_sub_image@arb_get_texture_sub_image-getcompressed,Crash
 spec@arb_get_texture_sub_image@arb_get_texture_sub_image-get,Fail
 spec@arb_gpu_shader5@execution@precise@fs-fract-of-nan,Fail
+spec@arb_gpu_shader5@execution@samplemaskin-out-of-bounds,Crash
+spec@arb_gpu_shader5@execution@sampler_array_indexing@array-of-sampler-2d-array-out-of-bounds-access,Crash
+spec@arb_gpu_shader5@execution@sampler_array_indexing@array-of-sampler-2d-out-of-bounds-access,Crash
+spec@arb_occlusion_query@occlusion_query_conform,Fail
+spec@arb_occlusion_query@occlusion_query_conform@GetObjivAval_multi1,Fail
 spec@arb_occlusion_query@occlusion_query_meta_no_fragments,Fail
 spec@arb_occlusion_query@occlusion_query_meta_save,Fail
 spec@arb_point_sprite@arb_point_sprite-mipmap,Fail
 spec@arb_program_interface_query@arb_program_interface_query-getprogramresourceindex,Fail
 spec@arb_program_interface_query@arb_program_interface_query-getprogramresourceindex@'vs_input2[1][0]' on GL_PROGRAM_INPUT,Fail
 spec@arb_sample_shading@builtin-gl-sample-position 2,Fail
+spec@arb_shader_atomic_counter_ops@execution@add,Fail
+spec@arb_shader_atomic_counters@fragment-discard,Fail
+spec@arb_shader_atomic_counters@function-argument,Fail
 spec@arb_shader_image_load_store@early-z,Fail
 spec@arb_shader_image_load_store@early-z@occlusion query test/early-z pass,Fail
+spec@arb_shader_image_load_store@execution@image-array-out-of-bounds-access-load,Crash
+spec@arb_shader_image_load_store@execution@image-array-out-of-bounds-access-store,Crash
 spec@arb_shader_image_load_store@layer,Fail
 spec@arb_shader_image_load_store@layer@image2DMSArray/layered binding test,Fail
 spec@arb_shader_image_load_store@layer@image2DMSArray/non-layered binding test,Fail
@@ -200,6 +217,9 @@ spec@arb_shader_image_load_store@semantics,Fail
 spec@arb_shader_image_load_store@semantics@imageLoad/Vertex shader/rgba32f/image2DMSArray test,Fail
 spec@arb_shader_image_load_store@semantics@imageLoad/Vertex shader/rgba32f/image2DMS test,Fail
 spec@arb_shader_storage_buffer_object@execution@ssbo-atomiccompswap-int,Fail
+spec@arb_shader_storage_buffer_object@execution@ssbo-atomicexchange-int,Fail
+spec@arb_shader_storage_buffer_object@layout-std140-write-shader,Fail
+spec@arb_shader_storage_buffer_object@layout-std430-write-shader,Fail
 spec@arb_shader_storage_buffer_object@maxblocks,Fail
 spec@arb_shader_texture_lod@execution@arb_shader_texture_lod-texgrad,Fail
 spec@arb_shader_texture_lod@execution@glsl-fs-shadow2dgradarb-07,Fail
