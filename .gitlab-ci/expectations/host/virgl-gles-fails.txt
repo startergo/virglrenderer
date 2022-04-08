@@ -35,6 +35,7 @@ dEQP-GLES3.functional.fbo.blit.rect.nearest_consistency_min_reverse_src_x,Fail
 fast_color_clear@fcc-front-buffer-distraction,ExpectedFail
 shaders@glsl-fs-pointcoord,Fail
 shaders@glsl-novertexdata,Fail
+shaders@glsl-routing,Fail
 shaders@glsl-uniform-interstage-limits@subdivide 5,Fail
 shaders@glsl-uniform-interstage-limits@subdivide 5- statechanges,Fail
 shaders@point-vertex-id divisor,Fail
@@ -208,6 +209,10 @@ spec@arb_es2_compatibility@texwrap formats bordercolor,Fail
 spec@arb_es2_compatibility@texwrap formats bordercolor@GL_RGB565- border color only,Fail
 spec@arb_es2_compatibility@texwrap formats bordercolor-swizzled,Fail
 spec@arb_es2_compatibility@texwrap formats bordercolor-swizzled@GL_RGB565- swizzled- border color only,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic@Basic,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic@MS4,Fail
+spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic@Per-sample,Fail
 spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-query@Basic,Fail
 spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-query@discard,Fail
 spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-query,Fail
@@ -225,9 +230,13 @@ spec@arb_gpu_shader5@arb_gpu_shader5-minmax,Fail
 spec@arb_gpu_shader5@arb_gpu_shader5-tf-wrong-stream-value,Fail
 spec@arb_gpu_shader5@arb_gpu_shader5-xfb-streams,Fail
 spec@arb_gpu_shader5@execution@precise@fs-fract-of-nan,Fail
+spec@arb_gpu_shader5@execution@samplemaskin-out-of-bounds,Crash
+spec@arb_gpu_shader5@execution@sampler_array_indexing@array-of-sampler-2d-array-out-of-bounds-access,Crash
+spec@arb_gpu_shader5@execution@sampler_array_indexing@array-of-sampler-2d-out-of-bounds-access,Crash
 spec@arb_gpu_shader5@linker@stream-different-zero-gs-fs,Fail
 spec@arb_gpu_shader5@linker@stream-invalid-prim-output,Fail
 spec@arb_occlusion_query@occlusion_query_conform,Fail
+spec@arb_occlusion_query@occlusion_query_conform@GetObjivAval_multi1,Fail
 spec@arb_occlusion_query@occlusion_query_conform@GetObjivAval_multi2,Fail
 spec@arb_occlusion_query@occlusion_query,Fail
 spec@arb_occlusion_query@occlusion_query_meta_fragments,Fail
@@ -270,10 +279,14 @@ spec@arb_sample_shading@samplemask 4@sample mask_in_one,Fail
 spec@arb_seamless_cube_map@arb_seamless_cubemap,Fail
 spec@arb_shader_atomic_counter_ops@execution@add,Fail
 spec@arb_shader_atomic_counter_ops@execution@all_touch_test,Fail
+spec@arb_shader_atomic_counters@fragment-discard,Fail
+spec@arb_shader_atomic_counters@function-argument,Fail
 spec@arb_shader_image_load_store@early-z,ExpectedFail
 spec@arb_shader_image_load_store@early-z@occlusion query test/early-z pass,ExpectedFail
 spec@arb_shader_image_load_store@early-z@occlusion query test/late-z pass,Fail
 spec@arb_shader_image_load_store@execution@disable_early_z,Fail
+spec@arb_shader_image_load_store@execution@image-array-out-of-bounds-access-load,Crash
+spec@arb_shader_image_load_store@execution@image-array-out-of-bounds-access-store,Crash
 spec@arb_shader_image_load_store@host-mem-barrier@Atomic counter/RaW/full barrier test/16x16,Fail
 spec@arb_shader_image_load_store@host-mem-barrier@Atomic counter/RaW/full barrier test/4x4,Fail
 spec@arb_shader_image_load_store@host-mem-barrier@Atomic counter/RaW/full barrier test/64x64,Fail
@@ -403,17 +416,19 @@ spec@arb_shader_image_load_store@level,Fail
 spec@arb_shader_image_load_store@max-images@Combined max image uniforms test,Fail
 spec@arb_shader_image_load_store@max-images,Fail
 spec@arb_shader_image_load_store@max-size,Fail
-spec@arb_shader_image_load_store@max-size@image1D max size test/16384x1x1x1,Fail
 spec@arb_shader_image_load_store@max-size@image1DArray max size test/16384x8x1x1,Fail
 spec@arb_shader_image_load_store@max-size@image1DArray max size test/8x2048x1x1,Fail
+spec@arb_shader_image_load_store@max-size@image1D max size test/16384x1x1x1,Fail
 spec@arb_shader_image_load_store@restrict,Fail
 spec@arb_shader_image_load_store@restrict@no qualifier image aliasing test,Fail
 spec@arb_shader_image_load_store@semantics,Fail
 spec@arb_shader_image_load_store@semantics@imageStore/Vertex shader/rgba32f/image1D test,Fail
 spec@arb_shader_storage_buffer_object@execution@indirect,Fail
+spec@arb_shader_storage_buffer_object@execution@memory-layouts-struct-deref,Fail
 spec@arb_shader_storage_buffer_object@execution@ssbo-atomicadd-int,Fail
 spec@arb_shader_storage_buffer_object@execution@ssbo-atomiccompswap-int,ExpectedFail
 spec@arb_shader_storage_buffer_object@execution@ssbo-atomicexchange-int,Fail
+spec@arb_shader_storage_buffer_object@layout-std140-write-shader,Fail
 spec@arb_shader_storage_buffer_object@maxblocks,Fail
 spec@arb_shader_texture_lod@execution@arb_shader_texture_lod-texgradcube,ExpectedFail
 spec@arb_shader_texture_lod@execution@arb_shader_texture_lod-texgrad,ExpectedFail
@@ -643,7 +658,6 @@ spec@ext_framebuffer_multisample@upsample 2 stencil,Fail
 spec@ext_framebuffer_multisample@upsample 4 stencil,Fail
 spec@ext_framebuffer_object@fbo-alphatest-nocolor,Fail
 spec@ext_framebuffer_object@fbo-alphatest-nocolor-ff,Fail
-spec@ext_framebuffer_object@fbo-blending-format-quirks,Fail
 spec@ext_framebuffer_object@fbo-blending-formats,Fail
 spec@ext_framebuffer_object@fbo-blending-formats@GL_ALPHA12,Fail
 spec@ext_framebuffer_object@fbo-blending-formats@GL_ALPHA16,Fail
@@ -826,6 +840,8 @@ spec@glsl-1.20@execution@tex-miplevel-selection gl2:textureproj 2d,Fail
 spec@glsl-1.20@execution@tex-miplevel-selection gl2:textureproj 2d_projvec4,Fail
 spec@glsl-1.20@execution@tex-miplevel-selection gl2:textureproj 2dshadow,Fail
 spec@glsl-1.20@execution@tex-miplevel-selection gl2:textureproj 3d,Fail
+spec@glsl-1.30@execution@clipping@vs-clip-distance-out-of-bounds-access-read,Crash
+spec@glsl-1.30@execution@clipping@vs-clip-distance-out-of-bounds-access-write,Crash
 spec@glsl-1.30@execution@fs-texturelod-miplevels-biased,Fail
 spec@glsl-1.30@execution@interpolation@interpolation-mixed,Fail
 spec@glsl-1.30@execution@interpolation@interpolation-noperspective-gl_backcolor-flat-distance,Fail
