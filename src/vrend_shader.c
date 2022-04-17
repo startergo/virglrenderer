@@ -116,6 +116,7 @@ struct vrend_temp_range {
    int first;
    int last;
    int array_id;
+   bool precise_result;
 };
 
 struct vrend_shader_io {
@@ -743,6 +744,7 @@ static bool allocate_temp_range(struct vrend_temp_range **temp_ranges, uint32_t 
       (*temp_ranges)[idx].first = first;
       (*temp_ranges)[idx].last = last;
       (*temp_ranges)[idx].array_id = array_id;
+      (*temp_ranges)[idx].precise_result = false;
       (*num_temp_ranges)++;
    } else {
       int ntemps = last - first + 1;
@@ -751,6 +753,7 @@ static bool allocate_temp_range(struct vrend_temp_range **temp_ranges, uint32_t 
          (*temp_ranges)[idx + i].first = first + i;
          (*temp_ranges)[idx + i].last = first + i;
          (*temp_ranges)[idx + i].array_id = 0;
+         (*temp_ranges)[idx + i].precise_result = false;
       }
       (*num_temp_ranges) += ntemps;
 
@@ -4142,6 +4145,10 @@ get_destination_info(struct dump_ctx *ctx,
          if (!range)
             return false;
          strbuf_fmt(&dst_bufs[i], "%s%s", temp_buf, writemask);
+         if (inst->Instruction.Precise) {
+            range->precise_result |= true;
+            ctx->shader_req_bits |= SHADER_REQ_GPU_SHADER5;
+         }
       }
       else if (dst_reg->Register.File == TGSI_FILE_IMAGE) {
          const char *cname = tgsi_proc_to_prefix(ctx->prog_type);
@@ -6291,11 +6298,12 @@ static int emit_ios_common(const struct dump_ctx *ctx,
    int glsl_ver_required = ctx->glsl_ver_required;
 
    for (i = 0; i < ctx->num_temp_ranges; i++) {
-      emit_hdrf(glsl_strbufs, "vec4 temp%d[%d];\n", ctx->temp_ranges[i].first, ctx->temp_ranges[i].last - ctx->temp_ranges[i].first + 1);
+      const char *precise = ctx->temp_ranges[i].precise_result ? "precise" : "";
       if (ctx->temp_ranges[i].array_id > 0) {
-         emit_hdrf(glsl_strbufs, "vec4 temp%d[%d];\n", ctx->temp_ranges[i].first, ctx->temp_ranges[i].last - ctx->temp_ranges[i].first + 1);
+         emit_hdrf(glsl_strbufs, "%s vec4 temp%d[%d];\n", precise, ctx->temp_ranges[i].first,
+                   ctx->temp_ranges[i].last - ctx->temp_ranges[i].first + 1);
       } else {
-         emit_hdrf(glsl_strbufs, "vec4 temp%d;\n", ctx->temp_ranges[i].first);
+         emit_hdrf(glsl_strbufs, "%s vec4 temp%d;\n", precise, ctx->temp_ranges[i].first);
       }
    }
 
