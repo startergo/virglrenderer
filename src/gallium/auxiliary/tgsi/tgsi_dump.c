@@ -284,6 +284,10 @@ dump_imm_data(struct tgsi_iterate_context *iter,
       case TGSI_IMM_INT32:
          SID(data[i].Int);
          break;
+      case TGSI_IMM_FLOAT16:
+         UID(data[i].Uint);
+         break;
+
       default:
          assert( 0 );
       }

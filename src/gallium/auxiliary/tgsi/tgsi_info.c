@@ -118,8 +118,8 @@ static const struct tgsi_opcode_info opcode_info[TGSI_OPCODE_LAST] =
    { 0, 0, 0, 0, 1, 0, NONE, "ENDIF", TGSI_OPCODE_ENDIF },
    { 1, 1, 0, 0, 0, 0, COMP, "DDX_FINE", TGSI_OPCODE_DDX_FINE },
    { 1, 1, 0, 0, 0, 0, COMP, "DDY_FINE", TGSI_OPCODE_DDY_FINE },
-   { 0, 0, 0, 0, 0, 0, NONE, "", 81 },      /* removed */
-   { 0, 0, 0, 0, 0, 0, NONE, "", 82 },      /* removed */
+   { 1, 1, 0, 0, 0, 0, NONE, "F16TOF32", TGSI_OPCODE_F16TOF32 },
+   { 1, 1, 0, 0, 0, 0, NONE, "F32TOF16", TGSI_OPCODE_F32TOF16 },
    { 1, 1, 0, 0, 0, 0, COMP, "CEIL", TGSI_OPCODE_CEIL },
    { 1, 1, 0, 0, 0, 0, COMP, "I2F", TGSI_OPCODE_I2F },
    { 1, 1, 0, 0, 0, 0, COMP, "NOT", TGSI_OPCODE_NOT },

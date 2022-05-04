@@ -85,6 +85,7 @@ enum tgsi_file_type {
    TGSI_FILE_BUFFER,
    TGSI_FILE_MEMORY,
    TGSI_FILE_HW_ATOMIC,
+   TGSI_FILE_TEMP_MEDP,
    TGSI_FILE_COUNT      /**< how many TGSI_FILE_ types */
 };
 
@@ -267,6 +268,7 @@ enum tgsi_imm_type {
    TGSI_IMM_FLOAT64,
    TGSI_IMM_UINT64,
    TGSI_IMM_INT64,
+   TGSI_IMM_FLOAT16,
 };
 
 struct tgsi_immediate
@@ -434,7 +436,8 @@ enum tgsi_opcode {
    TGSI_OPCODE_ENDIF              = 78,
    TGSI_OPCODE_DDX_FINE           = 79,
    TGSI_OPCODE_DDY_FINE           = 80,
-                                /* gap */
+   TGSI_OPCODE_F16TOF32           = 81,
+   TGSI_OPCODE_F32TOF16           = 82,
    TGSI_OPCODE_CEIL               = 83,
    TGSI_OPCODE_I2F                = 84,
    TGSI_OPCODE_NOT                = 85,

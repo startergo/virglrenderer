@@ -59,6 +59,7 @@ static const char *tgsi_file_names[] =
    "BUFFER",
    "MEMORY",
    "HWATOMIC",
+   "TEMP_MEDP",
 };
 
 const char *tgsi_semantic_names[TGSI_SEMANTIC_COUNT] =
@@ -213,7 +214,7 @@ const char *tgsi_fs_coord_pixel_center_names[2] =
    "INTEGER"
 };
 
-const char *tgsi_immediate_type_names[6] =
+const char *tgsi_immediate_type_names[7] =
 {
    "FLT32",
    "UINT32",
@@ -221,6 +222,7 @@ const char *tgsi_immediate_type_names[6] =
    "FLT64",
    "UINT64",
    "INT64",
+   "FLT16",
 };
 
 const char *tgsi_memory_names[3] =
