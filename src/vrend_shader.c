@@ -206,7 +206,9 @@ struct dump_ctx {
    struct vrend_patch_ios patch_ios;
 
    uint32_t num_temp_ranges;
+   uint32_t num_temp_mediump_ranges;
    struct vrend_temp_range *temp_ranges;
+   struct vrend_temp_range *temp_mediump_ranges;
 
    struct vrend_shader_sampler samplers[32];
    uint32_t samplers_used;
@@ -761,6 +763,18 @@ static struct vrend_temp_range *find_temp_range(const struct dump_ctx *ctx, int 
    }
    return NULL;
 }
+
+static struct vrend_temp_range *find_temp_mediump_range(const struct dump_ctx *ctx, int index)
+{
+   uint32_t i;
+   for (i = 0; i < ctx->num_temp_mediump_ranges; i++) {
+      if (index >= ctx->temp_mediump_ranges[i].first &&
+          index <= ctx->temp_mediump_ranges[i].last)
+         return &ctx->temp_mediump_ranges[i];
+   }
+   return NULL;
+}
+
 
 static bool samplertype_is_shadow(int sampler_type)
 {
@@ -1726,6 +1740,11 @@ iter_declaration(struct tgsi_iterate_context *iter,
                                decl->Array.ArrayID))
          return false;
       break;
+   case TGSI_FILE_TEMP_MEDP:
+      if (!allocate_temp_range(&ctx->temp_mediump_ranges, &ctx->num_temp_mediump_ranges, decl->Range.First, decl->Range.Last,
+                                       decl->Array.ArrayID))
+         return false;
+      break;
    case TGSI_FILE_SAMPLER:
       ctx->samplers_used |= (1 << decl->Range.Last);
       break;
@@ -1984,6 +2003,8 @@ iter_immediate(struct tgsi_iterate_context *iter,
       } else if (imm->Immediate.DataType == TGSI_IMM_INT32) {
          ctx->shader_req_bits |= SHADER_REQ_INTS;
          ctx->imm[first].val[i].i = imm->u[i].Int;
+      } else if (imm->Immediate.DataType == TGSI_IMM_FLOAT16) {
+         ctx->imm[first].val[i].ui = imm->u[i].Uint;
       }
    }
    ctx->num_imm++;
@@ -4139,6 +4160,15 @@ get_destination_info(struct dump_ctx *ctx,
          } else
             strbuf_fmt(&dst_bufs[i], "temp%d[%d]%s", range->first, dst_reg->Register.Index - range->first, writemask);
       }
+      else if (dst_reg->Register.File == TGSI_FILE_TEMP_MEDP) {
+         struct vrend_temp_range *range = find_temp_mediump_range(ctx, dst_reg->Register.Index);
+         if (!range)
+            return false;
+         if (dst_reg->Register.Indirect) {
+            strbuf_fmt(&dst_bufs[i], "temp_medp%d[addr0 + %d]%s", range->first, dst_reg->Register.Index - range->first, writemask);
+         } else
+            strbuf_fmt(&dst_bufs[i], "temp_medp%d[%d]%s", range->first, dst_reg->Register.Index - range->first, writemask);
+      }
       else if (dst_reg->Register.File == TGSI_FILE_IMAGE) {
          const char *cname = tgsi_proc_to_prefix(ctx->prog_type);
 	 if (ctx->info.indirect_files & (1 << TGSI_FILE_IMAGE)) {
@@ -4290,6 +4320,35 @@ static void get_source_swizzle(const struct tgsi_full_src_register *src, char sw
    }
 
    *swizzle++ = 0;
+}
+
+/* Stolen from _mesa_half_to_float_slow */
+static void
+uint16_to_float(char *buf, int buf_size, unsigned int val)
+{
+   union fi infnan;
+   union fi magic;
+   union fi f32;
+
+   infnan.ui = 0x8f << 23;
+   infnan.f = 65536.0f;
+   magic.ui  = 0xef << 23;
+
+   /* Exponent / Mantissa */
+   f32.ui = (val & 0x7fff) << 13;
+
+   /* Adjust */
+   f32.f *= magic.f;
+   /* XXX: The magic mul relies on denorms being available */
+
+   /* Inf / NaN */
+   if (f32.f >= infnan.f) {
+      snprintf(buf, buf_size, "uintBitsToFloat(0x%xu)", (0xff << 23) | val << 16);
+   } else {
+      /* Sign */
+      f32.ui |= (uint32_t)(val & 0x8000) << 16;
+      snprintf(buf, buf_size, "%f", f32.f);
+   }
 }
 
 // TODO Consider exposing non-const ctx-> members as args to make *ctx const
@@ -4507,7 +4566,22 @@ get_source_info(struct dump_ctx *ctx,
             strbuf_fmt(src_buf, "%s%c%stemp%d[addr%d + %d]%s%c", get_string(stypeprefix), stprefix ? '(' : ' ', prefix, range->first, src->Indirect.Index, src->Register.Index - range->first, swizzle, stprefix ? ')' : ' ');
          } else
             strbuf_fmt(src_buf, "%s%c%stemp%d[%d]%s%c", get_string(stypeprefix), stprefix ? '(' : ' ', prefix, range->first, src->Register.Index - range->first, swizzle, stprefix ? ')' : ' ');
-      } else if (src->Register.File == TGSI_FILE_CONSTANT) {
+      } else if (src->Register.File == TGSI_FILE_TEMP_MEDP) {
+         struct vrend_temp_range *range = find_temp_mediump_range(ctx, src->Register.Index);
+         if (!range)
+            return false;
+         if (inst->Instruction.Opcode == TGSI_OPCODE_INTERP_SAMPLE && i == 1) {
+            stprefix = true;
+            stypeprefix = FLOAT_BITS_TO_INT;
+         }
+
+         if (src->Register.Indirect) {
+            assert(src->Indirect.File == TGSI_FILE_ADDRESS);
+            strbuf_fmt(src_buf, "%s%c%stemp_medp%d[addr%d + %d]%s%c", get_string(stypeprefix), stprefix ? '(' : ' ', prefix, range->first, src->Indirect.Index, src->Register.Index - range->first, swizzle, stprefix ? ')' : ' ');
+         } else
+            strbuf_fmt(src_buf, "%s%c%stemp_medp%d[%d]%s%c", get_string(stypeprefix), stprefix ? '(' : ' ', prefix, range->first, src->Register.Index - range->first, swizzle, stprefix ? ')' : ' ');
+      }
+      else if (src->Register.File == TGSI_FILE_CONSTANT) {
          const char *cname = tgsi_proc_to_prefix(ctx->prog_type);
          int dim = 0;
          if (src->Register.Dimension && src->Dimension.Index != 0) {
@@ -4669,6 +4743,10 @@ get_source_info(struct dump_ctx *ctx,
             case TGSI_IMM_FLOAT64:
                snprintf(temp, 48, "%uU", imd->val[idx].ui);
                break;
+            case TGSI_IMM_FLOAT16:
+               uint16_to_float(temp, 48, imd->val[idx].ui);
+               break;
+
             default:
                vrend_printf( "unhandled imm type: %x\n", imd->type);
                return false;
@@ -5437,6 +5515,8 @@ iter_instruction(struct tgsi_iterate_context *iter,
       emit_buff(&ctx->glsl_strbufs, "%s = %s(inversesqrt(%s.x));\n", dsts[0], get_string(dinfo.dstconv), srcs[0]);
       break;
    case TGSI_OPCODE_FBFETCH:
+   case TGSI_OPCODE_F16TOF32:
+   case TGSI_OPCODE_F32TOF16:
    case TGSI_OPCODE_MOV:
       emit_buff(&ctx->glsl_strbufs, "%s = %s(%s(%s%s));\n", dsts[0], get_string(dinfo.dstconv), get_string(dinfo.dtypeprefix), srcs[0], sinfo.override_no_wm[0] ? "" : writemask);
       break;
@@ -5936,6 +6016,8 @@ static void emit_header(const struct dump_ctx *ctx, struct vrend_glsl_strbufs *g
       emit_hdr(glsl_strbufs, "precision highp float;\n");
       emit_hdr(glsl_strbufs, "precision highp int;\n");
    } else {
+      emit_hdr(glsl_strbufs, "#define highp\n");
+      emit_hdr(glsl_strbufs, "#define mediump\n");
       if (ctx->prog_type == TGSI_PROCESSOR_COMPUTE) {
          emit_ver_ext(glsl_strbufs, "#version 330\n");
          emit_ext(glsl_strbufs, "ARB_compute_shader", "require");
@@ -6290,7 +6372,11 @@ static int emit_ios_common(const struct dump_ctx *ctx,
    int glsl_ver_required = ctx->glsl_ver_required;
 
    for (i = 0; i < ctx->num_temp_ranges; i++) {
-      emit_hdrf(glsl_strbufs, "vec4 temp%d[%d];\n", ctx->temp_ranges[i].first, ctx->temp_ranges[i].last - ctx->temp_ranges[i].first + 1);
+      emit_hdrf(glsl_strbufs, "highp vec4 temp%d[%d];\n", ctx->temp_ranges[i].first, ctx->temp_ranges[i].last - ctx->temp_ranges[i].first + 1);
+   }
+
+   for (i = 0; i < ctx->num_temp_mediump_ranges; i++) {
+      emit_hdrf(glsl_strbufs, "mediump vec4 temp_medp%d[%d];\n", ctx->temp_mediump_ranges[i].first, ctx->temp_mediump_ranges[i].last - ctx->temp_mediump_ranges[i].first + 1);
    }
 
    if (ctx->write_mul_utemp) {
@@ -7625,6 +7711,7 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
       goto fail;
 
    free(ctx.temp_ranges);
+   free(ctx.temp_mediump_ranges);
 
    fill_sinfo(&ctx, sinfo);
    fill_var_sinfo(&ctx, var_sinfo);
@@ -7664,6 +7751,7 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
    strbuf_free(&ctx.glsl_strbufs.glsl_ver_ext);
    free(ctx.so_names);
    free(ctx.temp_ranges);
+   free(ctx.temp_mediump_ranges);
    return false;
 }
 
@@ -7671,7 +7759,7 @@ static void replace_interp(struct vrend_strarray *program,
                            const char *var_name,
                            const char *pstring, const char *auxstring)
 {
-   int mylen = strlen(INTERP_PREFIX) + strlen("out float ");
+   int mylen = strlen(INTERP_PREFIX) + strlen("  out highp float ");
 
    char *ptr = program->strings[SHADER_STRING_HDR].buf;
    do {
@@ -7979,6 +8067,7 @@ fail:
    strbuf_free(&ctx.glsl_strbufs.glsl_ver_ext);
    free(ctx.so_names);
    free(ctx.temp_ranges);
+   free(ctx.temp_mediump_ranges);
    return false;
 }
 
