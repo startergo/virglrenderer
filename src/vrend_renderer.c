@@ -12573,6 +12573,7 @@ static void vrend_renderer_fill_caps_v2(int gl_ver, int gles_ver,  union virgl_c
    /* We want to expose ARB_gpu_shader_fp64 when running on top of ES */
    if (vrend_state.use_gles) {
       caps->v2.capability_bits |= VIRGL_CAP_HOST_IS_GLES;
+      caps->v2.capability_bits_v2 |= VIRGL_CAP_V2_SUPPORTS_FP16;
    }
 
    if (has_feature(feat_indirect_draw))
