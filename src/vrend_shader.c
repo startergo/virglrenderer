@@ -228,7 +228,9 @@ struct dump_ctx {
    struct vrend_patch_ios patch_ios;
 
    uint32_t num_temp_ranges;
+   uint32_t num_temp16_ranges;
    struct vrend_temp_range *temp_ranges;
+   struct vrend_temp_range *temp16_ranges;
 
    struct vrend_shader_sampler samplers[32];
    uint32_t samplers_used;
@@ -817,6 +819,18 @@ static struct vrend_temp_range *find_temp_range(const struct dump_ctx *ctx, int 
    }
    return NULL;
 }
+
+static struct vrend_temp_range *find_temp_mediump_range(const struct dump_ctx *ctx, int index)
+{
+   uint32_t i;
+   for (i = 0; i < ctx->num_temp16_ranges; i++) {
+      if (index >= ctx->temp16_ranges[i].first &&
+          index <= ctx->temp16_ranges[i].last)
+         return &ctx->temp16_ranges[i];
+   }
+   return NULL;
+}
+
 
 static bool samplertype_is_shadow(int sampler_type)
 {
@@ -1892,6 +1906,11 @@ iter_declaration(struct tgsi_iterate_context *iter,
                                decl->Array.ArrayID))
          return false;
       break;
+   case TGSI_FILE_TEMPORARY16:
+      if (!allocate_temp_range(&ctx->temp16_ranges, &ctx->num_temp16_ranges, decl->Range.First, decl->Range.Last,
+                                       decl->Array.ArrayID))
+         return false;
+      break;
    case TGSI_FILE_SAMPLER:
       ctx->samplers_used |= (1 << decl->Range.Last);
       break;
@@ -2154,9 +2173,13 @@ iter_immediate(struct tgsi_iterate_context *iter,
          ctx->shader_req_bits |= SHADER_REQ_INTS;
          ctx->imm[first].val[i].i = imm->u[i].Int;
          break;
+      case TGSI_IMM_FLOAT16:
+         ctx->imm[first].val[i].ui = imm->u[i].Uint;
+         break;
       default:
          virgl_error("Unhandled immediate type, ignoring: %x\n", imm->Immediate.DataType);
          break;
+
       }
    }
    ctx->num_imm++;
@@ -4488,6 +4511,16 @@ get_destination_info(struct dump_ctx *ctx,
          }
          break;
       }
+      case  TGSI_FILE_TEMPORARY16: {
+         struct vrend_temp_range *range = find_temp_mediump_range(ctx, dst_reg->Register.Index);
+         if (!range)
+            return false;
+         if (dst_reg->Register.Indirect) {
+            strbuf_fmt(&dst_bufs[i], "temp_medp%d[addr0 + %d]%s", range->first, dst_reg->Register.Index - range->first, writemask);
+         } else
+            strbuf_fmt(&dst_bufs[i], "temp_medp%d[%d]%s", range->first, dst_reg->Register.Index - range->first, writemask);
+         break;
+      }
       case TGSI_FILE_IMAGE: {
          const char *cname = tgsi_proc_to_prefix(ctx->prog_type);
          if (ctx->info.indirect_files & (1 << TGSI_FILE_IMAGE)) {
@@ -4649,6 +4682,35 @@ static void get_source_swizzle(const struct tgsi_full_src_register *src, char sw
    }
 
    *swizzle++ = 0;
+}
+
+/* Stolen from _mesa_half_to_float_slow */
+static void
+uint16_to_float(char *buf, int buf_size, unsigned int val)
+{
+   union fi infnan;
+   union fi magic;
+   union fi f32;
+
+   infnan.ui = 0x8f << 23;
+   infnan.f = 65536.0f;
+   magic.ui  = 0xef << 23;
+
+   /* Exponent / Mantissa */
+   f32.ui = (val & 0x7fff) << 13;
+
+   /* Adjust */
+   f32.f *= magic.f;
+   /* XXX: The magic mul relies on denorms being available */
+
+   /* Inf / NaN */
+   if (f32.f >= infnan.f) {
+      snprintf(buf, buf_size, "uintBitsToFloat(0x%xu)", (0xff << 23) | val << 16);
+   } else {
+      /* Sign */
+      f32.ui |= (uint32_t)(val & 0x8000) << 16;
+      snprintf(buf, buf_size, "%f", f32.f);
+   }
 }
 
 // TODO Consider exposing non-const ctx-> members as args to make *ctx const
@@ -4868,6 +4930,22 @@ get_source_info(struct dump_ctx *ctx,
          strbuf_fmt(src_buf, "%s%cvec4(%s%s)%s%c", get_string(stypeprefix), stprefix ? '(' : ' ', prefix, temp_buf, swizzle, stprefix ? ')' : ' ');
          break;
       }
+      case TGSI_FILE_TEMPORARY16: {
+         struct vrend_temp_range *range = find_temp_mediump_range(ctx, src->Register.Index);
+         if (!range)
+            return false;
+         if (inst->Instruction.Opcode == TGSI_OPCODE_INTERP_SAMPLE && i == 1) {
+            stprefix = true;
+            stypeprefix = FLOAT_BITS_TO_INT;
+         }
+
+         if (src->Register.Indirect) {
+            assert(src->Indirect.File == TGSI_FILE_ADDRESS);
+            strbuf_fmt(src_buf, "%s%c%stemp_medp%d[addr%d + %d]%s%c", get_string(stypeprefix), stprefix ? '(' : ' ', prefix, range->first, src->Indirect.Index, src->Register.Index - range->first, swizzle, stprefix ? ')' : ' ');
+         } else
+            strbuf_fmt(src_buf, "%s%c%stemp_medp%d[%d]%s%c", get_string(stypeprefix), stprefix ? '(' : ' ', prefix, range->first, src->Register.Index - range->first, swizzle, stprefix ? ')' : ' ');
+         break;
+      }
       case TGSI_FILE_CONSTANT: {
          const char *cname = tgsi_proc_to_prefix(ctx->prog_type);
          int dim = 0;
@@ -4961,113 +5039,117 @@ get_source_info(struct dump_ctx *ctx,
          sinfo->sreg_index = src->Register.Index;
          break;
       case TGSI_FILE_IMMEDIATE: {
-            if (unlikely((unsigned) src->Register.Index >= MAX_IMMEDIATE)) {
-               virgl_error("Immediate exceeded, max is %u\n", MAX_IMMEDIATE);
-               return false;
-            }
-            struct immed *imd = &ctx->imm[src->Register.Index];
-            int idx = src->Register.SwizzleX;
-            char temp[48];
-            enum vrend_type_qualifier vtype = VEC4;
-            enum vrend_type_qualifier imm_stypeprefix = stypeprefix;
+         if (unlikely((unsigned) src->Register.Index >= MAX_IMMEDIATE)) {
+            virgl_error("Immediate exceeded, max is %u\n", MAX_IMMEDIATE);
+            return false;
+         }
+         struct immed *imd = &ctx->imm[src->Register.Index];
+         int idx = src->Register.SwizzleX;
+         char temp[48];
+         enum vrend_type_qualifier vtype = VEC4;
+         enum vrend_type_qualifier imm_stypeprefix = stypeprefix;
 
-            if ((inst->Instruction.Opcode == TGSI_OPCODE_TG4 && i == 1) ||
-                (inst->Instruction.Opcode == TGSI_OPCODE_INTERP_SAMPLE && i == 1))
-               stype = TGSI_TYPE_SIGNED;
+         if ((inst->Instruction.Opcode == TGSI_OPCODE_TG4 && i == 1) ||
+             (inst->Instruction.Opcode == TGSI_OPCODE_INTERP_SAMPLE && i == 1))
+            stype = TGSI_TYPE_SIGNED;
+
+         switch (imd->type) {
+         case TGSI_IMM_INT32:
+            vtype = IVEC4;
+            if (stype == TGSI_TYPE_SIGNED)
+               imm_stypeprefix = TYPE_CONVERSION_NONE;
+            else if (stype == TGSI_TYPE_UNSIGNED)
+               imm_stypeprefix = UVEC4;
+            else if (stype == TGSI_TYPE_FLOAT || stype == TGSI_TYPE_UNTYPED)
+               imm_stypeprefix = INT_BITS_TO_FLOAT;
+            break;
+         case TGSI_IMM_UINT32:
+            vtype = UVEC4;
+            if (stype == TGSI_TYPE_UNSIGNED)
+               imm_stypeprefix = TYPE_CONVERSION_NONE;
+            else if (stype == TGSI_TYPE_SIGNED)
+               imm_stypeprefix = IVEC4;
+            else if (stype == TGSI_TYPE_FLOAT || stype == TGSI_TYPE_UNTYPED)
+               imm_stypeprefix = UINT_BITS_TO_FLOAT;
+            break;
+         case TGSI_IMM_FLOAT64:
+            vtype = UVEC4;
+            if (stype == TGSI_TYPE_DOUBLE)
+               imm_stypeprefix = TYPE_CONVERSION_NONE;
+            else
+               imm_stypeprefix = UINT_BITS_TO_FLOAT;
+            break;
+         case TGSI_IMM_FLOAT16:
+            vtype = UVEC4;
+            if (stype == TGSI_TYPE_FLOAT)
+               imm_stypeprefix = TYPE_CONVERSION_NONE;
+            else
+               imm_stypeprefix = UINT_BITS_TO_FLOAT;
+            break;
+
+         case TGSI_IMM_INT64:
+         case TGSI_IMM_UINT64:
+         case TGSI_IMM_FLOAT32:
+            break;
+         }
+
+         /* build up a vec4 of immediates */
+         strbuf_fmt(src_buf, "%s%s(%s(", prefix,
+                    get_string(imm_stypeprefix), get_string(vtype));
+
+         for (uint32_t j = 0; j < 4; j++) {
+            if (j == 0)
+               idx = src->Register.SwizzleX;
+            else if (j == 1)
+               idx = src->Register.SwizzleY;
+            else if (j == 2)
+               idx = src->Register.SwizzleZ;
+            else if (j == 3)
+               idx = src->Register.SwizzleW;
+
+            if (inst->Instruction.Opcode == TGSI_OPCODE_TG4 && i == 1 && j == 0) {
+               if (imd->val[idx].ui > 0) {
+                  sinfo->tg4_has_component = true;
+                  if (!ctx->cfg->use_gles)
+                     ctx->shader_req_bits |= SHADER_REQ_GPU_SHADER5;
+               }
+            }
 
             switch (imd->type) {
-            case TGSI_IMM_INT32:
-               vtype = IVEC4;
-               if (stype == TGSI_TYPE_SIGNED)
-                  imm_stypeprefix = TYPE_CONVERSION_NONE;
-               else if (stype == TGSI_TYPE_UNSIGNED)
-                  imm_stypeprefix = UVEC4;
-               else if (stype == TGSI_TYPE_FLOAT || stype == TGSI_TYPE_UNTYPED)
-                  imm_stypeprefix = INT_BITS_TO_FLOAT;
+            case TGSI_IMM_FLOAT32:
+               if (isinf(imd->val[idx].f) || isnan(imd->val[idx].f)) {
+                  ctx->shader_req_bits |= SHADER_REQ_INTS;
+                  snprintf(temp, 48, "uintBitsToFloat(%uU)", imd->val[idx].ui);
+               } else
+                  snprintf(temp, 25, "%.8g", imd->val[idx].f);
                break;
             case TGSI_IMM_UINT32:
-               vtype = UVEC4;
-               if (stype == TGSI_TYPE_UNSIGNED)
-                  imm_stypeprefix = TYPE_CONVERSION_NONE;
-               else if (stype == TGSI_TYPE_SIGNED)
-                  imm_stypeprefix = IVEC4;
-               else if (stype == TGSI_TYPE_FLOAT || stype == TGSI_TYPE_UNTYPED)
-                  imm_stypeprefix = UINT_BITS_TO_FLOAT;
+               snprintf(temp, 25, "%uU", imd->val[idx].ui);
                break;
-            case TGSI_IMM_FLOAT64:
-               vtype = UVEC4;
-               if (stype == TGSI_TYPE_DOUBLE)
-                  imm_stypeprefix = TYPE_CONVERSION_NONE;
-               else
-                  imm_stypeprefix = UINT_BITS_TO_FLOAT;
-               break;
-            case TGSI_IMM_FLOAT16:
-               vtype = UVEC4;
-               if (stype == TGSI_TYPE_FLOAT)
-                  imm_stypeprefix = TYPE_CONVERSION_NONE;
-               else
-                  imm_stypeprefix = UINT_BITS_TO_FLOAT;
-               break;
-
-            case TGSI_IMM_INT64:
-            case TGSI_IMM_UINT64:
-            case TGSI_IMM_FLOAT32:
-               break;
-            }
-
-            /* build up a vec4 of immediates */
-            strbuf_fmt(src_buf, "%s%s(%s(", prefix,
-                       get_string(imm_stypeprefix), get_string(vtype));
-
-            for (uint32_t j = 0; j < 4; j++) {
-               if (j == 0)
-                  idx = src->Register.SwizzleX;
-               else if (j == 1)
-                  idx = src->Register.SwizzleY;
-               else if (j == 2)
-                  idx = src->Register.SwizzleZ;
-               else if (j == 3)
-                  idx = src->Register.SwizzleW;
-
-               if (inst->Instruction.Opcode == TGSI_OPCODE_TG4 && i == 1 && j == 0) {
-                  if (imd->val[idx].ui > 0) {
-                     sinfo->tg4_has_component = true;
-                     if (!ctx->cfg->use_gles)
-                        ctx->shader_req_bits |= SHADER_REQ_GPU_SHADER5;
-                  }
-               }
-
-               switch (imd->type) {
-               case TGSI_IMM_FLOAT32:
-                  if (isinf(imd->val[idx].f) || isnan(imd->val[idx].f)) {
-                     ctx->shader_req_bits |= SHADER_REQ_INTS;
-                     snprintf(temp, 48, "uintBitsToFloat(%uU)", imd->val[idx].ui);
-                  } else
-                     snprintf(temp, 25, "%.8g", imd->val[idx].f);
-                  break;
-               case TGSI_IMM_UINT32:
-                  snprintf(temp, 25, "%uU", imd->val[idx].ui);
-                  break;
-               case TGSI_IMM_INT32:
+            case TGSI_IMM_INT32:
                   snprintf(temp, 25, "%d", imd->val[idx].i);
                   sinfo->imm_value = imd->val[idx].i;
                   break;
-               case TGSI_IMM_FLOAT64:
-                  snprintf(temp, 48, "%uU", imd->val[idx].ui);
+            case TGSI_IMM_FLOAT64:
+               snprintf(temp, 48, "%uU", imd->val[idx].ui);
                   break;
-               default:
-                  virgl_error("Unhandled imm type: %x\n", imd->type);
-                  return false;
-               }
-               strbuf_append(src_buf, temp);
-               if (j < 3)
-                  strbuf_append(src_buf, ",");
-               else {
-                  snprintf(temp, 4, "))%c", isfloatabsolute ? ')' : 0);
-                  strbuf_append(src_buf, temp);
-               }
+            case TGSI_IMM_FLOAT16:
+               uint16_to_float(temp, 48, imd->val[idx].ui);
+               break;
+            default:
+               virgl_error("Unhandled imm type: %x\n", imd->type);
+               return false;
             }
-      }  break;
+            strbuf_append(src_buf, temp);
+            if (j < 3)
+               strbuf_append(src_buf, ",");
+            else {
+               snprintf(temp, 4, "))%c", isfloatabsolute ? ')' : 0);
+               strbuf_append(src_buf, temp);
+            }
+         }
+         break;
+      }
       case  TGSI_FILE_SYSTEM_VALUE: {
          bool sysvalue_found = false;
          for (uint32_t j = 0; j < ctx->num_system_values; j++) {
@@ -5739,6 +5821,8 @@ iter_instruction(struct tgsi_iterate_context *iter,
       emit_buff(&ctx->glsl_strbufs, "%s = %s(inversesqrt(%s.x));\n", dsts[0], get_string(dinfo.dstconv), srcs[0]);
       break;
    case TGSI_OPCODE_FBFETCH:
+   case TGSI_OPCODE_F16TOF32:
+   case TGSI_OPCODE_F32TOF16:
    case TGSI_OPCODE_MOV:
       emit_buff(&ctx->glsl_strbufs, "%s = %s(%s(%s%s));\n", dsts[0], get_string(dinfo.dstconv), get_string(dinfo.dtypeprefix), srcs[0], sinfo.override_no_wm[0] ? "" : writemask);
       break;
@@ -6274,6 +6358,8 @@ static void emit_header(const struct dump_ctx *ctx, struct vrend_glsl_strbufs *g
       emit_hdr(glsl_strbufs, "precision highp float;\n");
       emit_hdr(glsl_strbufs, "precision highp int;\n");
    } else {
+      emit_hdr(glsl_strbufs, "#define highp\n");
+      emit_hdr(glsl_strbufs, "#define mediump\n");
       if (ctx->prog_type == TGSI_PROCESSOR_COMPUTE) {
          emit_ver_ext(glsl_strbufs, "#version 330\n");
          emit_ext(glsl_strbufs, "ARB_compute_shader", "require");
@@ -6647,15 +6733,19 @@ static int emit_ios_common(const struct dump_ctx *ctx,
    for (i = 0; i < ctx->num_temp_ranges; i++) {
       const char *precise = ctx->temp_ranges[i].precise_result ? "precise" : "";
       if (ctx->temp_ranges[i].array_id > 0) {
-         emit_hdrf(glsl_strbufs, "%s vec4 temp%d[%d];\n", precise, ctx->temp_ranges[i].first,
+         emit_hdrf(glsl_strbufs, "%s highp vec4 temp%d[%d];\n", precise, ctx->temp_ranges[i].first,
                    ctx->temp_ranges[i].last - ctx->temp_ranges[i].first + 1);
       } else {
-         emit_hdrf(glsl_strbufs, "%s vec4 temp%d;\n", precise, ctx->temp_ranges[i].first);
+         emit_hdrf(glsl_strbufs, "%s highp vec4 temp%d;\n", precise, ctx->temp_ranges[i].first);
       }
    }
 
    if (ctx->require_dummy_value)
       emit_hdr(glsl_strbufs, "vec4 dummy_value = vec4(0.0, 0.0, 0.0, 0.0);\n");
+
+   for (i = 0; i < ctx->num_temp16_ranges; i++) {
+      emit_hdrf(glsl_strbufs, "mediump vec4 temp_medp%d[%d];\n", ctx->temp16_ranges[i].first, ctx->temp16_ranges[i].last - ctx->temp16_ranges[i].first + 1);
+   }
 
    if (ctx->write_mul_utemp) {
       emit_hdr(glsl_strbufs, "uvec4 mul_utemp;\n");
@@ -8240,6 +8330,7 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
       goto fail;
 
    free(ctx.temp_ranges);
+   free(ctx.temp16_ranges);
 
    fill_sinfo(&ctx, sinfo);
    fill_var_sinfo(&ctx, var_sinfo);
@@ -8259,6 +8350,7 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
    strbuf_free(&ctx.glsl_strbufs.glsl_ver_ext);
    free(ctx.so_names);
    free(ctx.temp_ranges);
+   free(ctx.temp16_ranges);
    return false;
 }
 
@@ -8462,6 +8554,7 @@ fail:
    strbuf_free(&ctx.glsl_strbufs.glsl_ver_ext);
    free(ctx.so_names);
    free(ctx.temp_ranges);
+   free(ctx.temp16_ranges);
    return false;
 }
 
