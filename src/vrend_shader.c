@@ -365,6 +365,14 @@ static const struct vrend_shader_table shader_req_table[] = {
     { SHADER_REQ_EXPLICIT_UNIFORM_LOCATION, "ARB_explicit_uniform_location"},
 };
 
+const char *sysval_uniform_decl[] = {
+   [UNIFORM_WINSYS_ADJUST_Y] = "uniform highp float winsys_adjust_y;\n",
+   [UNIFORM_CLIP_PLANE] = "uniform bool clip_plane_enabled; uniform highp vec4 clipp[8];\n",
+   [UNIFORM_ALPHA_REF_VAL] = "uniform highp float alpha_ref_val;\n",
+   [UNIFORM_PSTIPPLE_SAMPLER] = "uniform highp sampler2D pstipple_sampler;\n",
+};
+
+
 enum vrend_type_qualifier {
    TYPE_CONVERSION_NONE = 0,
    FLOAT = 1,
@@ -6771,7 +6779,7 @@ static int emit_ios_common(const struct dump_ctx *ctx,
    }
    if (ctx->num_consts) {
       const char *cname = tgsi_proc_to_prefix(ctx->prog_type);
-      emit_hdrf(glsl_strbufs, "uniform uvec4 %sconst0[%d];\n", cname, ctx->num_consts);
+      emit_hdrf(glsl_strbufs, "uniform highp uvec4 %sconst0[%d];\n", cname, ctx->num_consts);
    }
 
    if (ctx->ubo_used_mask) {
@@ -6781,12 +6789,12 @@ static int emit_ios_common(const struct dump_ctx *ctx,
          glsl_ver_required = require_glsl_ver(ctx, 150);
          int first = ffs(ctx->ubo_used_mask) - 1;
          unsigned num_ubo = util_bitcount(ctx->ubo_used_mask);
-         emit_hdrf(glsl_strbufs, "uniform %subo { vec4 ubocontents[%d]; } %suboarr[%d];\n", cname, ctx->ubo_sizes[first], cname, num_ubo);
+         emit_hdrf(glsl_strbufs, "uniform %subo { highp vec4 ubocontents[%d]; } %suboarr[%d];\n", cname, ctx->ubo_sizes[first], cname, num_ubo);
       } else {
          unsigned mask = ctx->ubo_used_mask;
          while (mask) {
             uint32_t i = u_bit_scan(&mask);
-            emit_hdrf(glsl_strbufs, "uniform %subo%d { vec4 %subo%dcontents[%d]; };\n", cname, i, cname, i, ctx->ubo_sizes[i]);
+            emit_hdrf(glsl_strbufs, "uniform %subo%d { highp vec4 %subo%dcontents[%d]; };\n", cname, i, cname, i, ctx->ubo_sizes[i]);
          }
       }
    }
@@ -6862,14 +6870,14 @@ static void emit_ios_streamout(const struct dump_ctx *ctx,
                                struct vrend_glsl_strbufs *glsl_strbufs)
 {
    if (ctx->so) {
-      char outtype[6] = "";
+      char outtype[20] = "";
       for (uint32_t i = 0; i < ctx->so->num_outputs; i++) {
          if (!ctx->write_so_outputs[i])
             continue;
          if (ctx->so->output[i].num_components == 1)
-            snprintf(outtype, 6, "float");
+            snprintf(outtype, 20, "highp float");
          else
-            snprintf(outtype, 6, "vec%d", ctx->so->output[i].num_components);
+            snprintf(outtype, 20, "highp vec%d", ctx->so->output[i].num_components);
 
          if (ctx->so->output[i].stream && ctx->prog_type == TGSI_PROCESSOR_GEOMETRY)
             emit_hdrf(glsl_strbufs, "layout (stream=%d) out %s tfout%d;\n", ctx->so->output[i].stream, outtype, i);
@@ -6887,6 +6895,11 @@ static void emit_ios_streamout(const struct dump_ctx *ctx,
          }
       }
    }
+}
+
+static inline void emit_winsys_correction(struct vrend_glsl_strbufs *glsl_strbufs)
+{
+   emit_hdr(glsl_strbufs, "uniform highp float winsys_adjust_y;\n");
 }
 
 static void emit_ios_indirect_generics_output(const struct dump_ctx *ctx,
@@ -6908,7 +6921,7 @@ static void emit_ios_indirect_generics_output(const struct dump_ctx *ctx,
          char blockvarame[64];
          get_blockvarname(blockvarame, stage_prefix, &ctx->generic_ios.output_range.io, postfix);
 
-         emit_hdrf(glsl_strbufs, "out %s {\n  vec4 %s%s; \n} %s;\n", blockname,
+         emit_hdrf(glsl_strbufs, "out %s {\n highp vec4 %s%s; \n} %s;\n", blockname,
                    ctx->generic_ios.output_range.io.glsl_name, array_handle, blockvarame);
       } else
          emit_hdrf(glsl_strbufs, "out vec4 %s%s%s;\n",
@@ -6944,11 +6957,11 @@ static void emit_ios_indirect_generics_input(const struct dump_ctx *ctx,
          get_blockvarname(blockvarame, stage_prefix, &ctx->generic_ios.input_range.io,
                           postfix);
 
-         emit_hdrf(glsl_strbufs, "in %s {\n        vec4 %s%s; \n} %s;\n",
+         emit_hdrf(glsl_strbufs, "in %s {\n        highp vec4 %s%s; \n} %s;\n",
                    blockname, ctx->generic_ios.input_range.io.glsl_name,
                    array_handle, blockvarame);
       } else
-         emit_hdrf(glsl_strbufs, "in vec4 %s%s%s;\n",
+         emit_hdrf(glsl_strbufs, "in highp vec4 %s%s%s;\n",
                    ctx->generic_ios.input_range.io.glsl_name,
                    postfix,
                    array_handle);
@@ -6983,7 +6996,7 @@ emit_ios_generic(const struct dump_ctx *ctx,
    if (io->first == io->last) {
       emit_hdr(glsl_strbufs, layout);
       /* ugly leave spaces to patch interp in later */
-      emit_hdrf(glsl_strbufs, "%s%s %s  %s %s %s%s;\n",
+      emit_hdrf(glsl_strbufs, "%s%s %s      %s highp %s %s%s;\n",
                 io->precise ? "precise" : "",
                 io->invariant ? "invariant" : "",
                 prefix,
@@ -7029,7 +7042,7 @@ emit_ios_generic(const struct dump_ctx *ctx,
 
          emit_hdrf(glsl_strbufs, "%s %s {\n", inout, blockname);
          emit_hdr(glsl_strbufs, layout);
-         emit_hdrf(glsl_strbufs, "%s%s\n%s     %s %s[%d]; \n} %s;\n",
+         emit_hdrf(glsl_strbufs, "%s%s\n%s       highp %s %s[%d]; \n} %s;\n",
                    io->precise ? "precise" : "",
                    io->invariant ? "invariant" : "",
                    prefix,
@@ -7039,7 +7052,7 @@ emit_ios_generic(const struct dump_ctx *ctx,
                    blockvarame);
       } else {
          emit_hdr(glsl_strbufs, layout);
-         emit_hdrf(glsl_strbufs, "%s%s\n%s       %s %s %s%s[%d];\n",
+         emit_hdrf(glsl_strbufs, "%s%s\n%s       %s   highp %s %s%s[%d];\n",
                    io->precise ? "precise" : "",
                    io->invariant ? "invariant" : "",
                    prefix,
@@ -7198,10 +7211,10 @@ emit_ios_patch(struct vrend_glsl_strbufs *glsl_strbufs,
       emit_hdrf(glsl_strbufs, "layout(location = %d) ", io->sid);
 
    if (io->last == io->first) {
-      emit_hdrf(glsl_strbufs, "%s %s vec4 %s;\n", prefix, inout, io->glsl_name);
+      emit_hdrf(glsl_strbufs, "%s %s highp vec4 %s;\n", prefix, inout, io->glsl_name);
       emitted_patches |= 1ul << io->sid;
    } else {
-      emit_hdrf(glsl_strbufs, "%s %s vec4 %s[%d];\n", prefix, inout,
+      emit_hdrf(glsl_strbufs, "%s %s highp vec4 %s[%d];\n", prefix, inout,
                 io->glsl_name, size);
       uint64_t mask = (1ul << size) - 1;
       emitted_patches |= mask << io->sid;
@@ -7233,7 +7246,7 @@ static void emit_ios_vs(const struct dump_ctx *ctx,
          if (ctx->inputs[i].first != ctx->inputs[i].last)
             snprintf(postfix, sizeof(postfix), "[%d]", ctx->inputs[i].last - ctx->inputs[i].first + 1);
          const char *vtype[3] = {"vec4", "ivec4", "uvec4"};
-         emit_hdrf(glsl_strbufs, "in %s %s%s;\n",
+         emit_hdrf(glsl_strbufs, "in highp %s %s%s;\n",
                    vtype[ctx->inputs[i].type], ctx->inputs[i].glsl_name, postfix);
       }
    }
@@ -7290,7 +7303,7 @@ static void emit_ios_vs(const struct dump_ctx *ctx,
       emit_fog_fixup_hdr(ctx, glsl_strbufs);
 
    if (ctx->has_clipvertex && ctx->is_last_vertex_stage) {
-      emit_hdrf(glsl_strbufs, "%svec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
+      emit_hdrf(glsl_strbufs, "%shighp vec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
    }
 
    char cull_buf[64] = "";
@@ -7305,21 +7318,22 @@ static void emit_ios_vs(const struct dump_ctx *ctx,
          num_clip_dists = ctx->num_out_clip_dist;
 
       if (num_clip_dists)
-         snprintf(clip_buf, 64, "out float gl_ClipDistance[%d];\n", num_clip_dists);
+         snprintf(clip_buf, 64, "out highp float gl_ClipDistance[%d];\n", num_clip_dists);
       if (num_cull_dists)
-         snprintf(cull_buf, 64, "out float gl_CullDistance[%d];\n", num_cull_dists);
+         snprintf(cull_buf, 64, "out highp float gl_CullDistance[%d];\n", num_cull_dists);
 
       if (ctx->is_last_vertex_stage) {
          emit_hdrf(glsl_strbufs, "%s%s", clip_buf, cull_buf);
       }
 
-      emit_hdr(glsl_strbufs, "vec4 clip_dist_temp[2];\n");      
+      emit_hdr(glsl_strbufs, "highp vec4 clip_dist_temp[2];\n");
    }
 
-   const char *psize_buf = ctx->has_pointsize_output ? "out float gl_PointSize;\n" : "";
+   const char *psize_buf = ctx->has_pointsize_output ? "out highp float gl_PointSize;\n" : "";
 
    if (!ctx->is_last_vertex_stage && ctx->key->use_pervertex_in) {
-      emit_hdrf(glsl_strbufs, "out gl_PerVertex {\n vec4 gl_Position;\n %s%s%s};\n", clip_buf, cull_buf, psize_buf);
+      emit_hdrf(glsl_strbufs, "out gl_PerVertex {\n highp vec4 gl_Position;\n %s%s%s};\n",
+                clip_buf, cull_buf, psize_buf);
    }
 }
 
@@ -7370,7 +7384,7 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
          if (ctx->cfg->use_gles) {
             if (ctx->inputs[i].name == TGSI_SEMANTIC_COLOR) {
                if (!(ctx->key->fs.available_color_in_bits & (1 << ctx->inputs[i].sid))) {
-                  emit_hdrf(glsl_strbufs, "vec4 %s = vec4(0.0, 0.0, 0.0, 0.0);\n",
+                  emit_hdrf(glsl_strbufs, "highp vec4 %s = vec4(0.0, 0.0, 0.0, 0.0);\n",
                             ctx->inputs[i].glsl_name);
                   continue;
                }
@@ -7378,7 +7392,7 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
 
             if (ctx->inputs[i].name == TGSI_SEMANTIC_BCOLOR) {
                if (!(ctx->key->fs.available_color_in_bits & (1 << ctx->inputs[i].sid) << 2)) {
-                  emit_hdrf(glsl_strbufs, "vec4 %s = vec4(0.0, 0.0, 0.0, 0.0);\n",
+                  emit_hdrf(glsl_strbufs, "highp vec4 %s = vec4(0.0, 0.0, 0.0, 0.0);\n",
                             ctx->inputs[i].glsl_name);
                   continue;
                }
@@ -7403,9 +7417,9 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
 
    if (ctx->key->color_two_side) {
       if (ctx->color_in_mask & 1)
-         emit_hdr(glsl_strbufs, "vec4 realcolor0;\n");
+         emit_hdr(glsl_strbufs, "highp vec4 realcolor0;\n");
       if (ctx->color_in_mask & 2)
-         emit_hdr(glsl_strbufs, "vec4 realcolor1;\n");
+         emit_hdr(glsl_strbufs, "highp vec4 realcolor1;\n");
    }
 
    unsigned choices = ctx->fs_blend_equation_advanced;
@@ -7415,7 +7429,7 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
    }
 
    if (ctx->write_all_cbufs) {
-      const char* type = "vec4";
+      const char* type = "highp vec4";
       if (ctx->key->fs.cbufs_unsigned_int_bitmask)
          type = "uvec4";
       else if (ctx->key->fs.cbufs_signed_int_bitmask)
@@ -7461,21 +7475,21 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
    if (ctx->fs_depth_layout) {
       const char *depth_layout = get_depth_layout(ctx->fs_depth_layout);
       if (depth_layout)
-         emit_hdrf(glsl_strbufs, "layout (%s) out float gl_FragDepth;\n", depth_layout);
+         emit_hdrf(glsl_strbufs, "layout (%s) out highp float gl_FragDepth;\n", depth_layout);
    }
 
    if (ctx->num_in_clip_dist) {
       if (ctx->key->num_in_clip) {
-         emit_hdrf(glsl_strbufs, "in float gl_ClipDistance[%d];\n", ctx->key->num_in_clip);
+         emit_hdrf(glsl_strbufs, "in highp float gl_ClipDistance[%d];\n", ctx->key->num_in_clip);
       } else if (ctx->num_in_clip_dist > 4 && !ctx->key->num_in_cull) {
-         emit_hdrf(glsl_strbufs, "in float gl_ClipDistance[%d];\n", ctx->num_in_clip_dist);
+         emit_hdrf(glsl_strbufs, "in highp float gl_ClipDistance[%d];\n", ctx->num_in_clip_dist);
       }
 
       if (ctx->key->num_in_cull) {
-         emit_hdrf(glsl_strbufs, "in float gl_CullDistance[%d];\n", ctx->key->num_in_cull);
+         emit_hdrf(glsl_strbufs, "in highp float gl_CullDistance[%d];\n", ctx->key->num_in_cull);
       }
       if(ctx->fs_uses_clipdist_input)
-         emit_hdr(glsl_strbufs, "vec4 clip_dist_temp[2];\n");
+         emit_hdr(glsl_strbufs, "highp vec4 clip_dist_temp[2];\n");
    }
 }
 
@@ -7604,7 +7618,7 @@ static void emit_ios_geom(const struct dump_ctx *ctx,
    emit_ios_per_vertex_in(ctx, glsl_strbufs, has_pervertex);
 
    if (ctx->has_clipvertex) {
-      emit_hdrf(glsl_strbufs, "%svec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
+      emit_hdrf(glsl_strbufs, "%shighp vec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
    }
 
    if (ctx->num_out_clip_dist) {
@@ -7730,7 +7744,7 @@ static void emit_ios_tes(const struct dump_ctx *ctx,
    emit_ios_per_vertex_out(ctx, glsl_strbufs, "");
 
    if (ctx->has_clipvertex && !ctx->key->gs_present) {
-      emit_hdrf(glsl_strbufs, "%svec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
+      emit_hdrf(glsl_strbufs, "%shighp vec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
    }
 
 }
