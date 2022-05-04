@@ -5001,6 +5001,14 @@ get_source_info(struct dump_ctx *ctx,
                else
                   imm_stypeprefix = UINT_BITS_TO_FLOAT;
                break;
+            case TGSI_IMM_FLOAT16:
+               vtype = UVEC4;
+               if (stype == TGSI_TYPE_FLOAT)
+                  imm_stypeprefix = TYPE_CONVERSION_NONE;
+               else
+                  imm_stypeprefix = UINT_BITS_TO_FLOAT;
+               break;
+
             case TGSI_IMM_INT64:
             case TGSI_IMM_UINT64:
             case TGSI_IMM_FLOAT32:
