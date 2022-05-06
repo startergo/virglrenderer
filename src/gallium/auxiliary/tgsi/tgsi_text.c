@@ -1650,6 +1650,9 @@ static bool parse_declaration( struct translate_ctx *ctx )
       if (str_match_nocase_whole( &cur, tgsi_invariant_name )) {
          decl.Declaration.Invariant = 1;
          ctx->cur = cur;
+      } else if (str_match_nocase_whole( &cur, tgsi_fp16_name )) {
+         decl.Declaration.FP16 = 1;
+         ctx->cur = cur;
       } else {
          report_error( ctx, "Expected semantic, interpolate attribute, or invariant \"%.10s...\" ", cur );
          return false;
