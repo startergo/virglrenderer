@@ -164,6 +164,7 @@ struct vrend_shader_io {
    bool is_int : 1;
    bool fbfetch_used : 1;
    bool needs_override : 1;
+   bool fp16 : 1;
 };
 
 struct vrend_io_range {
@@ -1368,6 +1369,7 @@ iter_declaration(struct tgsi_iterate_context *iter,
       ctx->inputs[i].array_id = decl->Declaration.Array ? decl->Array.ArrayID : 0;
       ctx->inputs[i].usage_mask = decl->Declaration.UsageMask;
       ctx->inputs[i].num_components = 4;
+      ctx->inputs[i].fp16 = decl->Declaration.FP16;
 
       ctx->inputs[i].glsl_predefined_no_emit = false;
       ctx->inputs[i].glsl_no_index = false;
@@ -1681,6 +1683,7 @@ iter_declaration(struct tgsi_iterate_context *iter,
       ctx->outputs[i].is_int = false;
       ctx->outputs[i].fbfetch_used = false;
       ctx->outputs[i].overlapping_array = NULL;
+      ctx->outputs[i].fp16 = decl->Declaration.FP16;
 
       map_overlapping_io_array(ctx->outputs, &ctx->outputs[i], ctx->num_outputs, decl);
 
@@ -6996,11 +6999,12 @@ emit_ios_generic(const struct dump_ctx *ctx,
    if (io->first == io->last) {
       emit_hdr(glsl_strbufs, layout);
       /* ugly leave spaces to patch interp in later */
-      emit_hdrf(glsl_strbufs, "%s%s %s      %s highp %s %s%s;\n",
+      emit_hdrf(glsl_strbufs, "%s%s %s      %s %s %s %s%s;\n",
                 io->precise ? "precise" : "",
                 io->invariant ? "invariant" : "",
                 prefix,
                 inout,
+                io->fp16 ?  "mediump" : "highp",
                 t,
                 io->glsl_name,
                 postfix);
@@ -7042,21 +7046,23 @@ emit_ios_generic(const struct dump_ctx *ctx,
 
          emit_hdrf(glsl_strbufs, "%s %s {\n", inout, blockname);
          emit_hdr(glsl_strbufs, layout);
-         emit_hdrf(glsl_strbufs, "%s%s\n%s       highp %s %s[%d]; \n} %s;\n",
+         emit_hdrf(glsl_strbufs, "%s%s\n%s       %s %s %s[%d]; \n} %s;\n",
                    io->precise ? "precise" : "",
                    io->invariant ? "invariant" : "",
                    prefix,
+                   io->fp16 ?  "mediump" : "highp",
                    t,
                    io->glsl_name,
                    array_size,
                    blockvarame);
       } else {
          emit_hdr(glsl_strbufs, layout);
-         emit_hdrf(glsl_strbufs, "%s%s\n%s       %s   highp %s %s%s[%d];\n",
+         emit_hdrf(glsl_strbufs, "%s%s\n%s       %s   %s %s %s%s[%d];\n",
                    io->precise ? "precise" : "",
                    io->invariant ? "invariant" : "",
                    prefix,
                    inout,
+                   io->fp16 ?  "mediump" : "highp",
                    t,
                    io->glsl_name,
                    postfix,
@@ -7246,7 +7252,8 @@ static void emit_ios_vs(const struct dump_ctx *ctx,
          if (ctx->inputs[i].first != ctx->inputs[i].last)
             snprintf(postfix, sizeof(postfix), "[%d]", ctx->inputs[i].last - ctx->inputs[i].first + 1);
          const char *vtype[3] = {"vec4", "ivec4", "uvec4"};
-         emit_hdrf(glsl_strbufs, "in highp %s %s%s;\n",
+         emit_hdrf(glsl_strbufs, "in %s %s %s%s;\n",
+                   ctx->inputs[i].fp16 ? "mediump" : "highp",
                    vtype[ctx->inputs[i].type], ctx->inputs[i].glsl_name, postfix);
       }
    }
@@ -7384,7 +7391,7 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
          if (ctx->cfg->use_gles) {
             if (ctx->inputs[i].name == TGSI_SEMANTIC_COLOR) {
                if (!(ctx->key->fs.available_color_in_bits & (1 << ctx->inputs[i].sid))) {
-                  emit_hdrf(glsl_strbufs, "highp vec4 %s = vec4(0.0, 0.0, 0.0, 0.0);\n",
+                  emit_hdrf(glsl_strbufs, "vec4 %s = vec4(0.0, 0.0, 0.0, 0.0);\n",
                             ctx->inputs[i].glsl_name);
                   continue;
                }
@@ -7392,7 +7399,7 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
 
             if (ctx->inputs[i].name == TGSI_SEMANTIC_BCOLOR) {
                if (!(ctx->key->fs.available_color_in_bits & (1 << ctx->inputs[i].sid) << 2)) {
-                  emit_hdrf(glsl_strbufs, "highp vec4 %s = vec4(0.0, 0.0, 0.0, 0.0);\n",
+                  emit_hdrf(glsl_strbufs, "vec4 %s = vec4(0.0, 0.0, 0.0, 0.0);\n",
                             ctx->inputs[i].glsl_name);
                   continue;
                }
@@ -7442,7 +7449,7 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
 
             if (logiop_require_inout(ctx->key)) {
                const char *noncoherent = ctx->cfg->has_fbfetch_coherent ? "" : ", noncoherent";
-               emit_hdrf(glsl_strbufs, "layout (location=%d%s) inout highp %s fsout_c%d;\n", i, noncoherent, type, i);
+               emit_hdrf(glsl_strbufs, "layout (location=%d%s) inout %s fsout_c%d;\n", i, noncoherent, type, i);
             } else
                emit_hdrf(glsl_strbufs, "layout (location=%d) out %s fsout_c%d;\n", i,
                          type, i);
