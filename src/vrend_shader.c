@@ -3917,8 +3917,7 @@ int find_io_index(int num_io, struct vrend_shader_io *io,
 {
    for (int j = 0; j < num_io; j++) {
       if (io[j].first <= index &&
-          io[j].last >= index &&
-          (io[j].usage_mask & usage_mask)) {
+          io[j].last >= index) {
          return j;
       }
    }
@@ -4921,7 +4920,7 @@ static void rename_variables(unsigned nio, struct vrend_shader_io *io,
           (coord_replace & (1 << io[i].sid)))
          continue;
       char io_type =  io[i].name == TGSI_SEMANTIC_GENERIC ? 'g' : 'p';
-      snprintf(io[i].glsl_name, 64, "%s_%c%dA%d_%x", name_prefix, io_type, io[i].sid, io[i].array_id, io[i].usage_mask);
+      snprintf(io[i].glsl_name, 64, "%s_%c%dA%d", name_prefix, io_type, io[i].sid, io[i].array_id);
    }
 }
 
@@ -5076,7 +5075,6 @@ static void apply_prev_layout(const struct vrend_shader_key *key,
                }
 
                if (already_found_one) {
-                  io->usage_mask = (uint8_t)layout->usage_mask;
                   io->layout_location = layout->location;
                   io->array_id = layout->array_id;
                   io->num_components = 4;
