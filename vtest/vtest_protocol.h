@@ -210,6 +210,8 @@ enum vcmd_sync_wait_flag {
 
 enum vcmd_submit_cmd2_flag {
    VCMD_SUBMIT_CMD2_FLAG_RING_IDX = 1 << 0,
+   VCMD_SUBMIT_CMD2_FLAG_IN_FENCE_FD = 1 << 1,
+   VCMD_SUBMIT_CMD2_FLAG_OUT_FENCE_FD = 1 << 2,
 };
 
 struct vcmd_submit_cmd2_batch {

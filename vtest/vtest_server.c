@@ -94,9 +94,9 @@ struct vtest_server
    bool use_gles;
 
    bool venus;
-
    bool no_virgl;
    bool use_compat_profile;
+   bool drm;
 
    int ctx_flags;
 
@@ -175,6 +175,7 @@ while (__AFL_LOOP(1000)) {
 #define OPT_SOCKET_PATH 'p'
 #define OPT_NO_VIRGL 'g'
 #define OPT_COMPAT_PROFILE 'c'
+#define OPT_DRM 'd'
 
 static void vtest_server_parse_args(int argc, char **argv)
 {
@@ -192,17 +193,12 @@ static void vtest_server_parse_args(int argc, char **argv)
       {"socket-path",         required_argument, NULL, OPT_SOCKET_PATH},
       {"no-virgl",            no_argument, NULL, OPT_NO_VIRGL},
       {"compat",              no_argument, NULL, OPT_COMPAT_PROFILE},
+      {"drm",                 no_argument, NULL, OPT_DRM},
       {0, 0, 0, 0}
    };
 
    /* getopt_long stores the option index here. */
    int option_index = 0;
-
-#ifdef ENABLE_VENUS
-   char* ven = " [--venus]";
-#else
-   char* ven = "";
-#endif
 
    do {
       ret = getopt_long(argc, argv, "", long_options, &option_index);
@@ -247,12 +243,22 @@ static void vtest_server_parse_args(int argc, char **argv)
       case OPT_SOCKET_PATH:
          server.socket_name = optarg;
          break;
+#ifdef ENABLE_DRM
+      case OPT_DRM:
+         server.drm = true;
+         break;
+#endif
       default:
          printf("Usage: %s [--no-fork] [--no-loop-or-fork] [--multi-clients] "
                 "[--use-glx] [--use-egl-surfaceless] [--use-gles] [--no-virgl]"
                 "[--rendernode <dev>] [--socket-path <path>] "
-                "%s"
-                " [file]\n", argv[0], ven);
+#ifdef ENABLE_VENUS
+                " [--venus]"
+#endif
+#ifdef ENABLE_DRM
+                " [--drm]"
+#endif
+                " [file]\n", argv[0]);
          exit(EXIT_FAILURE);
          break;
       }
@@ -295,6 +301,9 @@ static void vtest_server_parse_args(int argc, char **argv)
    if (server.venus) {
       server.ctx_flags |= VIRGL_RENDERER_VENUS;
       server.ctx_flags |= VIRGL_RENDERER_RENDER_SERVER;
+   }
+   if (server.drm) {
+      server.ctx_flags |= VIRGL_RENDERER_DRM | VIRGL_RENDERER_ASYNC_FENCE_CB;
    }
 }
 

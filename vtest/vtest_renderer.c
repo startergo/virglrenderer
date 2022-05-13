@@ -37,6 +37,9 @@
 #include "virgl_hw.h"
 #include "virglrenderer.h"
 
+#include "virgl_context.h"
+#include "virgl_fence.h"
+
 #include <sys/uio.h>
 #include <sys/socket.h>
 #include <sys/mman.h>
@@ -58,6 +61,10 @@
 #include "util/u_memory.h"
 #include "util/u_pointer.h"
 #include "util/u_hash_table.h"
+
+#ifndef WIN32
+#include "util/libsync.h"
+#endif
 
 #define VTEST_MAX_TIMELINE_COUNT 64
 
@@ -424,6 +431,46 @@ static int vtest_send_fd(int socket_fd, int fd)
     }
 
     return 0;
+}
+
+static int
+vtest_receive_fd(int socket_fd)
+{
+   struct cmsghdr *cmsgh;
+   struct msghdr msgh = { 0 };
+   char buf[CMSG_SPACE(sizeof(int))], c;
+   struct iovec iovec;
+
+   iovec.iov_base = &c;
+   iovec.iov_len = sizeof(char);
+
+   msgh.msg_name = NULL;
+   msgh.msg_namelen = 0;
+   msgh.msg_iov = &iovec;
+   msgh.msg_iovlen = 1;
+   msgh.msg_control = buf;
+   msgh.msg_controllen = sizeof(buf);
+   msgh.msg_flags = 0;
+
+   int size = recvmsg(socket_fd, &msgh, 0);
+   if (size < 0) {
+     return report_failure("recvmsg failed", -EINVAL);
+   }
+
+   cmsgh = CMSG_FIRSTHDR(&msgh);
+   if (!cmsgh) {
+     return report_failure("No headers available", -EINVAL);
+   }
+
+   if (cmsgh->cmsg_level != SOL_SOCKET) {
+     return report_failure("invalid cmsg_level", -EINVAL);
+   }
+
+   if (cmsgh->cmsg_type != SCM_RIGHTS) {
+     return report_failure("invalid cmsg_type", -EINVAL);
+   }
+
+   return *((int *) CMSG_DATA(cmsgh));
 }
 
 int vtest_buf_read(struct vtest_input *input, void *buf, int size)
@@ -2021,12 +2068,24 @@ static int vtest_submit_cmd2_batch(struct vtest_context *ctx,
    uint32_t i;
    int ret;
 
+   if (batch->flags & VCMD_SUBMIT_CMD2_FLAG_IN_FENCE_FD) {
+      int fd = vtest_receive_fd(ctx->input->data.fd);
+      if (fd < 0)
+         return fd;
+      ret = virgl_renderer_attach_fence(ctx->ctx_id, fd);
+      if (ret)
+         return ret;
+   }
+
    ret = virgl_renderer_submit_cmd((void *)cmds, ctx->ctx_id, batch->cmd_size);
    if (ret)
       return -EINVAL;
 
-   if (!batch->sync_count)
+   if (batch->flags & VCMD_SUBMIT_CMD2_FLAG_OUT_FENCE_FD) {
+      assert(batch->flags & VCMD_SUBMIT_CMD2_FLAG_RING_IDX);
+   } else if (!batch->sync_count) {
       return 0;
+   }
 
    if (batch->flags & VCMD_SUBMIT_CMD2_FLAG_RING_IDX) {
       submit = malloc(sizeof(*submit) +
@@ -2069,18 +2128,27 @@ static int vtest_submit_cmd2_batch(struct vtest_context *ctx,
 
    if (submit) {
       struct vtest_timeline *timeline = &ctx->timelines[batch->ring_idx];
+      uint64_t fence_id = (uintptr_t)submit;
 
       submit->timeline = timeline;
       ret = virgl_renderer_context_create_fence(ctx->ctx_id,
                                                 VIRGL_RENDERER_FENCE_FLAG_MERGEABLE,
                                                 batch->ring_idx,
-                                                (uintptr_t)submit);
+                                                fence_id);
       if (ret) {
          vtest_free_timeline_submit(submit);
          return ret;
       }
 
       list_addtail(&submit->head, &timeline->submits);
+
+      if (batch->flags & VCMD_SUBMIT_CMD2_FLAG_OUT_FENCE_FD) {
+         int fd = virgl_renderer_get_fence_fd(fence_id);
+         if (fd < 0)
+            fd = virgl_renderer_export_signalled_fence();
+         vtest_send_fd(ctx->out_fd, fd);
+         close(fd);
+      }
    }
 
    return 0;
