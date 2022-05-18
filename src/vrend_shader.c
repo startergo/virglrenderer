@@ -4425,13 +4425,11 @@ get_source_info(struct dump_ctx *ctx,
             if (inst->Instruction.Opcode == TGSI_OPCODE_INTERP_SAMPLE && i == 1) {
                strbuf_fmt(src_buf, "floatBitsToInt(%s%s%s%s)", prefix, input->glsl_name, arrayname, swizzle);
             } else if (input->name == TGSI_SEMANTIC_GENERIC) {
-               struct vrend_shader_io *io = ctx->generic_ios.input_range.used ? &ctx->generic_ios.input_range.io : &ctx->inputs[j];
-               get_source_info_generic(ctx, io_in, srcstypeprefix, prefix, src, io, arrayname, swizzle, src_buf);
+               get_source_info_generic(ctx, io_in, srcstypeprefix, prefix, src, &ctx->inputs[j], arrayname, swizzle, src_buf);
             } else if (input->name == TGSI_SEMANTIC_TEXCOORD) {
                get_source_info_generic(ctx, io_in, srcstypeprefix, prefix, src, &ctx->inputs[j], arrayname, swizzle, src_buf);
             } else if (input->name == TGSI_SEMANTIC_PATCH) {
-               struct vrend_shader_io *io = ctx->patch_ios.input_range.used ? &ctx->patch_ios.input_range.io : &ctx->inputs[j];
-               get_source_info_patch(srcstypeprefix, prefix, src, io, arrayname, swizzle, src_buf);
+               get_source_info_patch(srcstypeprefix, prefix, src, &ctx->inputs[j], arrayname, swizzle, src_buf);
             } else if (input->name == TGSI_SEMANTIC_POSITION && ctx->prog_type == TGSI_PROCESSOR_VERTEX &&
                        input->first != input->last) {
                if (src->Register.Indirect)
@@ -4843,13 +4841,46 @@ void rewrite_io_ranged(struct dump_ctx *ctx)
          }
       }
 
-      if (ctx->key->input.num_indirect_generic > 0)
+      if (ctx->key->input.num_indirect_generic > 0) {
+         ctx->generic_ios.input_range.io.sid = ctx->key->input.indirect_generic_start;
          ctx->generic_ios.input_range.io.last = ctx->generic_ios.input_range.io.first +
             ctx->key->input.num_indirect_generic - 1;
+         ctx->generic_ios.input_range.used = true;
+      }
 
-      if (ctx->key->input.num_indirect_patch > 0)
+      if (ctx->generic_ios.input_range.used) {
+         for (uint i = 0; i < ctx->num_inputs; ++i) {
+            if (ctx->inputs[i].name == TGSI_SEMANTIC_GENERIC &&
+                ctx->inputs[i].sid >= ctx->generic_ios.input_range.io.sid &&
+                ctx->inputs[i].sid <= ctx->generic_ios.input_range.io.last) {
+               ctx->inputs[i].array_offset  = ctx->inputs[i].sid -
+                                              ctx->generic_ios.input_range.io.sid;
+               ctx->inputs[i].overlapping_array = &ctx->generic_ios.input_range.io;
+               ctx->inputs[i].glsl_predefined_no_emit = true;
+            }
+         }
+      }
+
+
+      if (ctx->key->input.num_indirect_patch > 0) {
+         ctx->patch_ios.input_range.io.sid = ctx->key->input.indirect_patch_start;
          ctx->patch_ios.input_range.io.last = ctx->patch_ios.input_range.io.first +
             ctx->key->input.num_indirect_patch - 1;
+         ctx->patch_ios.input_range.used = true;
+      }
+
+      if (ctx->patch_ios.input_range.used) {
+         for (uint i = 0; i < ctx->num_inputs; ++i) {
+            if (ctx->inputs[i].name == TGSI_SEMANTIC_PATCH &&
+                ctx->inputs[i].sid >= ctx->patch_ios.input_range.io.sid &&
+                ctx->inputs[i].sid <= ctx->patch_ios.input_range.io.last) {
+               ctx->inputs[i].array_offset  = ctx->inputs[i].sid -
+                                              ctx->patch_ios.input_range.io.sid;
+               ctx->inputs[i].overlapping_array = &ctx->patch_ios.input_range.io;
+               ctx->inputs[i].glsl_predefined_no_emit = true;
+            }
+         }
+      }
 
       snprintf(ctx->patch_ios.input_range.io.glsl_name, 64, "%s_p%d",
                get_stage_input_name_prefix(ctx, ctx->prog_type), ctx->patch_ios.input_range.io.sid);
@@ -7393,12 +7424,17 @@ static void fill_sinfo(const struct dump_ctx *ctx, struct vrend_shader_info *sin
       sinfo->in.num_indirect_patch = ctx->patch_ios.input_range.io.last -
          ctx->patch_ios.input_range.io.first + 1;
 
-   if (ctx->generic_ios.output_range.used)
+   if (ctx->generic_ios.output_range.used) {
+      sinfo->out.indirect_generic_start = ctx->generic_ios.output_range.io.sid;
       sinfo->out.num_indirect_generic = ctx->generic_ios.output_range.io.last -
          ctx->generic_ios.output_range.io.first + 1;
-   if (ctx->patch_ios.output_range.used)
+   }
+
+   if (ctx->patch_ios.output_range.used) {
+      sinfo->out.indirect_patch_start = ctx->patch_ios.output_range.io.sid;
       sinfo->out.num_indirect_patch = ctx->patch_ios.output_range.io.last -
          ctx->patch_ios.output_range.io.first + 1;
+   }
 
    sinfo->num_inputs = ctx->num_inputs;
    sinfo->num_outputs = ctx->num_outputs;
@@ -7971,13 +8007,8 @@ void vrend_shader_write_io_as_src(struct vrend_strbuf *result,
 {
 
 
-   if (io->first == io->last) {
-      if (io->overlapping_array)
-         strbuf_appendf(result, "%s%s[%d]", io->overlapping_array->glsl_name,
-                        array_or_varname, io->array_offset);
-      else
-         strbuf_appendf(result, "%s%s", io->glsl_name, array_or_varname);
-
+   if (io->first == io->last && !io->overlapping_array) {
+      strbuf_appendf(result, "%s%s", io->glsl_name, array_or_varname);
    } else {
       const struct vrend_shader_io *base = io->overlapping_array ? io->overlapping_array : io;
       const int offset = src->Register.Index - io->first + io->array_offset;

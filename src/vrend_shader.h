@@ -85,7 +85,9 @@ struct vrend_fs_shader_info {
 };
 
 struct vrend_shader_info_out {
+   uint64_t indirect_generic_start : 8;
    uint64_t num_indirect_generic : 8;
+   uint64_t indirect_patch_start : 8;
    uint64_t num_indirect_patch : 8;
    uint64_t num_generic_and_patch : 8;
    uint64_t guest_sent_io_arrays : 1;
