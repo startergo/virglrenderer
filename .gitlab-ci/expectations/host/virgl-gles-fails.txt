@@ -231,10 +231,6 @@ spec@arb_gpu_shader5@arb_gpu_shader5-xfb-streams,Fail
 spec@arb_gpu_shader5@execution@precise@fs-fract-of-nan,Fail
 spec@arb_gpu_shader5@linker@stream-different-zero-gs-fs,Fail
 spec@arb_gpu_shader5@linker@stream-invalid-prim-output,Fail
-spec@arb_internalformat_query2@all internalformat_<x>_size pname checks,Crash
-spec@arb_internalformat_query2@all internalformat_<x>_type pname checks,Crash
-spec@arb_internalformat_query2@image_format_compatibility_type pname checks,Crash
-spec@arb_internalformat_query2@max dimensions related pname checks,Crash
 spec@arb_occlusion_query@occlusion_query_conform,Fail
 spec@arb_occlusion_query@occlusion_query_conform@GetObjivAval_multi1,Fail
 spec@arb_occlusion_query@occlusion_query_conform@GetObjivAval_multi2,Fail
@@ -459,6 +455,13 @@ spec@arb_shader_texture_lod@execution@tex-miplevel-selection *projlod 2d,Fail
 spec@arb_shader_texture_lod@execution@tex-miplevel-selection *projlod 2d_projvec4,Fail
 spec@arb_shader_texture_lod@execution@tex-miplevel-selection *projlod 2dshadow,Fail
 spec@arb_shader_texture_lod@execution@tex-miplevel-selection *projlod 3d,Fail
+spec@arb_texture_buffer_object@texture-buffer-size-clamp,Fail
+spec@arb_texture_buffer_object@texture-buffer-size-clamp@r8ui_texture_buffer_size_via_image,Fail
+spec@arb_texture_buffer_object@texture-buffer-size-clamp@r8ui_texture_buffer_size_via_sampler,Fail
+spec@arb_texture_buffer_object@texture-buffer-size-clamp@rg8ui_texture_buffer_size_via_image,Fail
+spec@arb_texture_buffer_object@texture-buffer-size-clamp@rg8ui_texture_buffer_size_via_sampler,Fail
+spec@arb_texture_buffer_object@texture-buffer-size-clamp@rgba8ui_texture_buffer_size_via_image,Fail
+spec@arb_texture_buffer_object@texture-buffer-size-clamp@rgba8ui_texture_buffer_size_via_sampler,Fail
 spec@arb_texture_compression_bptc@compressedteximage gl_compressed_rgb_bptc_signed_float,Fail
 spec@arb_texture_compression_bptc@compressedteximage gl_compressed_rgb_bptc_unsigned_float,Fail
 spec@arb_texture_compression_bptc@compressedteximage gl_compressed_srgb_alpha_bptc_unorm,Fail
