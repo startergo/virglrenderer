@@ -37,7 +37,6 @@ dEQP-GLES3.functional.fbo.blit.rect.nearest_consistency_min_reverse_dst_x,Fail
 dEQP-GLES3.functional.fbo.blit.rect.nearest_consistency_min_reverse_src_dst_x,Fail
 dEQP-GLES3.functional.fbo.blit.rect.nearest_consistency_min_reverse_src_dst_y,Fail
 dEQP-GLES3.functional.fbo.blit.rect.nearest_consistency_min_reverse_src_x,Fail
-KHR-GL30.shaders30.glsl_constructors.bvec4_from_mat4x2_vs,Crash
 KHR-GL30.transform_feedback.api_errors_test,Fail
 KHR-GL31.transform_feedback.capture_special_interleaved_test,Crash
 KHR-GL32.transform_feedback_overflow_query_ARB.advanced-single-stream-interleaved-attribs,Fail
@@ -716,10 +715,6 @@ spec@!opengl 1.5@depth-tex-compare,Fail
 spec@!opengl 1.5@draw-elements-user,Fail
 spec@!opengl 2.0@gl-2.0-edgeflag,Fail
 spec@!opengl 2.0@gl-2.0-edgeflag-immediate,Fail
-spec@!opengl 2.0@vertex-program-two-side front back back2@gs-out and fs,Fail
-spec@!opengl 2.0@vertex-program-two-side front back front2@gs-out and fs,Fail
-spec@!opengl 2.0@vertex-program-two-side front back@gs-out and fs,Fail
-spec@!opengl 2.0@vertex-program-two-side front front2 back2@gs-out and fs,Fail
 spec@!opengl 3.2@gl-3.2-adj-prims cull-back pv-first,Fail
 spec@!opengl 3.2@gl-3.2-adj-prims cull-front pv-first,Fail
 spec@!opengl 3.2@gl-3.2-adj-prims line cull-back pv-first,Fail
