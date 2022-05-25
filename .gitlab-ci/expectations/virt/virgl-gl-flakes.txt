@@ -66,12 +66,4 @@ spec@!opengl 1.1@read-front samples=2
 spec@!opengl 1.1@read-front samples=4
 spec@!opengl 1.1@texsubimage-unpack
 spec@!opengl 2.0@tex3d-npot
-spec@!opengl 2.0@vertex-program-two-side front back back2@gs-out and fs
-spec@!opengl 2.0@vertex-program-two-side front back back2@vs- gs and fs
-spec@!opengl 2.0@vertex-program-two-side front back front2@gs-out and fs
-spec@!opengl 2.0@vertex-program-two-side front back front2@vs- gs and fs
-spec@!opengl 2.0@vertex-program-two-side front back@gs-out and fs
-spec@!opengl 2.0@vertex-program-two-side front back@vs- gs and fs
-spec@!opengl 2.0@vertex-program-two-side front front2 back2@gs-out and fs
-spec@!opengl 2.0@vertex-program-two-side front front2 back2@vs- gs and fs
 spec@!opengl 3.0@gl30basic
