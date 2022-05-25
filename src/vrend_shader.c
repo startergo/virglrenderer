@@ -6744,11 +6744,11 @@ static void emit_ios_vs(const struct dump_ctx *ctx,
          bcolor_emitted = front_back_color_emitted_flags[ctx->outputs[i].sid] & BACK_COLOR_EMITTED;
 
          if (fcolor_emitted && !bcolor_emitted) {
-            emit_hdrf(glsl_strbufs, "%sout vec4 vso_bc%d;\n", INTERP_PREFIX, ctx->outputs[i].sid);
+            emit_hdrf(glsl_strbufs, "%s   out vec4 vso_bc%d;\n", INTERP_PREFIX, ctx->outputs[i].sid);
             front_back_color_emitted_flags[ctx->outputs[i].sid] |= BACK_COLOR_EMITTED;
          }
          if (bcolor_emitted && !fcolor_emitted) {
-            emit_hdrf(glsl_strbufs, "%sout vec4 vso_c%d;\n", INTERP_PREFIX, ctx->outputs[i].sid);
+            emit_hdrf(glsl_strbufs, "%s   out vec4 vso_c%d;\n", INTERP_PREFIX, ctx->outputs[i].sid);
             front_back_color_emitted_flags[ctx->outputs[i].sid] |= FRONT_COLOR_EMITTED;
          }
       }
