@@ -6644,13 +6644,12 @@ static void emit_ios_vs(const struct dump_ctx *ctx,
 
       enum tgsi_interpolate_mode interpolators[2] = {TGSI_INTERPOLATE_COLOR, TGSI_INTERPOLATE_COLOR};
       enum tgsi_interpolate_loc interp_loc[2] = { TGSI_INTERPOLATE_LOC_CENTER, TGSI_INTERPOLATE_LOC_CENTER};
-      for (i = 0; i < ctx->key->fs_info.num_interps; i++) {
-         if (ctx->key->fs_info.interpinfo[i].semantic_name == TGSI_SEMANTIC_COLOR ||
-             ctx->key->fs_info.interpinfo[i].semantic_name == TGSI_SEMANTIC_BCOLOR) {
-            interpolators[ctx->key->fs_info.interpinfo[i].semantic_index] =
-                  ctx->key->fs_info.interpinfo[i].interpolate;
-            interp_loc[ctx->key->fs_info.interpinfo[i].semantic_index] =
-                  ctx->key->fs_info.interpinfo[i].location;
+      for (int k = 0; k < ctx->key->fs_info.num_interps; k++) {
+         const struct vrend_interp_info *interp_info = &ctx->key->fs_info.interpinfo[k];
+         if (interp_info->semantic_name == TGSI_SEMANTIC_COLOR ||
+             interp_info->semantic_name == TGSI_SEMANTIC_BCOLOR) {
+            interpolators[interp_info->semantic_index] = interp_info->interpolate;
+            interp_loc[interp_info->semantic_index] = interp_info->location;
          }
       }
 
@@ -7418,13 +7417,6 @@ static void emit_required_sysval_uniforms(struct vrend_strbuf *block, uint32_t m
    }
 }
 
-static bool vrend_patch_vertex_shader_interpolants(const struct vrend_shader_cfg *cfg,
-                                            struct vrend_strarray *prog_strings,
-                                            const struct vrend_shader_info *vs_info,
-                                            const struct vrend_fs_shader_info *fs_info,
-                                            const char *oprefix,
-                                            bool flatshade);
-
 static int compare_sid(const void *lhs, const void *rhs)
 {
    const struct vrend_shader_io *l = (struct vrend_shader_io *)lhs;
@@ -7525,6 +7517,14 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
    if (ctx.prog_type == TGSI_PROCESSOR_FRAGMENT)
       qsort(ctx.outputs, ctx.num_outputs, sizeof(struct vrend_shader_io), compare_sid);
 
+   const struct vrend_fs_shader_info *fs_info = &key->fs_info;
+
+   if (fs_info->num_interps && fs_info->has_sample_input &&
+       ((cfg->use_gles && cfg->glsl_version < 320) ||
+        cfg->glsl_version >= 320)) {
+      ctx.shader_req_bits |= SHADER_REQ_GPU_SHADER5;
+   }
+
    emit_header(&ctx, &ctx.glsl_strbufs);
    ctx.glsl_ver_required = emit_ios(&ctx, &ctx.glsl_strbufs, &ctx.generic_ios,
                                     &ctx.texcoord_ios, ctx.front_back_color_emitted_flags,
@@ -7548,28 +7548,6 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
                                   ctx.glsl_strbufs.required_sysval_uniform_decls);
    set_strbuffers(&ctx.glsl_strbufs, shader);
 
-   if (ctx.prog_type == TGSI_PROCESSOR_GEOMETRY) {
-      vrend_patch_vertex_shader_interpolants(cfg,
-                                             shader,
-                                             sinfo,
-                                             &key->fs_info, "gso",
-                                             key->flatshade);
-   } else if (!key->gs_present &&
-              ctx.prog_type == TGSI_PROCESSOR_TESS_EVAL) {
-      vrend_patch_vertex_shader_interpolants(cfg,
-                                             shader,
-                                             sinfo,
-                                             &key->fs_info, "teo",
-                                             key->flatshade);
-   } else if (!key->gs_present && !key->tes_present &&
-              ctx.prog_type == TGSI_PROCESSOR_VERTEX) {
-      vrend_patch_vertex_shader_interpolants(cfg,
-                                             shader,
-                                             sinfo,
-                                             &key->fs_info, "vso",
-                                             key->flatshade);
-   }
-
    VREND_DEBUG(dbg_shader_glsl, rctx, "GLSL:");
    VREND_DEBUG_EXT(dbg_shader_glsl, rctx, strarray_dump(shader));
    VREND_DEBUG(dbg_shader_glsl, rctx, "\n");
@@ -7582,69 +7560,6 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
    free(ctx.so_names);
    free(ctx.temp_ranges);
    return false;
-}
-
-static void replace_interp(struct vrend_strarray *program,
-                           const char *var_name,
-                           const char *pstring, const char *auxstring)
-{
-   int mylen = strlen(INTERP_PREFIX) + strlen("out float ");
-
-   char *ptr = program->strings[SHADER_STRING_HDR].buf;
-   do {
-      char *p = strstr(ptr, var_name);
-      if (!p)
-         break;
-
-      ptr = p - mylen;
-
-      memset(ptr, ' ', strlen(INTERP_PREFIX));
-      memcpy(ptr, pstring, strlen(pstring));
-      memcpy(ptr + strlen(pstring), auxstring, strlen(auxstring));
-
-      ptr = p + strlen(var_name);
-   } while (1);
-}
-
-static const char *gpu_shader5_string = "#extension GL_ARB_gpu_shader5 : require\n";
-
-static void require_gpu_shader5(struct vrend_strarray *program)
-{
-   strbuf_append(&program->strings[SHADER_STRING_VER_EXT], gpu_shader5_string);
-}
-
-static const char *gpu_shader5_and_msinterp_string =
-      "#extension GL_OES_gpu_shader5 : require\n"
-      "#extension GL_OES_shader_multisample_interpolation : require\n";
-
-static void require_gpu_shader5_and_msinterp(struct vrend_strarray *program)
-{
-   strbuf_append(&program->strings[SHADER_STRING_VER_EXT], gpu_shader5_and_msinterp_string);
-}
-
-static bool vrend_patch_vertex_shader_interpolants(
-                                            const struct vrend_shader_cfg *cfg,
-                                            struct vrend_strarray *prog_strings,
-                                            const struct vrend_shader_info *vs_info,
-                                            const struct vrend_fs_shader_info *fs_info,
-                                            const char *oprefix, bool flatshade)
-{
-   if (!vs_info || !fs_info)
-      return true;
-
-   if (!fs_info->num_interps)
-      return true;
-
-   if (fs_info->has_sample_input) {
-      if (!cfg->use_gles && (cfg->glsl_version >= 320))
-         require_gpu_shader5(prog_strings);
-
-      if (cfg->use_gles && (cfg->glsl_version < 320))
-         require_gpu_shader5_and_msinterp(prog_strings);
-   }
-
-
-   return true;
 }
 
 static boolean
