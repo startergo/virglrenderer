@@ -6529,6 +6529,7 @@ emit_ios_generic_outputs(const struct dump_ctx *ctx,
 
          const char *prefix = "";
          if (ctx->outputs[i].name == TGSI_SEMANTIC_GENERIC ||
+             ctx->outputs[i].name == TGSI_SEMANTIC_TEXCOORD ||
              ctx->outputs[i].name == TGSI_SEMANTIC_COLOR ||
              ctx->outputs[i].name == TGSI_SEMANTIC_BCOLOR) {
             (*num_interps)++;
@@ -7129,6 +7130,22 @@ static void emit_ios_cs(const struct dump_ctx *ctx,
    }
 }
 
+static void emit_interp_info(struct vrend_glsl_strbufs *glsl_strbufs,
+                             const struct vrend_shader_cfg *cfg,
+                             const struct vrend_fs_shader_info *fs_info,
+                             enum tgsi_semantic semantic, int sid, bool flatshade)
+{
+   for (int j = 0; j < fs_info->num_interps; ++j) {
+      if (fs_info->interpinfo[j].semantic_name == semantic &&
+          fs_info->interpinfo[j].semantic_index == sid) {
+         emit_hdrf(glsl_strbufs, "%s %s ",
+                   get_interp_string(cfg, fs_info->interpinfo[j].interpolate, flatshade),
+                   get_aux_string(fs_info->interpinfo[j].location));
+         break;
+      }
+   }
+}
+
 static int emit_ios(const struct dump_ctx *ctx,
                     struct vrend_glsl_strbufs *glsl_strbufs,
                     struct vrend_generic_ios *generic_ios,
@@ -7181,17 +7198,8 @@ static int emit_ios(const struct dump_ctx *ctx,
          bool expecting = generic_ios->outputs_expected_mask & mask;
          if (expecting & !(generic_ios->outputs_emitted_mask & mask)) {
 
-            if (ctx->key->fs_info.num_interps) {
-               for (int j = 0; j < ctx->key->fs_info.num_interps; ++j) {
-                  if (ctx->key->fs_info.interpinfo[j].semantic_name == TGSI_SEMANTIC_GENERIC &&
-                      ctx->key->fs_info.interpinfo[j].semantic_index == i) {
-                     emit_hdrf(glsl_strbufs, "%s %s ",
-                               get_interp_string(ctx->cfg, ctx->key->fs_info.interpinfo[j].interpolate, ctx->key->flatshade),
-                               get_aux_string(ctx->key->fs_info.interpinfo[j].location));
-                     break;
-                  }
-               }
-            }
+            emit_interp_info(glsl_strbufs, ctx->cfg, &ctx->key->fs_info,
+                             TGSI_SEMANTIC_GENERIC, i, ctx->key->flatshade);
             emit_hdrf(glsl_strbufs, "out vec4 %s_g%dA0%s;\n",
                       get_stage_output_name_prefix(ctx->prog_type), i,
                       ctx->prog_type == TGSI_PROCESSOR_TESS_CTRL ? "[]" : "");
@@ -7205,6 +7213,8 @@ static int emit_ios(const struct dump_ctx *ctx,
          uint8_t mask = 1u << i;
          bool expecting = texcoord_ios->outputs_expected_mask & mask;
          if (expecting & !(texcoord_ios->outputs_emitted_mask & mask)) {
+            emit_interp_info(glsl_strbufs, ctx->cfg, &ctx->key->fs_info,
+                             TGSI_SEMANTIC_TEXCOORD, i, ctx->key->flatshade);
             emit_hdrf(glsl_strbufs, "                              out vec4 %s_t%d%s;\n",
                       get_stage_output_name_prefix(ctx->prog_type), i,
                       ctx->prog_type == TGSI_PROCESSOR_TESS_CTRL ? "[]" : "");
