@@ -4793,6 +4793,18 @@ vrend_select_program(struct vrend_sub_context *sub_ctx, ubyte vertices_per_patch
    // Set it to true so the underlying code knows to use the buffer formats
    // now.
 
+   vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_FRAGMENT], &fs_dirty);
+   // NOTE: run shader selection again as a workaround to #180 - "duplicated shader compilation"
+   if (shaders[PIPE_SHADER_GEOMETRY])
+      vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_GEOMETRY], &gs_dirty);
+   if (shaders[PIPE_SHADER_TESS_EVAL])
+      vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_TESS_EVAL], &tes_dirty);
+   if (shaders[PIPE_SHADER_TESS_CTRL] && shaders[PIPE_SHADER_TESS_CTRL]->tokens)
+      vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_TESS_CTRL], &tcs_dirty);
+   else if (vrend_state.use_gles && shaders[PIPE_SHADER_TESS_EVAL]) {
+      VREND_DEBUG(dbg_shader, sub_ctx->parent, "Need to inject a TCS\n");
+      vrend_inject_tcs(sub_ctx, vertices_per_patch);
+   }
    sub_ctx->drawing = true;
    vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_VERTEX], &vs_dirty);
    sub_ctx->drawing = false;
@@ -4811,21 +4823,6 @@ vrend_select_program(struct vrend_sub_context *sub_ctx, ubyte vertices_per_patch
    if (shaders[PIPE_SHADER_GEOMETRY])
       vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_GEOMETRY], &gs_dirty);
    vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_FRAGMENT], &fs_dirty);
-
-   // NOTE: run shader selection again as a workaround to #180 - "duplicated shader compilation"
-   if (shaders[PIPE_SHADER_GEOMETRY])
-      vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_GEOMETRY], &gs_dirty);
-   if (shaders[PIPE_SHADER_TESS_EVAL])
-      vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_TESS_EVAL], &tes_dirty);
-   if (shaders[PIPE_SHADER_TESS_CTRL] && shaders[PIPE_SHADER_TESS_CTRL]->tokens)
-      vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_TESS_CTRL], &tcs_dirty);
-   else if (vrend_state.use_gles && shaders[PIPE_SHADER_TESS_EVAL]) {
-      VREND_DEBUG(dbg_shader, sub_ctx->parent, "Need to inject a TCS\n");
-      vrend_inject_tcs(sub_ctx, vertices_per_patch);
-   }
-   sub_ctx->drawing = true;
-   vrend_shader_select(sub_ctx, shaders[PIPE_SHADER_VERTEX], &vs_dirty);
-   sub_ctx->drawing = false;
 
    uint8_t gles_emulate_query_texture_levels_mask = 0;
 
