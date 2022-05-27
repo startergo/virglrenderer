@@ -165,19 +165,22 @@ struct vrend_glsl_strbufs {
    struct vrend_strbuf glsl_ver_ext;
 };
 
-struct vrend_generic_ios {
-   struct vrend_io_range input_range;
-   struct vrend_io_range output_range;
-
-   uint64_t outputs_expected_mask;
-   uint64_t inputs_emitted_mask;
-   uint64_t outputs_emitted_mask;
-};
-
-struct vrend_texcoord_ios {
+struct vrend_interface_bits {
    uint8_t outputs_expected_mask;
    uint8_t inputs_emitted_mask;
    uint8_t outputs_emitted_mask;
+};
+
+
+
+struct vrend_generic_ios {
+   struct vrend_interface_bits match;
+   struct vrend_io_range input_range;
+   struct vrend_io_range output_range;
+};
+
+struct vrend_texcoord_ios {
+   struct vrend_interface_bits match;
 };
 
 struct vrend_patch_ios {
@@ -6436,16 +6439,16 @@ emit_ios_generic(const struct dump_ctx *ctx,
       if (io->name == TGSI_SEMANTIC_GENERIC) {
          assert(io->sid < 64);
          if (iot == io_in) {
-            generic_ios->inputs_emitted_mask |= 1ull << io->sid;
+            generic_ios->match.inputs_emitted_mask |= 1ull << io->sid;
          } else {
-            generic_ios->outputs_emitted_mask |= 1ull << io->sid;
+            generic_ios->match.outputs_emitted_mask |= 1ull << io->sid;
          }
       } else if (io->name == TGSI_SEMANTIC_TEXCOORD) {
          assert(io->sid < 8);
          if (iot == io_in) {
-            texcoord_ios->inputs_emitted_mask |= 1ull << io->sid;
+            texcoord_ios->match.inputs_emitted_mask |= 1ull << io->sid;
          } else {
-            texcoord_ios->outputs_emitted_mask |= 1ull << io->sid;
+            texcoord_ios->match.outputs_emitted_mask |= 1ull << io->sid;
          }
       }
 
@@ -7149,6 +7152,30 @@ static void emit_interp_info(struct vrend_glsl_strbufs *glsl_strbufs,
    }
 }
 
+static void emit_match_interfaces(struct vrend_glsl_strbufs *glsl_strbufs,
+                                  const struct dump_ctx *ctx,
+                                  const struct vrend_interface_bits *match,
+                                  enum tgsi_semantic semantic_name)
+{
+
+   if (match->outputs_expected_mask &&
+       (match->outputs_expected_mask != match->outputs_emitted_mask)) {
+
+      for (int i = 0; i < 64; ++i) {
+         uint64_t mask = 1ull << i;
+         bool expecting = match->outputs_expected_mask & mask;
+         if (expecting & !(match->outputs_emitted_mask & mask)) {
+            emit_interp_info(glsl_strbufs, ctx->cfg, &ctx->key->fs_info,
+                             semantic_name, i, ctx->key->flatshade);
+            emit_hdrf(glsl_strbufs, "out vec4 %s_%c%dA0%s;\n",
+                      get_stage_output_name_prefix(ctx->prog_type),
+                      semantic_name == TGSI_SEMANTIC_GENERIC ? 'g' : 't', i,
+                      ctx->prog_type == TGSI_PROCESSOR_TESS_CTRL ? "[]" : "");
+         }
+      }
+   }
+}
+
 static int emit_ios(const struct dump_ctx *ctx,
                     struct vrend_glsl_strbufs *glsl_strbufs,
                     struct vrend_generic_ios *generic_ios,
@@ -7193,36 +7220,8 @@ static int emit_ios(const struct dump_ctx *ctx,
       return glsl_ver_required;
    }
 
-   if (generic_ios->outputs_expected_mask &&
-       (generic_ios->outputs_expected_mask != generic_ios->outputs_emitted_mask)) {
-
-      for (int i = 0; i < 64; ++i) {
-         uint64_t mask = 1ull << i;
-         bool expecting = generic_ios->outputs_expected_mask & mask;
-         if (expecting & !(generic_ios->outputs_emitted_mask & mask)) {
-            emit_interp_info(glsl_strbufs, ctx->cfg, &ctx->key->fs_info,
-                             TGSI_SEMANTIC_GENERIC, i, ctx->key->flatshade);
-            emit_hdrf(glsl_strbufs, "out vec4 %s_g%dA0%s;\n",
-                      get_stage_output_name_prefix(ctx->prog_type), i,
-                      ctx->prog_type == TGSI_PROCESSOR_TESS_CTRL ? "[]" : "");
-         }
-      }
-   }
-
-   if (texcoord_ios->outputs_expected_mask &&
-       (texcoord_ios->outputs_expected_mask != texcoord_ios->outputs_emitted_mask)) {
-      for (int i = 0; i < 8; ++i) {
-         uint8_t mask = 1u << i;
-         bool expecting = texcoord_ios->outputs_expected_mask & mask;
-         if (expecting & !(texcoord_ios->outputs_emitted_mask & mask)) {
-            emit_interp_info(glsl_strbufs, ctx->cfg, &ctx->key->fs_info,
-                             TGSI_SEMANTIC_TEXCOORD, i, ctx->key->flatshade);
-            emit_hdrf(glsl_strbufs, "out vec4 %s_t%d%s;\n",
-                      get_stage_output_name_prefix(ctx->prog_type), i,
-                      ctx->prog_type == TGSI_PROCESSOR_TESS_CTRL ? "[]" : "");
-         }
-      }
-   }
+   emit_match_interfaces(glsl_strbufs, ctx, &generic_ios->match, TGSI_SEMANTIC_GENERIC);
+   emit_match_interfaces(glsl_strbufs, ctx, &texcoord_ios->match, TGSI_SEMANTIC_TEXCOORD);
 
    emit_ios_streamout(ctx, glsl_strbufs);
    glsl_ver_required = emit_ios_common(ctx, glsl_strbufs, shadow_samp_mask);
@@ -7395,8 +7394,8 @@ static void fill_sinfo(const struct dump_ctx *ctx, struct vrend_shader_info *sin
       free(sinfo->image_arrays);
    sinfo->image_arrays = ctx->image_arrays;
    sinfo->num_image_arrays = ctx->num_image_arrays;
-   sinfo->in.generic_emitted_mask = ctx->generic_ios.inputs_emitted_mask;
-   sinfo->in.texcoord_emitted_mask = ctx->texcoord_ios.inputs_emitted_mask;
+   sinfo->in.generic_emitted_mask = ctx->generic_ios.match.inputs_emitted_mask;
+   sinfo->in.texcoord_emitted_mask = ctx->texcoord_ios.match.inputs_emitted_mask;
 
    for (unsigned i = 0; i < ctx->num_outputs; ++i) {
       if (ctx->outputs[i].invariant) {
@@ -7499,8 +7498,8 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
    ctx.has_sample_input = false;
    ctx.req_local_mem = req_local_mem;
    ctx.guest_sent_io_arrays = key->input.guest_sent_io_arrays;
-   ctx.generic_ios.outputs_expected_mask = key->output.generic_emitted_mask;
-   ctx.texcoord_ios.outputs_expected_mask = key->output.texcoord_emitted_mask;
+   ctx.generic_ios.match.outputs_expected_mask = key->output.generic_emitted_mask;
+   ctx.texcoord_ios.match.outputs_expected_mask = key->output.texcoord_emitted_mask;
 
    tgsi_scan_shader(tokens, &ctx.info);
    /* if we are in core profile mode we should use GLSL 1.40 */
