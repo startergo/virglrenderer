@@ -2780,7 +2780,8 @@ void vrend_set_framebuffer_state(struct vrend_context *ctx,
    if (sub_ctx->nr_cbufs > 0 || sub_ctx->zsurf) {
       status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
       if (status != GL_FRAMEBUFFER_COMPLETE)
-         vrend_printf("failed to complete framebuffer 0x%x %s\n", status, ctx->debug_name);
+         vrend_unhandled_warnf("failed to complete framebuffer 0x%x %s\n",
+                               status, ctx->debug_name);
    }
 
    sub_ctx->shader_dirty = true;
@@ -6325,7 +6326,8 @@ static bool do_wait(struct vrend_fence *fence, bool can_block)
    do {
       GLenum glret = glClientWaitSync(fence->glsyncobj, 0, timeout);
       if (glret == GL_WAIT_FAILED) {
-         vrend_printf( "wait sync failed: illegal fence object %p\n", fence->glsyncobj);
+         vrend_unhandled_warnf("wait sync failed: illegal fence object %p\n",
+                               fence->glsyncobj);
       }
       done = glret != GL_TIMEOUT_EXPIRED;
    } while (!done && can_block);
@@ -6395,7 +6397,7 @@ static void wait_sync(struct vrend_fence *fence)
          ts.tv_sec += 5;
          ret = cnd_timedwait(&vrend_state.poll_cond, &vrend_state.poll_mutex, &ts);
          if (ret)
-            vrend_printf("timeout (5s) waiting for renderer poll() to finish.");
+            vrend_unhandled_warnf("timeout (5s) waiting for renderer poll() to finish.");
       } while (vrend_state.polling && ret);
    }
 
@@ -6425,7 +6427,7 @@ static int thread_sync(UNUSED void *arg)
    while (!vrend_state.stop_sync_thread) {
       if (LIST_IS_EMPTY(&vrend_state.fence_wait_list) &&
           cnd_wait(&vrend_state.fence_cond, &vrend_state.fence_mutex) != 0) {
-         vrend_printf( "error while waiting on condition\n");
+         vrend_unhandled_warnf( "error while waiting on condition\n");
          break;
       }
 
@@ -6458,13 +6460,13 @@ static void vrend_renderer_use_threaded_sync(void)
 
    vrend_state.sync_context = vrend_clicbs->create_gl_context(0, &ctx_params);
    if (vrend_state.sync_context == NULL) {
-      vrend_printf( "failed to create sync opengl context\n");
+      vrend_unhandled_warnf( "failed to create sync opengl context\n");
       return;
    }
 
    vrend_state.eventfd = create_eventfd(0);
    if (vrend_state.eventfd == -1) {
-      vrend_printf( "Failed to create eventfd\n");
+      vrend_unhandled_warnf( "Failed to create eventfd\n");
       vrend_clicbs->destroy_gl_context(vrend_state.sync_context);
       return;
    }
@@ -7213,13 +7215,13 @@ static void vrend_create_buffer(struct vrend_resource *gr, uint32_t width, uint3
          struct gbm_bo *bo = gbm_bo_create(gbm->device, width, 1,
                                            GBM_FORMAT_R8, GBM_BO_USE_LINEAR);
          if (!bo) {
-            vrend_printf("Failed to allocate emulated GL buffer backing storage");
+            vrend_unhandled_warnf("Failed to allocate emulated GL buffer backing storage");
             return;
          }
 
          ret = virgl_gbm_export_fd(gbm->device, gbm_bo_get_handle(bo).u32, &fd);
          if (ret || fd < 0) {
-            vrend_printf("Failed to get file descriptor\n");
+            vrend_unhandled_warnf("Failed to get file descriptor\n");
             return;
          }
 
@@ -7237,7 +7239,7 @@ static void vrend_create_buffer(struct vrend_resource *gr, uint32_t width, uint3
       }
 #endif
       else {
-         vrend_printf("Missing buffer storage and interop extensions\n");
+         vrend_unhandled_warnf("Missing buffer storage and interop extensions\n");
          return;
       }
 
@@ -7449,7 +7451,7 @@ static int vrend_resource_alloc_texture(struct vrend_resource *gr,
               format == VIRGL_FORMAT_NV21 ||
               format == VIRGL_FORMAT_YV12 ||
               format == VIRGL_FORMAT_P010) && glGetError() != GL_NO_ERROR) {
-            vrend_printf("glEGLImageTargetTexture2DOES maybe fail\n");
+            vrend_unhandled_warnf("glEGLImageTargetTexture2DOES maybe fail\n");
          }
       } else {
          vrend_printf( "missing GL_OES_EGL_image_external extensions\n");
@@ -8318,13 +8320,13 @@ static void do_readpixels(struct vrend_resource *res,
           type != GL_INT && type != GL_FLOAT) {
          glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE, &imp);
          if (imp != (GLint)type) {
-            vrend_printf( "GL_IMPLEMENTATION_COLOR_READ_TYPE is not expected native type 0x%x != imp 0x%x\n", type, imp);
+            vrend_unhandled_warnf("GL_IMPLEMENTATION_COLOR_READ_TYPE is not expected native type 0x%x != imp 0x%x\n", type, imp);
          }
       }
       if (format != GL_RGBA && format != GL_RGBA_INTEGER) {
          glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &imp);
          if (imp != (GLint)format) {
-            vrend_printf( "GL_IMPLEMENTATION_COLOR_READ_FORMAT is not expected native format 0x%x != imp 0x%x\n", format, imp);
+            vrend_unhandled_warnf("GL_IMPLEMENTATION_COLOR_READ_FORMAT is not expected native format 0x%x != imp 0x%x\n", format, imp);
          }
       }
    }
@@ -8539,7 +8541,7 @@ static int vrend_renderer_transfer_send_iov(struct vrend_context *ctx,
       glBindBufferARB(res->target, res->id);
       data = glMapBufferRange(res->target, info->box->x, info->box->width, GL_MAP_READ_BIT);
       if (!data)
-         vrend_printf("unable to open buffer for reading %d\n", res->target);
+         vrend_unhandled_warnf("unable to open buffer for reading %d\n", res->target);
       else
          vrend_write_to_iovec(iov, num_iovs, info->offset, data, send_size);
       glUnmapBuffer(res->target);
@@ -10068,7 +10070,7 @@ static void vrend_renderer_check_queries(void)
 
    LIST_FOR_EACH_ENTRY_SAFE(query, stor, &vrend_state.waiting_query_list, waiting_queries) {
       if (!vrend_hw_switch_context(query->ctx, true)) {
-         vrend_printf("failed to switch to context (%d) for query %u\n",
+         vrend_unhandled_warnf("failed to switch to context (%d) for query %u\n",
                       query->ctx->ctx_id, query->id);
       }
       else if (!vrend_check_query(query)) {
@@ -11236,7 +11238,7 @@ void vrend_renderer_fill_caps(uint32_t set, uint32_t version,
     * have cleaned up propperly, so read the error state until we are okay.
     */
    while ((err = glGetError()) != GL_NO_ERROR)
-      vrend_printf("%s: Entering with stale GL error: %d\n", __func__, err);
+      vrend_unhandled_warnf("%s: Entering with stale GL error: %d\n", __func__, err);
 
    if (vrend_state.use_gles) {
       gles_ver = epoxy_gl_version();
@@ -11372,7 +11374,8 @@ void vrend_renderer_attach_res_ctx(struct vrend_context *ctx,
             wrapper->resource = last;
             list_add(&wrapper->head, &ctx->untyped_resources);
          } else {
-            vrend_printf("dropping attached resource %d due to OOM\n", last->res_id);
+            vrend_unhandled_warnf("dropping attached resource %d due to OOM\n",
+                                  last->res_id);
          }
       }
 
@@ -11601,7 +11604,7 @@ int vrend_renderer_get_poll_fd(void)
 {
    int fd = vrend_state.eventfd;
    if (vrend_state.use_async_fence_cb && fd < 0)
-      vrend_printf("failed to duplicate eventfd: error=%d\n", errno);
+      vrend_unhandled_warnf("failed to duplicate eventfd: error=%d\n", errno);
    return fd;
 }
 
