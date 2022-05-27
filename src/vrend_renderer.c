@@ -111,10 +111,6 @@ struct vrend_query {
    bool fake_samples_passed;
 };
 
-struct global_error_state {
-   enum virgl_errors last_error;
-};
-
 enum features_id
 {
    feat_arb_or_gles_ext_texture_buffer,
@@ -748,8 +744,6 @@ struct vrend_context {
 
    GLuint pstipple_tex_id;
 
-   enum virgl_ctx_errors last_error;
-
    /* resource bounds to this context */
    struct util_hash_table *res_hash;
 
@@ -1010,10 +1004,23 @@ void vrend_report_context_error_internal(const char *fname, struct vrend_context
                                          enum virgl_ctx_errors error, uint32_t value)
 {
    ctx->in_error = true;
-   ctx->last_error = error;
    vrend_printf("%s: context error reported %d \"%s\" %s %d\n", fname,
                 ctx->ctx_id, ctx->debug_name, vrend_ctx_error_strings[error],
                 value);
+}
+
+static void report_guest_errorf(struct vrend_context *ctx, const char *fmt, ...)
+{
+   va_list va;
+   va_start(va, fmt);
+   virgl_logv(fmt, va);
+   va_end(va);
+
+#ifdef STRICT
+   ctx->in_error = true;
+#else
+   (void)ctx;
+#endif
 }
 
 #define CORE_PROFILE_WARN_NONE 0
@@ -1560,7 +1567,8 @@ static void bind_ssbo_locs(struct vrend_linked_shader_program *sprog,
    sprog->ssbo_used_mask[shader_type] = sprog->ss[shader_type]->sel->sinfo.ssbo_used_mask;
 }
 
-static void bind_image_locs(struct vrend_linked_shader_program *sprog,
+static void bind_image_locs(struct vrend_context *ctx,
+                            struct vrend_linked_shader_program *sprog,
                             enum pipe_shader_type shader_type)
 {
    int i;
@@ -1590,7 +1598,7 @@ static void bind_image_locs(struct vrend_linked_shader_program *sprog,
             snprintf(name, 32, "%simg%d[%d]", prefix, img_array->first, j);
             sprog->img_locs[shader_type][img_array->first + j] = glGetUniformLocation(sprog->id, name);
             if (sprog->img_locs[shader_type][img_array->first + j] == -1)
-               vrend_printf( "failed to get uniform loc for image %s\n", name);
+               report_guest_errorf(ctx, "failed to get uniform loc for image %s\n", name);
          }
       }
    } else if (mask) {
@@ -1599,7 +1607,7 @@ static void bind_image_locs(struct vrend_linked_shader_program *sprog,
             snprintf(name, 32, "%simg%d", prefix, i);
             sprog->img_locs[shader_type][i] = glGetUniformLocation(sprog->id, name);
             if (sprog->img_locs[shader_type][i] == -1)
-               vrend_printf( "failed to get uniform loc for image %s\n", name);
+               report_guest_errorf(ctx, "failed to get uniform loc for image %s\n", name);
          } else {
             sprog->img_locs[shader_type][i] = -1;
          }
@@ -1643,7 +1651,7 @@ static struct vrend_linked_shader_program *add_cs_shader_program(struct vrend_co
    bind_ubo_locs(sprog, PIPE_SHADER_COMPUTE, 0);
    bind_ssbo_locs(sprog, PIPE_SHADER_COMPUTE);
    bind_const_locs(sprog, PIPE_SHADER_COMPUTE);
-   bind_image_locs(sprog, PIPE_SHADER_COMPUTE);
+   bind_image_locs(ctx, sprog, PIPE_SHADER_COMPUTE);
    return sprog;
 }
 
@@ -1785,7 +1793,7 @@ static struct vrend_linked_shader_program *add_shader_program(struct vrend_sub_c
       next_sampler_id = bind_sampler_locs(sprog, shader_type, next_sampler_id);
       bind_const_locs(sprog, shader_type);
       next_ubo_id = bind_ubo_locs(sprog, shader_type, next_ubo_id);
-      bind_image_locs(sprog, shader_type);
+      bind_image_locs(sub_ctx->parent, sprog, shader_type);
       bind_ssbo_locs(sprog, shader_type);
    }
 
@@ -4153,7 +4161,7 @@ void vrend_clear_texture(struct vrend_context* ctx,
    if (handle)
       res = vrend_renderer_ctx_res_lookup(ctx, handle);
    else {
-      vrend_printf( "cannot find resource for handle %d\n", handle);
+      report_guest_errorf(ctx, "cannot find resource for handle %d\n", handle);
       return;
    }
 
@@ -4241,7 +4249,7 @@ static void vrend_update_viewport_state(struct vrend_sub_context *sub_ctx)
    sub_ctx->viewport_state_dirty = 0;
 }
 
-static GLenum get_gs_xfb_mode(GLenum mode)
+static GLenum get_gs_xfb_mode(struct vrend_context *ctx, GLenum mode)
 {
    switch (mode) {
    case GL_POINTS:
@@ -4251,12 +4259,13 @@ static GLenum get_gs_xfb_mode(GLenum mode)
    case GL_TRIANGLE_STRIP:
       return GL_TRIANGLES;
    default:
-      vrend_printf( "illegal gs transform feedback mode %d\n", mode);
+      report_guest_errorf(ctx, "illegal gs transform feedback mode %d\n", mode);
       return GL_POINTS;
    }
 }
 
-static GLenum get_tess_xfb_mode(int mode, bool is_point_mode)
+static GLenum get_tess_xfb_mode(struct vrend_context *ctx,
+                                int mode, bool is_point_mode)
 {
    if (is_point_mode)
        return GL_POINTS;
@@ -4267,12 +4276,12 @@ static GLenum get_tess_xfb_mode(int mode, bool is_point_mode)
    case GL_LINES:
       return GL_LINES;
    default:
-      vrend_printf( "illegal gs transform feedback mode %d\n", mode);
+      report_guest_errorf(ctx, "illegal gs transform feedback mode %d\n", mode);
       return GL_POINTS;
    }
 }
 
-static GLenum get_xfb_mode(GLenum mode)
+static GLenum get_xfb_mode(struct vrend_context *ctx, GLenum mode)
 {
    switch (mode) {
    case GL_POINTS:
@@ -4289,7 +4298,7 @@ static GLenum get_xfb_mode(GLenum mode)
    case GL_LINE_STRIP:
       return GL_LINES;
    default:
-      vrend_printf( "failed to translate TFB %d\n", mode);
+      report_guest_errorf(ctx, "failed to translate TFB %d\n", mode);
       return GL_POINTS;
    }
 }
@@ -4316,7 +4325,9 @@ static void vrend_draw_bind_vertex_legacy(struct vrend_context *ctx,
       res = (struct vrend_resource *)ctx->sub->vbo[vbo_index].base.buffer;
 
       if (!res) {
-         vrend_printf("cannot find vbo buf %d %d %d\n", i, va->count, ctx->sub->prog->ss[PIPE_SHADER_VERTEX]->sel->sinfo.num_inputs);
+         report_guest_errorf(ctx, "cannot find vbo buf %d %d %d\n",
+                             i, va->count,
+                             ctx->sub->prog->ss[PIPE_SHADER_VERTEX]->sel->sinfo.num_inputs);
          continue;
       }
 
@@ -4328,9 +4339,12 @@ static void vrend_draw_bind_vertex_legacy(struct vrend_context *ctx,
          } else loc = -1;
 
          if (loc == -1) {
-            vrend_printf("%s: cannot find loc %d %d %d\n", ctx->debug_name, i, va->count, ctx->sub->prog->ss[PIPE_SHADER_VERTEX]->sel->sinfo.num_inputs);
+            report_guest_errorf(ctx, "%s: cannot find loc %d %d %d\n",
+                                ctx->debug_name, i, va->count,
+                                ctx->sub->prog->ss[PIPE_SHADER_VERTEX]->sel->sinfo.num_inputs);
             if (i == 0) {
-               vrend_printf("%s: shader probably didn't compile - skipping rendering\n", ctx->debug_name);
+               report_guest_errorf(ctx, "%s: shader probably didn't compile - skipping rendering\n",
+                                   ctx->debug_name);
                return;
             }
             continue;
@@ -4338,7 +4352,7 @@ static void vrend_draw_bind_vertex_legacy(struct vrend_context *ctx,
       }
 
       if (ve->type == GL_FALSE) {
-         vrend_printf("failed to translate vertex type - skipping render\n");
+         report_guest_errorf(ctx, "failed to translate vertex type - skipping render\n");
          return;
       }
 
@@ -4695,7 +4709,7 @@ static void vrend_draw_bind_images_shader(struct vrend_sub_context *sub_ctx, int
          access = GL_READ_WRITE;
          break;
       default:
-         vrend_printf( "Invalid access specified\n");
+         report_guest_errorf(sub_ctx->parent, "Invalid access specified\n");
          return;
       }
 
@@ -4911,7 +4925,8 @@ vrend_select_program(struct vrend_sub_context *sub_ctx, ubyte vertices_per_patch
    return new_program;
 
 fail:
-   vrend_printf( "failure to compile shader variants: %s\n", sub_ctx->parent->debug_name);
+   report_guest_errorf(sub_ctx->parent, "failure to compile shader variants: %s\n",
+                       sub_ctx->parent->debug_name);
    return false;
 }
 
@@ -5025,7 +5040,7 @@ int vrend_draw_vbo(struct vrend_context *ctx,
    }
 
    if (!sub_ctx->ve) {
-      vrend_printf("illegal VE setup - skipping renderering\n");
+      report_guest_errorf(ctx, "illegal VE setup - skipping renderering\n");
       return 0;
    }
 
@@ -5034,7 +5049,8 @@ int vrend_draw_vbo(struct vrend_context *ctx,
       new_program = vrend_select_program(sub_ctx, info->vertices_per_patch);
 
    if (!sub_ctx->prog) {
-      vrend_printf("dropping rendering due to missing shaders: %s\n", ctx->debug_name);
+      report_guest_errorf(ctx, "dropping rendering due to missing shaders: %s\n",
+                          ctx->debug_name);
       return 0;
    }
 
@@ -5083,7 +5099,7 @@ int vrend_draw_vbo(struct vrend_context *ctx,
    if (info->indexed) {
       struct vrend_resource *res = (struct vrend_resource *)sub_ctx->ib.buffer;
       if (!res) {
-         vrend_printf( "VBO missing indexed array buffer\n");
+         report_guest_errorf(ctx, "VBO missing indexed array buffer\n");
          return 0;
       }
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, res->id);
@@ -5093,12 +5109,12 @@ int vrend_draw_vbo(struct vrend_context *ctx,
    if (sub_ctx->current_so) {
       if (sub_ctx->current_so->xfb_state == XFB_STATE_STARTED_NEED_BEGIN) {
          if (sub_ctx->shaders[PIPE_SHADER_GEOMETRY])
-            glBeginTransformFeedback(get_gs_xfb_mode(sub_ctx->shaders[PIPE_SHADER_GEOMETRY]->sinfo.gs_out_prim));
+            glBeginTransformFeedback(get_gs_xfb_mode(ctx, sub_ctx->shaders[PIPE_SHADER_GEOMETRY]->sinfo.gs_out_prim));
      else if (sub_ctx->shaders[PIPE_SHADER_TESS_EVAL])
-            glBeginTransformFeedback(get_tess_xfb_mode(sub_ctx->shaders[PIPE_SHADER_TESS_EVAL]->sinfo.tes_prim,
+            glBeginTransformFeedback(get_tess_xfb_mode(ctx, sub_ctx->shaders[PIPE_SHADER_TESS_EVAL]->sinfo.tes_prim,
                                sub_ctx->shaders[PIPE_SHADER_TESS_EVAL]->sinfo.tes_point_mode));
          else
-            glBeginTransformFeedback(get_xfb_mode(info->mode));
+            glBeginTransformFeedback(get_xfb_mode(ctx, info->mode));
          sub_ctx->current_so->xfb_state = XFB_STATE_STARTED;
       } else if (sub_ctx->current_so->xfb_state == XFB_STATE_PAUSED) {
          glResumeTransformFeedback();
@@ -5266,18 +5282,21 @@ void vrend_launch_grid(struct vrend_context *ctx,
       sub_ctx->cs_shader_dirty = false;
 
       if (!sub_ctx->shaders[PIPE_SHADER_COMPUTE]) {
-         vrend_printf("dropping rendering due to missing shaders: %s\n", ctx->debug_name);
+         report_guest_errorf(ctx, "dropping rendering due to missing shaders: %s\n",
+                             ctx->debug_name);
          return;
       }
 
       vrend_shader_select(sub_ctx, sub_ctx->shaders[PIPE_SHADER_COMPUTE], &cs_dirty);
       if (!sub_ctx->shaders[PIPE_SHADER_COMPUTE]->current) {
-         vrend_printf( "failure to select compute shader variant: %s\n", ctx->debug_name);
+         report_guest_errorf(ctx, "failure to select compute shader variant: %s\n",
+                             ctx->debug_name);
          return;
       }
       if (!sub_ctx->shaders[PIPE_SHADER_COMPUTE]->current->is_compiled) {
          if(!vrend_compile_shader(sub_ctx, sub_ctx->shaders[PIPE_SHADER_COMPUTE]->current)) {
-            vrend_printf( "failure to compile compute shader variant: %s\n", ctx->debug_name);
+            report_guest_errorf(ctx, "failure to compile compute shader variant: %s\n",
+                                ctx->debug_name);
             return;
          }
       }
@@ -5302,8 +5321,8 @@ void vrend_launch_grid(struct vrend_context *ctx,
    }
 
    if (!sub_ctx->prog) {
-      vrend_printf("%s: Skipping compute shader execution due to missing shaders: %s\n",
-                   __func__, ctx->debug_name);
+      report_guest_errorf(ctx, "%s: Skipping compute shader execution due to missing shaders: %s\n",
+                          __func__, ctx->debug_name);
       return;
    }
 
@@ -5495,7 +5514,7 @@ static void vrend_hw_emit_blend(struct vrend_sub_context *sub_ctx, struct pipe_b
          if (state->rt[i].blend_enable) {
             bool dual_src = util_blend_state_is_dual(&sub_ctx->blend_state, i);
             if (dual_src && !has_feature(feat_dual_src_blend)) {
-               vrend_printf( "dual src blend requested but not supported for rt %d\n", i);
+               report_guest_errorf(sub_ctx->parent, "dual src blend requested but not supported for rt %d\n", i);
                continue;
             }
 
@@ -5521,7 +5540,7 @@ static void vrend_hw_emit_blend(struct vrend_sub_context *sub_ctx, struct pipe_b
       if (state->rt[0].blend_enable) {
          bool dual_src = util_blend_state_is_dual(&sub_ctx->blend_state, 0);
          if (dual_src && !has_feature(feat_dual_src_blend)) {
-            vrend_printf( "dual src blend requested but not supported for rt 0\n");
+            report_guest_errorf(sub_ctx->parent, "dual src blend requested but not supported for rt 0\n");
          }
          glBlendFuncSeparate(translate_blend_factor(state->rt[0].rgb_src_factor),
                              translate_blend_factor(state->rt[0].rgb_dst_factor),
@@ -5875,7 +5894,7 @@ static void vrend_hw_emit_rs(struct vrend_context *ctx)
           glClipControl(GL_LOWER_LEFT, depthrule);
           ctx->sub->hw_rs_state.clip_halfz = state->clip_halfz;
        } else {
-          vrend_printf("No clip control supported\n");
+          report_guest_errorf(ctx, "No clip control supported\n");
        }
    }
    if (state->flatshade_first != ctx->sub->hw_rs_state.flatshade_first) {
@@ -5934,7 +5953,7 @@ static void vrend_hw_emit_rs(struct vrend_context *ctx)
          glCullFace(GL_FRONT_AND_BACK);
          break;
       default:
-         vrend_printf( "unhandled cull-face: %x\n", state->cull_face);
+         report_guest_errorf(ctx, "unhandled cull-face: %x\n", state->cull_face);
       }
       glEnable(GL_CULL_FACE);
    } else
@@ -6089,7 +6108,7 @@ void vrend_bind_sampler_states(struct vrend_context *ctx,
          state = vrend_object_lookup(ctx->sub->object_hash, handles[i], VIRGL_OBJECT_SAMPLER_STATE);
 
       if (!state && handles[i])
-         vrend_printf("Failed to bind sampler state (handle=%d)\n", handles[i]);
+         report_guest_errorf(ctx, "Failed to bind sampler state (handle=%d)\n", handles[i]);
 
       ctx->sub->sampler_state[shader_type][start_slot + i] = state;
       ctx->sub->sampler_views_dirty[shader_type] |= (1 << (start_slot + i));
@@ -9049,7 +9068,8 @@ static void vrend_resource_buffer_copy(UNUSED struct vrend_context *ctx,
    glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 }
 
-static void vrend_resource_copy_fallback(struct vrend_resource *src_res,
+static void vrend_resource_copy_fallback(struct vrend_context *ctx,
+                                         struct vrend_resource *src_res,
                                          struct vrend_resource *dst_res,
                                          uint32_t dst_level,
                                          uint32_t dstx, uint32_t dsty,
@@ -9070,7 +9090,8 @@ static void vrend_resource_copy_fallback(struct vrend_resource *src_res,
       cube_slice = 6;
 
    if (src_res->base.format != dst_res->base.format) {
-      vrend_printf( "copy fallback failed due to mismatched formats %d %d\n", src_res->base.format, dst_res->base.format);
+      report_guest_errorf(ctx, "copy fallback failed due to mismatched formats %d %d\n",
+                          src_res->base.format, dst_res->base.format);
       return;
    }
 
@@ -9228,7 +9249,8 @@ static void vrend_resource_copy_fallback(struct vrend_resource *src_res,
 }
 
 static inline void
-vrend_copy_sub_image(struct vrend_resource* src_res, struct vrend_resource * dst_res,
+vrend_copy_sub_image(struct vrend_context *ctx,
+                     struct vrend_resource* src_res, struct vrend_resource * dst_res,
                      uint32_t src_level, const struct pipe_box *src_box,
                      uint32_t dst_level, uint32_t dstx, uint32_t dsty, uint32_t dstz)
 {
@@ -9243,7 +9265,7 @@ vrend_copy_sub_image(struct vrend_resource* src_res, struct vrend_resource * dst
    //   "ERROR: GL_INVALID_VALUE in glCopyImageSubData(srcX or srcWidth exceeds image bounds)"
    if (has_bit(src_res->storage_bits, VREND_STORAGE_GBM_BUFFER) &&
        glGetError() != GL_NO_ERROR) {
-      vrend_printf("glCopyImageSubData maybe fail\n");
+      report_guest_errorf(ctx, "glCopyImageSubData maybe fail\n");
    }
 }
 
@@ -9302,7 +9324,7 @@ void vrend_renderer_resource_copy_region(struct vrend_context *ctx,
        format_is_copy_compatible(src_res->base.format,dst_res->base.format, comp_flags) &&
        src_res->base.nr_samples == dst_res->base.nr_samples) {
       VREND_DEBUG(dbg_copy_resource, ctx, "COPY_REGION: use glCopyImageSubData\n");
-      vrend_copy_sub_image(src_res, dst_res, src_level, src_box,
+      vrend_copy_sub_image(ctx, src_res, dst_res, src_level, src_box,
                            dst_level, dstx, dsty, dstz);
       return;
    }
@@ -9310,7 +9332,7 @@ void vrend_renderer_resource_copy_region(struct vrend_context *ctx,
    if (!vrend_format_can_render(src_res->base.format) ||
        !vrend_format_can_render(dst_res->base.format)) {
       VREND_DEBUG(dbg_copy_resource, ctx, "COPY_REGION: use resource_copy_fallback\n");
-      vrend_resource_copy_fallback(src_res, dst_res, dst_level, dstx,
+      vrend_resource_copy_fallback(ctx, src_res, dst_res, dst_level, dstx,
                                    dsty, dstz, src_level, src_box);
       return;
    }
@@ -9851,7 +9873,7 @@ void vrend_renderer_blit(struct vrend_context *ctx,
        info->src.box.height == info->dst.box.height &&
        info->src.box.depth == info->dst.box.depth) {
       VREND_DEBUG(dbg_blit, ctx,  "  Use glCopyImageSubData\n");
-      vrend_copy_sub_image(src_res, dst_res, info->src.level, &info->src.box,
+      vrend_copy_sub_image(ctx, src_res, dst_res, info->src.level, &info->src.box,
                            info->dst.level, info->dst.box.x, info->dst.box.y,
                            info->dst.box.z);
    } else {
@@ -10071,7 +10093,7 @@ static void vrend_renderer_check_queries(void)
    LIST_FOR_EACH_ENTRY_SAFE(query, stor, &vrend_state.waiting_query_list, waiting_queries) {
       if (!vrend_hw_switch_context(query->ctx, true)) {
          vrend_unhandled_warnf("failed to switch to context (%d) for query %u\n",
-                      query->ctx->ctx_id, query->id);
+                               query->ctx->ctx_id, query->id);
       }
       else if (!vrend_check_query(query)) {
          continue;
@@ -10210,7 +10232,7 @@ int vrend_create_query(struct vrend_context *ctx, uint32_t handle,
       q->gltype = GL_TRANSFORM_FEEDBACK_OVERFLOW_ARB;
       break;
    default:
-      vrend_printf("unknown query object received %d\n", q->type);
+      report_guest_errorf(ctx, "unknown query object received %d\n", q->type);
       break;
    }
 
@@ -10468,7 +10490,7 @@ void vrend_render_condition(struct vrend_context *ctx,
       glmode = condition ? GL_QUERY_BY_REGION_NO_WAIT_INVERTED : GL_QUERY_BY_REGION_NO_WAIT;
       break;
    default:
-      vrend_printf( "unhandled condition %x\n", mode);
+      report_guest_errorf(ctx, "unhandled condition %x\n", mode);
    }
 
    ctx->sub->cond_render_q_id = q->id;
