@@ -304,6 +304,10 @@ struct dump_ctx {
    bool is_last_vertex_stage;
 
    uint16_t local_cs_block_size[3];
+
+#ifdef STRICT
+   bool warned;
+#endif
 };
 
 static const struct vrend_shader_table shader_req_table[] = {
@@ -427,6 +431,20 @@ void vrend_shader_write_io_as_dst(struct vrend_strbuf *buf,
                                   const struct tgsi_full_dst_register *src,
                                   enum io_decl_type decl_type);
 
+static void warnf(struct dump_ctx *ctx, const char *fmt, ...)
+{
+   va_list va;
+   va_start(va, fmt);
+   virgl_logv(fmt, va);
+   va_end(va);
+
+#ifdef STRICT
+   ctx->warned = true;
+#else
+   (void)ctx;
+#endif
+}
+
 /* We prefer arrays of arrays, but if this is not available then TCS, GEOM, and TES
  * inputs must be blocks, but FS input should not because interpolateAt* doesn't
  * support dereferencing block members. */
@@ -502,7 +520,8 @@ static inline const char *get_swizzle_string(uint8_t swizzle)
    }
 }
 
-const char *get_internalformat_string(int virgl_format, enum tgsi_return_type *stype);
+const char *get_internalformat_string(struct dump_ctx *ctx,
+                                      int virgl_format, enum tgsi_return_type *stype);
 
 static inline const char *tgsi_proc_to_prefix(int shader_type)
 {
@@ -1040,7 +1059,8 @@ typedef enum
 } gl_varying_slot;
 
 static uint32_t
-varying_bit_from_semantic_and_index(enum tgsi_semantic semantic, int index)
+varying_bit_from_semantic_and_index(struct dump_ctx *ctx,
+                                    enum tgsi_semantic semantic, int index)
 {
    switch (semantic) {
    case TGSI_SEMANTIC_POSITION:
@@ -1090,7 +1110,7 @@ varying_bit_from_semantic_and_index(enum tgsi_semantic semantic, int index)
    case TGSI_SEMANTIC_PATCH:
       return VARYING_SLOT_PATCH0 + index;
    default:
-      vrend_printf("Warning: Bad TGSI semantic: %d/%d\n", semantic, index);
+      warnf(ctx, "Warning: Bad TGSI semantic: %d/%d\n", semantic, index);
       return 0;
    }
 }
@@ -1290,7 +1310,7 @@ iter_declaration(struct tgsi_iterate_context *iter,
                else if (decl->Semantic.Index == 1)
                   name_prefix = "gl_SecondaryColor";
                else
-                  vrend_printf( "got illegal color semantic index %d\n", decl->Semantic.Index);
+                  warnf(ctx, "got illegal color semantic index %d\n", decl->Semantic.Index);
                ctx->inputs[i].glsl_no_index = true;
             } else {
                if (ctx->key->color_two_side) {
@@ -1481,7 +1501,7 @@ iter_declaration(struct tgsi_iterate_context *iter,
          }
          break;
       default:
-         vrend_printf("unhandled input semantic: %x\n", ctx->inputs[i].name);
+         warnf(ctx, "unhandled input semantic: %x\n", ctx->inputs[i].name);
          break;
       }
 
@@ -1558,7 +1578,7 @@ iter_declaration(struct tgsi_iterate_context *iter,
              iter->processor.Processor == TGSI_PROCESSOR_TESS_CTRL ||
              iter->processor.Processor == TGSI_PROCESSOR_TESS_EVAL) {
             if (ctx->outputs[i].first > 0)
-               vrend_printf("Illegal position input\n");
+               warnf(ctx, "Illegal position input\n");
             name_prefix = "gl_Position";
             ctx->outputs[i].glsl_predefined_no_emit = true;
             ctx->outputs[i].glsl_no_index = true;
@@ -1731,7 +1751,7 @@ iter_declaration(struct tgsi_iterate_context *iter,
          }
          break;
       default:
-         vrend_printf("unhandled output semantic: %x\n", ctx->outputs[i].name);
+         warnf(ctx, "unhandled output semantic: %x\n", ctx->outputs[i].name);
          break;
       }
 
@@ -1880,7 +1900,7 @@ iter_declaration(struct tgsi_iterate_context *iter,
          name_prefix = "gl_NumWorkGroups";
          ctx->system_values[i].override_no_wm = false;
       } else {
-         vrend_printf( "unsupported system value %d\n", decl->Semantic.Name);
+         warnf(ctx, "unsupported system value %d\n", decl->Semantic.Name);
          name_prefix = "unknown";
       }
       snprintf(ctx->system_values[i].glsl_name, 64, "%s", name_prefix);
@@ -1899,7 +1919,7 @@ iter_declaration(struct tgsi_iterate_context *iter,
       ctx->num_abo++;
       break;
    default:
-      vrend_printf("unsupported file %d declaration\n", decl->Declaration.File);
+      warnf(ctx, "unsupported file %d declaration\n", decl->Declaration.File);
       break;
    }
 
@@ -3490,7 +3510,7 @@ static enum vrend_type_qualifier get_coord_prefix(int resource, bool *is_ms, boo
    }
 }
 
-static bool is_integer_memory(const struct dump_ctx *ctx, enum tgsi_file_type file_type, uint32_t index)
+static bool is_integer_memory(struct dump_ctx *ctx, enum tgsi_file_type file_type, uint32_t index)
 {
    switch(file_type) {
    case TGSI_FILE_BUFFER:
@@ -3498,7 +3518,7 @@ static bool is_integer_memory(const struct dump_ctx *ctx, enum tgsi_file_type fi
    case TGSI_FILE_MEMORY:
       return ctx->integer_memory;
    default:
-      vrend_printf( "Invalid file type");
+      warnf(ctx, "Invalid file type");
    }
 
    return false;
@@ -3531,7 +3551,7 @@ static void emit_store_mem(struct vrend_glsl_strbufs *glsl_strbufs, const char *
 }
 
 static void
-translate_store(const struct dump_ctx *ctx,
+translate_store(struct dump_ctx *ctx,
                 struct vrend_glsl_strbufs *glsl_strbufs,
                 uint8_t ssbo_memory_qualifier[],
                 const struct tgsi_full_instruction *inst,
@@ -3548,7 +3568,7 @@ translate_store(const struct dump_ctx *ctx,
       char ms_str[32] = "";
       enum vrend_type_qualifier stypeprefix = TYPE_CONVERSION_NONE;
       const char *conversion = sinfo->override_no_cast[0] ? "" : get_string(FLOAT_BITS_TO_INT);
-      get_internalformat_string(inst->Memory.Format, &itype);
+      get_internalformat_string(ctx, inst->Memory.Format, &itype);
       if (is_ms) {
          snprintf(ms_str, 32, "int(%s.w),", srcs[0]);
       }
@@ -3635,7 +3655,7 @@ static void emit_load_mem(struct vrend_glsl_strbufs *glsl_strbufs, const char *d
 
 
 static void
-translate_load(const struct dump_ctx *ctx,
+translate_load(struct dump_ctx *ctx,
                struct vrend_glsl_strbufs *glsl_strbufs,
                uint8_t ssbo_memory_qualifier[],
                struct vrend_shader_image images[],
@@ -3653,7 +3673,7 @@ translate_load(const struct dump_ctx *ctx,
       enum vrend_type_qualifier dtypeprefix = TYPE_CONVERSION_NONE;
       const char *conversion = sinfo->override_no_cast[1] ? "" : get_string(FLOAT_BITS_TO_INT);
       enum tgsi_return_type itype;
-      get_internalformat_string(ctx->images[sinfo->sreg_index].decl.Format, &itype);
+      get_internalformat_string(ctx, ctx->images[sinfo->sreg_index].decl.Format, &itype);
       char ms_str[32] = "";
       const char *wm = dinfo->dst_override_no_wm[0] ? "" : writemask;
       if (is_ms) {
@@ -3846,7 +3866,7 @@ translate_atomic(struct dump_ctx *ctx,
 
    if (src->Register.File == TGSI_FILE_IMAGE) {
      enum tgsi_return_type itype;
-     get_internalformat_string(ctx->images[sinfo->sreg_index].decl.Format, &itype);
+     get_internalformat_string(ctx, ctx->images[sinfo->sreg_index].decl.Format, &itype);
      switch (itype) {
      default:
      case TGSI_RETURN_TYPE_UINT:
@@ -5191,7 +5211,7 @@ iter_instruction(struct tgsi_iterate_context *iter,
        * GLSL < 4.30 it is required to match the output of the previous stage */
       if (!ctx->cfg->use_gles) {
          for (unsigned i = 0; i < ctx->num_inputs; ++i) {
-            uint32_t bit_pos = varying_bit_from_semantic_and_index(ctx->inputs[i].name, ctx->inputs[i].sid);
+            uint32_t bit_pos = varying_bit_from_semantic_and_index(ctx, ctx->inputs[i].name, ctx->inputs[i].sid);
             uint32_t slot = bit_pos / 32;
             uint32_t bit = 1u << (bit_pos & 0x1f);
             if (ctx->key->force_invariant_inputs[slot] & bit)
@@ -5735,7 +5755,7 @@ iter_instruction(struct tgsi_iterate_context *iter,
       emit_buff(&ctx->glsl_strbufs, "%s = uintBitsToFloat(clock2x32ARB());\n", dsts[0]);
       break;
    default:
-      vrend_printf("failed to convert opcode %d\n", inst->Instruction.Opcode);
+      warnf(ctx, "failed to convert opcode %d\n", inst->Instruction.Opcode);
       break;
    }
 
@@ -6032,7 +6052,8 @@ static void emit_sampler_decl(const struct dump_ctx *ctx,
    }
 }
 
-const char *get_internalformat_string(int virgl_format, enum tgsi_return_type *stype)
+const char *get_internalformat_string(struct dump_ctx *ctx,
+                                      int virgl_format, enum tgsi_return_type *stype)
 {
    switch (virgl_format) {
    case PIPE_FORMAT_R11G11B10_FLOAT:
@@ -6157,12 +6178,12 @@ const char *get_internalformat_string(int virgl_format, enum tgsi_return_type *s
       return "";
    default:
       *stype = TGSI_RETURN_TYPE_UNORM;
-      vrend_printf( "illegal format %d\n", virgl_format);
+      warnf(ctx, "illegal format %d\n", virgl_format);
       return "";
    }
 }
 
-static void emit_image_decl(const struct dump_ctx *ctx,
+static void emit_image_decl(struct dump_ctx *ctx,
                             struct vrend_glsl_strbufs *glsl_strbufs,
                             uint32_t i, uint32_t range,
                             const struct vrend_shader_image *image)
@@ -6173,7 +6194,7 @@ static void emit_image_decl(const struct dump_ctx *ctx,
    const char *volatile_str = image->vflag ? "volatile " : "";
    const char *precision = ctx->cfg->use_gles ? "highp " : "";
    const char *access = "";
-   formatstr = get_internalformat_string(image->decl.Format, &itype);
+   formatstr = get_internalformat_string(ctx, image->decl.Format, &itype);
    ptc = vrend_shader_samplerreturnconv(itype);
    sname = tgsi_proc_to_prefix(ctx->prog_type);
    stc = vrend_shader_samplertypeconv(ctx->cfg->use_gles, image->decl.Resource);
@@ -6214,7 +6235,7 @@ static void emit_image_decl(const struct dump_ctx *ctx,
                access, volatile_str, precision, ptc, stc, sname, i);
 }
 
-static int emit_ios_common(const struct dump_ctx *ctx,
+static int emit_ios_common(struct dump_ctx *ctx,
                            struct vrend_glsl_strbufs *glsl_strbufs,
                            uint32_t *shadow_samp_mask)
 {
@@ -7273,7 +7294,7 @@ static int emit_ios(const struct dump_ctx *ctx,
    return glsl_ver_required;
 }
 
-static boolean fill_fragment_interpolants(const struct dump_ctx *ctx, struct vrend_fs_shader_info *fs_info)
+static boolean fill_fragment_interpolants(struct dump_ctx *ctx, struct vrend_fs_shader_info *fs_info)
 {
    uint32_t i, index = 0;
 
@@ -7286,7 +7307,7 @@ static boolean fill_fragment_interpolants(const struct dump_ctx *ctx, struct vre
          continue;
 
       if (index >= ctx->num_interps) {
-         vrend_printf( "mismatch in number of interps %d %d\n", index, ctx->num_interps);
+         warnf(ctx, "mismatch in number of interps %d %d\n", index, ctx->num_interps);
          return true;
       }
       fs_info->interpinfo[index].semantic_name = ctx->inputs[i].name;
@@ -7298,7 +7319,7 @@ static boolean fill_fragment_interpolants(const struct dump_ctx *ctx, struct vre
    return true;
 }
 
-static boolean fill_interpolants(const struct dump_ctx *ctx, struct vrend_variable_shader_info *sinfo)
+static boolean fill_interpolants(struct dump_ctx *ctx, struct vrend_variable_shader_info *sinfo)
 {
    if (!ctx->num_interps)
       return true;
@@ -7355,7 +7376,7 @@ static void fill_var_sinfo(const struct dump_ctx *ctx, struct vrend_variable_sha
    sinfo->legacy_color_bits = ctx->color_out_mask;
 }
 
-static void fill_sinfo(const struct dump_ctx *ctx, struct vrend_shader_info *sinfo)
+static void fill_sinfo(struct dump_ctx *ctx, struct vrend_shader_info *sinfo)
 {
    sinfo->in.use_pervertex = ctx->has_pervertex;
    sinfo->samplers_used_mask = ctx->samplers_used;
@@ -7439,7 +7460,7 @@ static void fill_sinfo(const struct dump_ctx *ctx, struct vrend_shader_info *sin
 
    for (unsigned i = 0; i < ctx->num_outputs; ++i) {
       if (ctx->outputs[i].invariant) {
-         uint32_t bit_pos = varying_bit_from_semantic_and_index(ctx->outputs[i].name, ctx->outputs[i].sid);
+         uint32_t bit_pos = varying_bit_from_semantic_and_index(ctx, ctx->outputs[i].name, ctx->outputs[i].sid);
          uint32_t slot = bit_pos / 32;
          uint32_t bit = 1u << (bit_pos & 0x1f);
          sinfo->invariant_outputs[slot] |= bit;
@@ -7602,6 +7623,11 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
    bret = fill_interpolants(&ctx, var_sinfo);
    if (bret == false)
       goto fail;
+
+#ifdef STRICT
+   if (ctx.warned)
+      goto fail;
+#endif
 
    free(ctx.temp_ranges);
 
@@ -7816,6 +7842,12 @@ bool vrend_shader_create_passthrough_tcs(const struct vrend_context *rctx,
    fill_sinfo(&ctx, sinfo);
    emit_required_sysval_uniforms (&ctx.glsl_strbufs.glsl_hdr,
                                   ctx.glsl_strbufs.required_sysval_uniform_decls);
+
+#ifdef STRICT
+   if (ctx.warned)
+      goto fail;
+#endif
+
    set_strbuffers(&ctx.glsl_strbufs, shader);
 
    VREND_DEBUG(dbg_shader_glsl, rctx, "GLSL:");

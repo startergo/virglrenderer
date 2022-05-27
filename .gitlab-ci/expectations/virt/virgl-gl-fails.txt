@@ -50,6 +50,9 @@ KHR-GL32.transform_feedback_overflow_query_ARB.multiple-streams-one-buffer-per-s
 
 
 fast_color_clear@fcc-front-buffer-distraction,Fail
+shaders@glsl-fs-fogscale,Fail
+shaders@glsl-fs-fogscale@gs-out and fs,Fail
+shaders@glsl-fs-fogscale@vs and fs,Fail
 shaders@glsl-uniform-interstage-limits@subdivide 5,Fail
 shaders@glsl-uniform-interstage-limits@subdivide 5- statechanges,Fail
 shaders@point-vertex-id divisor,Fail
@@ -62,6 +65,22 @@ shaders@point-vertex-id gl_vertexid gl_instanceid,Fail
 spec@arb_arrays_of_arrays@execution@image_store@basic-imagestore-const-uniform-index,Fail
 spec@arb_blend_func_extended@arb_blend_func_extended-fbo-extended-blend-pattern_gles2,Fail
 spec@arb_clear_texture@arb_clear_texture-depth,Fail
+spec@arb_color_buffer_float@gl_rgba16f-render,Fail
+spec@arb_color_buffer_float@gl_rgba16f-render-fog,Fail
+spec@arb_color_buffer_float@gl_rgba16f-render-sanity,Fail
+spec@arb_color_buffer_float@gl_rgba16f-render-sanity-fog,Fail
+spec@arb_color_buffer_float@gl_rgba32f-render,Fail
+spec@arb_color_buffer_float@gl_rgba32f-render-fog,Fail
+spec@arb_color_buffer_float@gl_rgba32f-render-sanity,Fail
+spec@arb_color_buffer_float@gl_rgba32f-render-sanity-fog,Fail
+spec@arb_color_buffer_float@gl_rgba8-render,Fail
+spec@arb_color_buffer_float@gl_rgba8-render-fog,Fail
+spec@arb_color_buffer_float@gl_rgba8-render-sanity,Fail
+spec@arb_color_buffer_float@gl_rgba8-render-sanity-fog,Fail
+spec@arb_color_buffer_float@gl_rgba8_snorm-render,Fail
+spec@arb_color_buffer_float@gl_rgba8_snorm-render-fog,Fail
+spec@arb_color_buffer_float@gl_rgba8_snorm-render-sanity,Fail
+spec@arb_color_buffer_float@gl_rgba8_snorm-render-sanity-fog,Fail
 spec@arb_copy_image@arb_copy_image-formats,Fail
 spec@arb_copy_image@arb_copy_image-formats@Source: GL_COMPRESSED_RED_RGTC1/Destination: GL_COMPRESSED_RED_RGTC1,Fail
 spec@arb_copy_image@arb_copy_image-formats@Source: GL_COMPRESSED_RGBA_BPTC_UNORM/Destination: GL_COMPRESSED_RGBA_BPTC_UNORM,Fail
@@ -174,6 +193,10 @@ spec@arb_es2_compatibility@texwrap formats bordercolor,Fail
 spec@arb_es2_compatibility@texwrap formats bordercolor@GL_RGB565- border color only,Fail
 spec@arb_es2_compatibility@texwrap formats bordercolor-swizzled,Fail
 spec@arb_es2_compatibility@texwrap formats bordercolor-swizzled@GL_RGB565- swizzled- border color only,Fail
+spec@ext_fog_coord@ext_fog_coord-modes,Fail
+spec@arb_fragment_program@fp-fog,Fail
+spec@ati_fragment_shader@ati_fragment_shader-render-default,Fail
+spec@ati_fragment_shader@ati_fragment_shader-render-textargets,Fail
 spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic@Basic,Fail
 spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic,Fail
 spec@arb_framebuffer_no_attachments@arb_framebuffer_no_attachments-atomic@glScissor,Fail
@@ -327,6 +350,11 @@ spec@arb_transform_feedback_overflow_query@arb_transform_feedback_overflow_query
 spec@arb_transform_feedback_overflow_query@arb_transform_feedback_overflow_query-basic@arb_transform_feedback_overflow_query-buffer_object_any,Fail
 spec@arb_transform_feedback_overflow_query@arb_transform_feedback_overflow_query-basic@arb_transform_feedback_overflow_query-buffer_object_single,Fail
 spec@arb_transform_feedback_overflow_query@arb_transform_feedback_overflow_query-basic,Fail
+spec@ati_fragment_shader@ati_fragment_shader-render-constants,Fail
+spec@ati_fragment_shader@ati_fragment_shader-render-fog,Fail
+spec@ati_fragment_shader@ati_fragment_shader-render-notexture,Fail
+spec@ati_fragment_shader@ati_fragment_shader-render-precedence,Fail
+spec@ati_fragment_shader@ati_fragment_shader-render-sources,Fail
 spec@egl 1.4@eglterminate then unbind context,Fail
 spec@egl_ext_device_base@conformance@configless_tests,Fail
 spec@egl_ext_device_base@conformance,Fail
@@ -525,6 +553,8 @@ spec@ext_texture_srgb@texwrap formats-s3tc bordercolor-swizzled@GL_COMPRESSED_SR
 spec@ext_texture_srgb@texwrap formats-s3tc bordercolor-swizzled@GL_COMPRESSED_SRGB_ALPHA- swizzled- border color only,Fail
 spec@ext_texture_srgb@texwrap formats-s3tc bordercolor-swizzled@GL_COMPRESSED_SRGB_S3TC_DXT1_EXT- swizzled- border color only,Fail
 spec@ext_texture_srgb@texwrap formats-s3tc bordercolor-swizzled@GL_COMPRESSED_SRGB- swizzled- border color only,Fail
+spec@ext_transform_feedback@builtin-varyings gl_fogfragcoord,Timeout
+spec@glsl-1.10@execution@glsl-1.10-linear-fog,Fail
 spec@glsl-1.10@execution@samplers@glsl-fs-shadow1d-07,Fail
 spec@glsl-1.10@execution@samplers@glsl-fs-shadow1d-08,Fail
 spec@glsl-1.10@execution@samplers@glsl-fs-shadow2d-07,Fail
@@ -540,6 +570,12 @@ spec@glsl-1.30@execution@texelfetchoffset@vs-texelfetch-isampler1darray,Fail
 spec@glsl-1.30@execution@texelfetchoffset@vs-texelfetch-usampler1darray,Fail
 spec@glsl-1.30@execution@texelfetch@vs-texelfetch-isampler1darray,Fail
 spec@glsl-1.30@execution@texelfetch@vs-texelfetch-usampler1darray,Fail
+spec@glsl-1.50@execution@compatibility@clipping@vs-gs-clip-vertex-const-accept,Fail
+spec@glsl-1.50@execution@compatibility@clipping@vs-gs-clip-vertex-different-from-position,Fail
+spec@glsl-1.50@execution@compatibility@clipping@vs-gs-clip-vertex-enables,Fail
+spec@glsl-1.50@execution@compatibility@clipping@vs-gs-clip-vertex-equal-to-position,Fail
+spec@glsl-1.50@execution@compatibility@clipping@vs-gs-clip-vertex-homogeneity,Fail
+spec@glsl-1.50@execution@compatibility@clipping@vs-gs-clip-vertex-primitives-triangle-strip,Fail
 spec@glsl-1.50@execution@primitive-id-no-gs-quads,Fail
 spec@glsl-1.50@execution@primitive-id-no-gs-quad-strip,Fail
 spec@glsl-1.50@execution@variable-indexing@gs-input-array-float-index-rd,Fail
@@ -600,6 +636,11 @@ spec@nv_copy_image@nv_copy_image-formats@Source: GL_COMPRESSED_SRGB_ALPHA_S3TC_D
 spec@nv_copy_image@nv_copy_image-formats@Source: GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT/Destination: GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT,Fail
 spec@nv_copy_image@nv_copy_image-formats@Source: GL_COMPRESSED_SRGB_S3TC_DXT1_EXT/Destination: GL_COMPRESSED_SRGB_S3TC_DXT1_EXT,Fail
 spec@nv_copy_image@nv_copy_image-formats@Source: GL_DEPTH_COMPONENT24/Destination: GL_DEPTH_COMPONENT24,Fail
+spec@nv_fog_distance@gl_fog_coordinate interaction,Fail
+spec@nv_fog_distance@simple draw - gl_eye_plane,Fail
+spec@nv_fog_distance@simple draw - gl_eye_plane_absolute_nv,Fail
+spec@nv_fog_distance@simple draw - gl_eye_radial_nv,Fail
+spec@nv_half_float@ext_fog_coord-modes-half-float,Fail
 spec@nv_read_depth@read_depth_gles3,Fail
 spec@oes_egl_image_external_essl3@oes_egl_image_external_essl3,Fail
 spec@oes_egl_image_external_essl3@oes_egl_image_external_essl3@oes_egl_image_external_essl3_imageLoad,Fail
@@ -614,6 +655,7 @@ spec@!opengl 1.0@gl-1.0-swapbuffers-behavior,Fail
 spec@!opengl 1.0@rasterpos,Crash
 spec@!opengl 1.0@rasterpos@glsl_vs_gs_linked,Fail
 spec@!opengl 1.0@rasterpos@glsl_vs_tes_linked,Fail
+spec@!opengl 1.0@rasterpos@glsl_vs_tex1D,Fail
 spec@!opengl 1.1@copypixels-draw-sync,Fail
 spec@!opengl 1.1@depthstencil-default_fb-copypixels,Fail
 spec@!opengl 1.1@depthstencil-default_fb-copypixels samples=2,Fail
@@ -624,6 +666,7 @@ spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8 samples=4,Fail
 spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev,Fail
 spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev samples=2,Fail
 spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev samples=4,Fail
+spec@!opengl 1.1@fog-modes,Fail
 spec@!opengl 1.1@linestipple@Factor 2x,Fail
 spec@!opengl 1.1@linestipple@Factor 3x,Fail
 spec@!opengl 1.1@linestipple,Fail
@@ -729,9 +772,47 @@ spec@!opengl 1.5@depth-tex-compare,Fail
 spec@!opengl 1.5@draw-elements-user,Fail
 spec@!opengl 2.0@gl-2.0-edgeflag,Fail
 spec@!opengl 2.0@gl-2.0-edgeflag-immediate,Fail
+spec@!opengl 2.0@vertex-program-two-side back front2,Fail
+spec@!opengl 2.0@vertex-program-two-side back front2 back2,Fail
+spec@!opengl 2.0@vertex-program-two-side back front2 back2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side back front2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back back2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back back2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back front2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back front2 back2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back front2 back2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back front2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled back@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front back,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front back back2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front back back2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front back front2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front back front2 back2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front back front2 back2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front back front2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front back2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front back2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front back@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front front2 back2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front front2 back2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front2 back2,Fail
+spec@!opengl 2.0@vertex-program-two-side enabled front2 back2@vs- gs and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side front back,Fail
+spec@!opengl 2.0@vertex-program-two-side front back back2,Fail
 spec@!opengl 2.0@vertex-program-two-side front back back2@gs-out and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side front back front2,Fail
+spec@!opengl 2.0@vertex-program-two-side front back front2 back2,Fail
+spec@!opengl 2.0@vertex-program-two-side front back front2 back2@vs- gs and fs,Fail
 spec@!opengl 2.0@vertex-program-two-side front back front2@gs-out and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side front back2,Fail
+spec@!opengl 2.0@vertex-program-two-side front back2@vs- gs and fs,Fail
 spec@!opengl 2.0@vertex-program-two-side front back@gs-out and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side front front2 back2,Fail
 spec@!opengl 2.0@vertex-program-two-side front front2 back2@gs-out and fs,Fail
+spec@!opengl 2.0@vertex-program-two-side front2 back2,Fail
+spec@!opengl 2.0@vertex-program-two-side front2 back2@vs- gs and fs,Fail
 spec@!opengl 3.2@layered-rendering@clear-color-mismatched-layer-count,Fail
 spec@!opengl es 3.0@gles-3.0-transform-feedback-uniform-buffer-object,Fail
