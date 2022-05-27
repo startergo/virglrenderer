@@ -73,7 +73,7 @@ run_setup()
    fi
 
    pwd | grep virglrenderer >/dev/null || pushd /virglrenderer && pushd $(pwd)
-   meson build/ -Dprefix=/usr/local -Ddebug=true -Dtests=true --fatal-meson-warnings $FUZZER $TRACING $VENUS
+   meson build/ -Dprefix=/usr/local -Ddebug=true -Dtests=true -Dstrict=true --fatal-meson-warnings $FUZZER $TRACING $VENUS
    ninja -C build -j$NUM_THREADS install
    popd
 }

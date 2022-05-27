@@ -54,3 +54,4 @@
 #mesondefine PIPE_ARCH_S390
 #mesondefine PIPE_ARCH_ARM
 #mesondefine PIPE_ARCH_AARCH64
+#mesondefine STRICT
