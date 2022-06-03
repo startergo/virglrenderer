@@ -5811,6 +5811,11 @@ static void emit_header(const struct dump_ctx *ctx, struct vrend_glsl_strbufs *g
 
       emit_hdr(glsl_strbufs, "precision highp float;\n");
       emit_hdr(glsl_strbufs, "precision highp int;\n");
+
+      if (ctx->num_abo) {
+         emit_ext(glsl_strbufs, "ARB_shader_atomic_counters", "require");
+         emit_ext(glsl_strbufs, "ARB_shader_atomic_counter_ops", "require");
+      }
    } else {
       if (ctx->prog_type == TGSI_PROCESSOR_COMPUTE) {
          emit_ver_ext(glsl_strbufs, "#version 330\n");
