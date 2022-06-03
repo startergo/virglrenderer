@@ -224,7 +224,7 @@ static const  struct {
    FEAT(arb_buffer_storage, 44, UNAVAIL, "GL_ARB_buffer_storage", "GL_EXT_buffer_storage"),
    FEAT(arrays_of_arrays, 43, 31, "GL_ARB_arrays_of_arrays"),
    FEAT(ati_meminfo, UNAVAIL, UNAVAIL, "GL_ATI_meminfo" ),
-   FEAT(atomic_counters, 42, 31,  "GL_ARB_shader_atomic_counters" ),
+   FEAT(atomic_counters, 42, UNAVAIL,  "GL_ARB_shader_atomic_counters" ),
    FEAT(base_instance, 42, UNAVAIL,  "GL_ARB_base_instance", "GL_EXT_base_instance" ),
    FEAT(barrier, 42, 31, "GL_ARB_shader_image_load_store"),
    FEAT(bind_vertex_buffers, 44, UNAVAIL, NULL),
