@@ -442,13 +442,11 @@ enum pipe_debug_type
    PIPE_DEBUG_TYPE_CONFORMANCE,
 };
 
-#if !defined(alignof) && !defined(__cplusplus)
-#if __STDC_VERSION__ >= 201112L
-#define alignof(t) _Alignof(t)
-#elif defined(_MSC_VER)
-#define alignof(t) __alignof(t)
+#ifndef __cplusplus
+#ifdef _MSC_VER
+#define alignof _Alignof
 #else
-#define alignof(t) __alignof__(t)
+#include <stdalign.h>
 #endif
 #endif
 
