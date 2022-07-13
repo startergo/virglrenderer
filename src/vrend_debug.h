@@ -28,6 +28,7 @@
 #include "virgl_protocol.h"
 #include "virgl_util.h"
 #include <stdarg.h>
+#include <stdlib.h>
 
 struct vrend_context;
 void vrend_print_context_name(const struct vrend_context *ctx);
@@ -77,6 +78,18 @@ static inline void vrend_printf(const char *fmt, ...)
    va_start(va, fmt);
    virgl_logv(fmt, va);
    va_end(va);
+}
+
+static inline void vrend_unhandled_warnf(const char *fmt, ...)
+{
+   va_list va;
+   va_start(va, fmt);
+   virgl_logv(fmt, va);
+   va_end(va);
+
+#ifdef STRICT
+   abort();
+#endif
 }
 
 #ifdef NDEBUG

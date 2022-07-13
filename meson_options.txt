@@ -112,3 +112,10 @@ option(
   choices : [ 'percetto', 'perfetto', 'stderr', 'none' ],
   description : 'enable emitting traces using the selected backend'
 )
+
+option(
+  'strict',
+  type : 'boolean',
+  value : 'false',
+  description : 'Enable strict handling of warnings'
+)

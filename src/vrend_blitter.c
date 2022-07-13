@@ -832,7 +832,7 @@ void vrend_renderer_blit_gl(ASSERTED struct vrend_context *ctx,
                                       flags);
    }
    if (!prog_id) {
-      vrend_printf("Blitter: unable to create or find shader program\n");
+      vrend_unhandled_warnf("Blitter: unable to create or find shader program\n");
       return;
    }
 

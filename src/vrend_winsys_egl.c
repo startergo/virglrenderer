@@ -735,7 +735,7 @@ bool virgl_egl_client_wait_fence(struct virgl_egl *egl, EGLSyncKHR fence, uint64
 {
    EGLint ret = eglClientWaitSyncKHR(egl->egl_display, fence, 0, timeout);
    if (ret == EGL_FALSE) {
-      vrend_printf("wait sync failed\n");
+      vrend_unhandled_warnf("wait sync failed\n");
    }
    return ret != EGL_TIMEOUT_EXPIRED_KHR;
 }

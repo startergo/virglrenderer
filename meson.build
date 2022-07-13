@@ -280,6 +280,10 @@ if with_render_server
    endif
 endif
 
+if get_option('strict')
+  conf_data.set('STRICT', 1)
+endif
+
 configure_file(input : 'config.h.meson',
                output : 'config.h',
                configuration : conf_data)
