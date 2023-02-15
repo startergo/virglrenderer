@@ -33,6 +33,7 @@
 #include "config.h"
 #endif
 
+#include "util/hash_table.h"
 #include "util/macros.h"
 
 #include "virglrenderer.h"
@@ -60,6 +61,7 @@ static inline bool is_only_bit(uint32_t mask, uint32_t bit)
 }
 
 uint32_t hash_func_u32(const void *key);
+struct hash_entry *hash_table_search(struct hash_table *ht, uint32_t key);
 
 bool equal_func(const void *key1, const void *key2);
 

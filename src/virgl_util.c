@@ -72,6 +72,15 @@ uint32_t hash_func_u32(const void *key)
    return (uint32_t)(ip & 0xffffffff);
 }
 
+struct hash_entry *
+hash_table_search(struct hash_table *ht, uint32_t key)
+{
+   /* zero is not a valid key for u32_keys hashtable: */
+   if (!key)
+      return NULL;
+   return _mesa_hash_table_search(ht, (void *)(uintptr_t)key);
+}
+
 bool equal_func(const void *key1, const void *key2)
 {
    return key1 == key2;
