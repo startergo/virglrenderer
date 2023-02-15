@@ -34,6 +34,10 @@
 #  include "panfrost/panfrost_renderer.h"
 #endif
 
+#ifdef ENABLE_DRM_I915
+#  include "i915/i915_renderer.h"
+#endif
+
 static struct virgl_renderer_capset_drm capset;
 
 static const struct backend {
@@ -72,6 +76,14 @@ static const struct backend {
       .name = "panfrost",
       .probe = panfrost_renderer_probe,
       .create = panfrost_renderer_create,
+   },
+#endif
+#ifdef ENABLE_DRM_I915
+   {
+      .context_type = VIRTGPU_DRM_CONTEXT_I915,
+      .name = "i915",
+      .probe = i915_renderer_probe,
+      .create = i915_renderer_create,
    },
 #endif
 };
