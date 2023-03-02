@@ -147,12 +147,6 @@ while (__AFL_LOOP(1000)) {
    list_inithead(&server.active_clients);
    list_inithead(&server.inactive_clients);
 
-   if (server.do_fork) {
-      vtest_server_set_signal_child();
-   } else {
-      vtest_server_set_signal_segv();
-   }
-
    vtest_server_run();
 
 #ifdef __AFL_LOOP
@@ -721,6 +715,12 @@ static void vtest_server_run(void)
       vtest_server_open_read_file();
    } else {
       vtest_server_open_socket();
+   }
+
+   if (server.do_fork) {
+      vtest_server_set_signal_child();
+   } else {
+      vtest_server_set_signal_segv();
    }
 
    while (run) {
