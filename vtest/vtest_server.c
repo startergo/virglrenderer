@@ -35,9 +35,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <getopt.h>
 #include <string.h>
+#include <sched.h>
 
 #include "util.h"
 #include "util/list.h"
@@ -80,6 +82,7 @@ struct vtest_server
    const char *socket_name;
    int socket;
    const char *read_file;
+   const char *pid_ns;
 
    const char *render_device;
 
@@ -174,6 +177,7 @@ while (__AFL_LOOP(1000)) {
 #define OPT_SOCKET_PATH 'p'
 #define OPT_NO_VIRGL 'g'
 #define OPT_COMPAT_PROFILE 'c'
+#define OPT_PID_NS 1000
 
 static void vtest_server_parse_args(int argc, char **argv)
 {
@@ -191,6 +195,7 @@ static void vtest_server_parse_args(int argc, char **argv)
       {"socket-path",         required_argument, NULL, OPT_SOCKET_PATH},
       {"no-virgl",            no_argument, NULL, OPT_NO_VIRGL},
       {"compat",              no_argument, NULL, OPT_COMPAT_PROFILE},
+      {"use-pid-ns",          required_argument, NULL, OPT_PID_NS},
       {0, 0, 0, 0}
    };
 
@@ -246,10 +251,13 @@ static void vtest_server_parse_args(int argc, char **argv)
       case OPT_SOCKET_PATH:
          server.socket_name = optarg;
          break;
+      case OPT_PID_NS:
+         server.pid_ns = optarg;
+         break;
       default:
          printf("Usage: %s [--no-fork] [--no-loop-or-fork] [--multi-clients] "
                 "[--use-glx] [--use-egl-surfaceless] [--use-gles] [--no-virgl]"
-                "[--rendernode <dev>] [--socket-path <path>] "
+                "[--rendernode <dev>] [--socket-path <path>] [--use-pid-ns <pid>] "
                 "%s"
                 " [file]\n", argv[0], ven);
          exit(EXIT_FAILURE);
@@ -392,9 +400,90 @@ static void vtest_server_open_read_file(void)
    }
 }
 
+static int vtest_server_bind_socket_in_namespace(struct sockaddr_un* un)
+{
+   int r = 0;
+
+   pid_t forked_pid = fork();
+   if (forked_pid < 0) {
+      // Failed to fork
+      perror("Failed to fork to namespace child");
+      goto err;
+   } else if (forked_pid == 0) {
+      // Child
+      char* user_ns_path = NULL;
+      char* mnt_ns_path = NULL;
+      r = asprintf(&user_ns_path, "/proc/%s/ns/user", server.pid_ns);
+      if (r < 0) {
+         perror("Failed to allocate user namespace path");
+         goto child_err;
+      }
+      r = asprintf(&mnt_ns_path, "/proc/%s/ns/mnt", server.pid_ns);
+      if (r < 0) {
+         perror("Failed to allocate mount namespace path");
+         goto child_err;
+      }
+      int user_ns = open(user_ns_path, O_RDONLY | O_CLOEXEC);
+      if (user_ns < 0) {
+         perror("Failed to open user namespace");
+         goto child_err;
+      }
+      r = setns(user_ns, CLONE_NEWUSER);
+      if (r < 0) {
+         perror("Failed to switch to user namespace");
+         goto child_err;
+      }
+      int mnt_ns = open(mnt_ns_path, O_RDONLY | O_CLOEXEC);
+      if (mnt_ns < 0) {
+         perror("Failed to open mount namespace");
+         goto child_err;
+      }
+      r = setns(mnt_ns, CLONE_NEWNS);
+
+      r = bind(server.socket, (struct sockaddr *)un, sizeof(*un));
+      if (r < 0) {
+         perror("Failed to bind socket inside namespace");
+         goto child_err;
+      }
+      exit(0);
+   } else {
+      // Parent
+      int wstatus = 0;
+      r = waitpid(forked_pid, &wstatus, 0);
+      if (r < 0) {
+         perror("Failed to wait on namespace child");
+         goto err;
+      }
+
+      if (!WIFEXITED(wstatus)) {
+         perror("Namespace child did not exit cleanly");
+         goto err;
+      }
+
+      if (WEXITSTATUS(wstatus) != 0) {
+         perror("Namespace child exited with non-zero code");
+         goto err;
+      }
+
+      return 0;
+   }
+
+err:
+   return -1;
+
+child_err:
+   exit(1);
+}
+
+static int vtest_server_bind_socket_simple(struct sockaddr_un* un)
+{
+   return bind(server.socket, (struct sockaddr *)un, sizeof(*un));
+}
+
 static void vtest_server_open_socket(void)
 {
    struct sockaddr_un un;
+   int r = 0;
 
    server.socket = socket(PF_UNIX, SOCK_STREAM, 0);
    if (server.socket < 0) {
@@ -408,11 +497,17 @@ static void vtest_server_open_socket(void)
 
    unlink(un.sun_path);
 
-   if (bind(server.socket, (struct sockaddr *)&un, sizeof(un)) < 0) {
+   if (server.pid_ns == NULL) {
+      r = vtest_server_bind_socket_simple(&un);
+   } else {
+      r = vtest_server_bind_socket_in_namespace(&un);
+   }
+
+   if (r < 0) {
       goto err;
    }
 
-   if (listen(server.socket, 1) < 0){
+   if (listen(server.socket, 1) < 0) {
       goto err;
    }
 
