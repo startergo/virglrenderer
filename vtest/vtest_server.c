@@ -83,6 +83,7 @@ struct vtest_server
    int socket;
    const char *read_file;
    const char *pid_ns;
+   int ready_fd;
 
    const char *render_device;
 
@@ -172,6 +173,7 @@ while (__AFL_LOOP(1000)) {
 #define OPT_NO_VIRGL 'g'
 #define OPT_COMPAT_PROFILE 'c'
 #define OPT_PID_NS 1000
+#define OPT_READY_FD 1001
 
 static void vtest_server_parse_args(int argc, char **argv)
 {
@@ -190,6 +192,7 @@ static void vtest_server_parse_args(int argc, char **argv)
       {"no-virgl",            no_argument, NULL, OPT_NO_VIRGL},
       {"compat",              no_argument, NULL, OPT_COMPAT_PROFILE},
       {"use-pid-ns",          required_argument, NULL, OPT_PID_NS},
+      {"ready-fd",            required_argument, NULL, OPT_READY_FD},
       {0, 0, 0, 0}
    };
 
@@ -248,10 +251,14 @@ static void vtest_server_parse_args(int argc, char **argv)
       case OPT_PID_NS:
          server.pid_ns = optarg;
          break;
+      case OPT_READY_FD:
+         server.ready_fd = atoi(optarg);
+         break;
       default:
          printf("Usage: %s [--no-fork] [--no-loop-or-fork] [--multi-clients] "
                 "[--use-glx] [--use-egl-surfaceless] [--use-gles] [--no-virgl]"
                 "[--rendernode <dev>] [--socket-path <path>] [--use-pid-ns <pid>] "
+                "[--ready-fd <fd>] "
                 "%s"
                 " [file]\n", argv[0], ven);
          exit(EXIT_FAILURE);
@@ -721,6 +728,19 @@ static void vtest_server_run(void)
       vtest_server_set_signal_child();
    } else {
       vtest_server_set_signal_segv();
+   }
+
+   if (server.ready_fd != 0) {
+
+      if (write(server.ready_fd, "1", sizeof("1")) < 0) {
+         perror("Failed to write to ready fd");
+         exit(1);
+      }
+
+      if (close(server.ready_fd) < 0) {
+         perror("Failed to close ready fd");
+         exit(1);
+      }
    }
 
    while (run) {
