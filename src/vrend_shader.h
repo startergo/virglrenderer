@@ -164,6 +164,7 @@ struct vrend_shader_info {
    uint8_t has_output_arrays : 1;
    uint8_t use_pervertex_in : 1;
    uint8_t reads_drawid : 1;
+   uint8_t has_edgeflag_output : 1;
 };
 
 struct vrend_variable_shader_info {
@@ -203,6 +204,7 @@ struct vrend_shader_key {
          uint32_t prim_is_points : 1;
          uint32_t lower_left_origin : 1;
          uint32_t available_color_in_bits : 4;
+         uint32_t need_edgeflag : 1;
       } fs;
 
       struct {

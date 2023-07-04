@@ -313,6 +313,7 @@ struct dump_ctx {
    bool gles_use_tex_query_level;
    bool has_pointsize_input;
    bool has_pointsize_output;
+   bool has_edgeflag_output;
 
    bool has_input_arrays;
    bool has_output_arrays;
@@ -1835,6 +1836,13 @@ iter_declaration(struct tgsi_iterate_context *iter,
             }
          }
          break;
+      case TGSI_SEMANTIC_EDGEFLAG:
+         ctx->has_edgeflag_output = true;
+         ctx->outputs[i].type = VEC_INT;
+         ctx->outputs[i].interpolate = TGSI_INTERPOLATE_CONSTANT;
+         ctx->outputs[i].num_components = 1;
+         ctx->outputs[i].override_no_wm = true;
+         break;
       default:
          vrend_printf("unhandled output semantic: %x\n", ctx->outputs[i].name);
          break;
@@ -1858,6 +1866,8 @@ iter_declaration(struct tgsi_iterate_context *iter,
             snprintf(ctx->outputs[i].glsl_name, 64, "%s_g%d", name_prefix, ctx->outputs[i].sid);
          else if (ctx->outputs[i].name == TGSI_SEMANTIC_TEXCOORD)
             snprintf(ctx->outputs[i].glsl_name, 64, "%s_t%d", name_prefix, ctx->outputs[i].sid);
+         else if (ctx->outputs[i].name == TGSI_SEMANTIC_EDGEFLAG)
+            snprintf(ctx->outputs[i].glsl_name, 64, "%s_edgeflag", name_prefix);
          else
             snprintf(ctx->outputs[i].glsl_name, 64, "%s_%d", name_prefix, ctx->outputs[i].first + color_offset);
 
@@ -4260,7 +4270,7 @@ get_destination_info(struct dump_ctx *ctx,
                      struct dest_info *dinfo,
                      struct vrend_strbuf dst_bufs[3],
                      char fp64_dsts[3][255],
-                     char *writemask)
+                     char writemask[6])
 {
    const struct tgsi_full_dst_register *dst_reg;
    enum tgsi_opcode_type dtype = tgsi_opcode_infer_dst_type(inst->Instruction.Opcode);
@@ -4382,6 +4392,9 @@ get_destination_info(struct dump_ctx *ctx,
                dinfo->dtypeprefix = FLOAT_BITS_TO_INT;
                dinfo->dstconv = INT;
             }
+         } else if (output->name == TGSI_SEMANTIC_EDGEFLAG) {
+            dinfo->dstconv = INT;
+            strbuf_fmt(&dst_bufs[i], "%s", output->glsl_name);
          } else {
             if (output->glsl_gl_block) {
                strbuf_fmt(&dst_bufs[i], "gl_out[%s].%s%s",
@@ -5257,6 +5270,13 @@ void emit_fs_clipdistance_load(const struct dump_ctx *ctx,
 }
 
 static
+void emit_fs_edgeflag_discard(const struct dump_ctx *ctx, struct vrend_glsl_strbufs *glsl_strbufs)
+{
+   emit_buff(glsl_strbufs, "if (%s_edgeflag == 0) discard;\n",
+             get_stage_input_name_prefix(ctx, ctx->prog_type));
+}
+
+static
 void renumber_io_arrays(unsigned nio, struct vrend_shader_io *io)
 {
    int next_array_id = 1;
@@ -5426,9 +5446,13 @@ iter_instruction(struct tgsi_iterate_context *iter,
 
       emit_buf(&ctx->glsl_strbufs, "void main(void)\n{\n");
       if (iter->processor.Processor == TGSI_PROCESSOR_FRAGMENT) {
+         if (ctx->key->fs.need_edgeflag)
+            emit_fs_edgeflag_discard(ctx, &ctx->glsl_strbufs);
          emit_color_select(ctx, &ctx->glsl_strbufs);
          if (ctx->fs_uses_clipdist_input)
             emit_fs_clipdistance_load(ctx, &ctx->glsl_strbufs);
+
+
       }
       if (ctx->so)
          prepare_so_movs(ctx);
@@ -6739,11 +6763,15 @@ emit_ios_generic(const struct dump_ctx *ctx,
                  const struct vrend_shader_io *io, const char *inout,
                  const char *postfix)
 {
-   const char *atype[3] =  {
+   const char *vec_type[3] =  {
       " vec4", "ivec4", "uvec4"
    };
 
-   const char *t = atype[io->type];
+   const char *scalar_type[3] =  {
+      " float", " int", " uint"
+   };
+
+   const char *t = io->num_components == 1 ? scalar_type[io->type] : vec_type[io->type];
 
    char layout[128] = "";
 
@@ -6874,7 +6902,10 @@ get_interpolator_prefix(struct vrend_strbuf *buf,
             return buf->buf;
          }
       }
+   } else if (io->name == TGSI_SEMANTIC_EDGEFLAG) {
+      return "flat";
    }
+
    return "";
 }
 
@@ -7162,6 +7193,10 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
          emit_ios_generic(ctx, glsl_strbufs, generic_ios, texcoord_ios, io_in, prefixes, &ctx->inputs[i], "in", "");
       }
    }
+
+   if (ctx->key->fs.need_edgeflag)
+         emit_hdrf(glsl_strbufs, "flat in int %s_edgeflag;\n",
+                   get_stage_input_name_prefix(ctx, ctx->prog_type));
 
    if (ctx->key->color_two_side) {
       if (ctx->color_in_mask & 1)
@@ -7697,6 +7732,7 @@ static void fill_var_sinfo(const struct dump_ctx *ctx, struct vrend_variable_sha
 static void fill_sinfo(const struct dump_ctx *ctx, struct vrend_shader_info *sinfo)
 {
    sinfo->use_pervertex_in = ctx->has_pervertex;
+   sinfo->has_edgeflag_output = ctx->has_edgeflag_output;
    sinfo->samplers_used_mask = ctx->samplers_used;
    sinfo->images_used_mask = ctx->images_used_mask;
    sinfo->image_binding_offset = ctx->key->image_binding_offset;

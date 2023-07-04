@@ -3972,6 +3972,7 @@ static inline void vrend_sync_shader_io(struct vrend_sub_context *sub_ctx,
          default:
             break;
          }
+         key->fs.need_edgeflag = prev->sinfo.has_edgeflag_output;
       }
 
       key->fs.prim_is_points = (fs_prim_mode == PIPE_PRIM_POINTS);
