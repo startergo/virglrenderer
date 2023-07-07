@@ -527,8 +527,15 @@ static void vrend_add_formats(struct vrend_format_table *table, int num_entries)
 
 static void vrend_add_compressed_formats(struct vrend_format_table *table, int num_entries)
 {
-   int flags = epoxy_is_desktop_gl() ? VIRGL_TEXTURE_CAN_READBACK : 0;
    for (int i = 0; i < num_entries; i++) {
+      int flags = VIRGL_TEXTURE_CAN_READBACK;
+      if (!epoxy_is_desktop_gl()) {
+         if (table[i].format < VIRGL_FORMAT_ASTC_4x4 ||
+             table[i].format > VIRGL_FORMAT_ASTC_12x12_SRGB) {
+            flags = 0;
+         }
+      }
+
       vrend_insert_format(&table[i], VIRGL_BIND_SAMPLER_VIEW, flags);
    }
 }
