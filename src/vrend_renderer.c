@@ -7256,6 +7256,7 @@ static void vrend_pipe_resource_attach_iov(struct pipe_resource *pres,
 
    res->iov = iov;
    res->num_iovs = iov_count;
+   vrend_init_iovec_iter(&res->iov_iter, iov, iov_count);
 
    if (has_bit(res->storage_bits, VREND_STORAGE_HOST_SYSTEM_MEMORY)) {
       vrend_write_to_iovec(res->iov, res->num_iovs, 0,
@@ -7275,6 +7276,7 @@ static void vrend_pipe_resource_detach_iov(struct pipe_resource *pres,
 
    res->iov = NULL;
    res->num_iovs = 0;
+   vrend_clear_iovec_iter(&res->iov_iter);
 }
 
 static enum virgl_resource_fd_type vrend_pipe_resource_export_fd(UNUSED struct pipe_resource *pres,
@@ -8667,8 +8669,7 @@ static void vrend_scale_depth(void *ptr, int size, float scale_val)
    }
 }
 
-static void read_transfer_data(const struct iovec *iov,
-                               unsigned int num_iovs,
+static void read_transfer_data(struct vrend_iovec_iter* iov_iter,
                                char *data,
                                enum virgl_formats format,
                                uint64_t offset,
@@ -8678,33 +8679,32 @@ static void read_transfer_data(const struct iovec *iov,
                                bool invert)
 {
    int blsize = util_format_get_blocksize(format);
-   uint32_t size = vrend_get_iovec_size(iov, num_iovs);
+   uint32_t size = vrend_get_iovec_iter_size(iov_iter);
    uint32_t send_size = util_format_get_nblocks(format, box->width,
                                               box->height) * blsize * box->depth;
    uint32_t bwx = util_format_get_nblocksx(format, box->width) * blsize;
    int32_t bh = util_format_get_nblocksy(format, box->height);
-   int d, h;
+   int d;
 
-   if ((send_size == size || bh == 1) && !invert && box->depth == 1)
-      vrend_read_from_iovec(iov, num_iovs, offset, data, send_size);
-   else {
+   if ((send_size == size || bh == 1) && !invert && box->depth == 1) {
+      vrend_seek_iovec_iter(iov_iter, offset);
+      //vrend_read_from_iovec(iov, num_iovs, data, send_size);
+      vrend_read_mult_from_iovec_iter(iov_iter, data, send_size, 1, 0, 0);
+   } else {
       if (invert) {
          for (d = 0; d < box->depth; d++) {
             uint32_t myoffset = offset + d * src_layer_stride;
-            for (h = bh - 1; h >= 0; h--) {
-               void *ptr = data + (h * bwx) + d * (bh * bwx);
-               vrend_read_from_iovec(iov, num_iovs, myoffset, ptr, bwx);
-               myoffset += src_stride;
-            }
+            int last_row = bh - 1;
+            void *ptr = data + (last_row * bwx) + d * (bh * bwx);
+            vrend_seek_iovec_iter(iov_iter, myoffset);
+            vrend_read_mult_from_iovec_iter(iov_iter, ptr, bwx, bh, src_stride - bwx, -bwx);
          }
       } else {
          for (d = 0; d < box->depth; d++) {
             uint32_t myoffset = offset + d * src_layer_stride;
-            for (h = 0; h < bh; h++) {
-               void *ptr = data + (h * bwx) + d * (bh * bwx);
-               vrend_read_from_iovec(iov, num_iovs, myoffset, ptr, bwx);
-               myoffset += src_stride;
-            }
+            void *ptr = data + d * (bh * bwx);
+            vrend_seek_iovec_iter(iov_iter, myoffset);
+            vrend_read_mult_from_iovec_iter(iov_iter, ptr, bwx, bh, src_stride - bwx, bwx);
          }
       }
    }
@@ -8910,6 +8910,7 @@ static void vrend_swizzle_data_bgra(uint64_t size, void *data) {
 static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
                                              struct vrend_resource *res,
                                              const struct iovec *iov, int num_iovs,
+                                             struct vrend_iovec_iter *iov_iter,
                                              const struct vrend_transfer_info *info)
 {
    void *data;
@@ -8923,8 +8924,8 @@ static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
 
    if (has_bit(res->storage_bits, VREND_STORAGE_HOST_SYSTEM_MEMORY)) {
       assert(!res->iov);
-      vrend_read_from_iovec(iov, num_iovs, info->offset,
-                            res->ptr + info->box->x, info->box->width);
+      vrend_read_from_iovec_iter_compat(iov_iter, iov, num_iovs, info->offset, res->ptr + info->box->x,
+                                        info->box->width);
       return 0;
    }
 
@@ -8940,11 +8941,11 @@ static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
       glBindBufferARB(res->target, res->id);
       data = glMapBufferRange(res->target, info->box->x, info->box->width, map_flags);
       if (data == NULL) {
-	 vrend_printf("map failed for element buffer\n");
-	 vrend_read_from_iovec_cb(iov, num_iovs, info->offset, info->box->width, &iov_buffer_upload, &d);
+         vrend_printf("map failed for element buffer\n");
+         vrend_read_from_iovec_cb(iov, num_iovs, info->offset, info->box->width, &iov_buffer_upload, &d);
       } else {
-	 vrend_read_from_iovec(iov, num_iovs, info->offset, data, info->box->width);
-	 glUnmapBuffer(res->target);
+         vrend_read_from_iovec_iter_compat(iov_iter, iov, num_iovs, info->offset, data, info->box->width);
+         glUnmapBuffer(res->target);
       }
       glBindBufferARB(res->target, 0);
    } else {
@@ -8959,6 +8960,7 @@ static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
       GLuint send_size = 0;
       uint32_t stride = info->stride;
       uint32_t layer_stride = info->layer_stride;
+      struct vrend_iovec_iter temp_iter;
 
       vrend_use_program(ctx->sub, 0);
 
@@ -8999,8 +9001,14 @@ static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
          data = malloc(send_size);
          if (!data)
             return ENOMEM;
-         read_transfer_data(iov, num_iovs, data, res->base.format, info->offset,
-                            stride, layer_stride, info->box, invert);
+         if (iov_iter) {
+            read_transfer_data(iov_iter, data, res->base.format, info->offset,
+                     stride, layer_stride, info->box, invert);
+         } else {
+            vrend_init_iovec_iter(&temp_iter, iov, num_iovs);
+            read_transfer_data(&temp_iter, data, res->base.format, info->offset,
+                              stride, layer_stride, info->box, invert);
+         }
       } else {
          if (send_size > iov[0].iov_len - info->offset)
             return EINVAL;
@@ -9539,6 +9547,7 @@ static int vrend_renderer_transfer_internal(struct vrend_context *ctx,
                                             int transfer_mode)
 {
    const struct iovec *iov;
+   struct vrend_iovec_iter *iov_iter = NULL;
    int num_iovs;
 
    if (!info->box)
@@ -9554,6 +9563,7 @@ static int vrend_renderer_transfer_internal(struct vrend_context *ctx,
    } else {
       iov = res->iov;
       num_iovs = res->num_iovs;
+      iov_iter = &res->iov_iter;
    }
 
 #if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
@@ -9576,7 +9586,7 @@ static int vrend_renderer_transfer_internal(struct vrend_context *ctx,
 
    switch (transfer_mode) {
    case VIRGL_TRANSFER_TO_HOST:
-      return vrend_renderer_transfer_write_iov(ctx, res, iov, num_iovs, info);
+      return vrend_renderer_transfer_write_iov(ctx, res, iov, num_iovs, iov_iter, info);
    case VIRGL_TRANSFER_FROM_HOST:
       return vrend_renderer_transfer_send_iov(ctx, res, iov, num_iovs, info);
 
@@ -9657,7 +9667,7 @@ int vrend_transfer_inline_write(struct vrend_context *ctx,
    }
 #endif
 
-   return vrend_renderer_transfer_write_iov(ctx, res, info->iovec, info->iovec_cnt, info);
+   return vrend_renderer_transfer_write_iov(ctx, res, info->iovec, info->iovec_cnt, NULL, info);
 
 }
 
@@ -9730,7 +9740,7 @@ int vrend_renderer_copy_transfer3d(struct vrend_context *ctx,
 #endif
 
   return vrend_renderer_transfer_write_iov(ctx, dst_res, src_res->iov,
-                                           src_res->num_iovs, info);
+                                           src_res->num_iovs, &src_res->iov_iter, info);
 }
 
 int vrend_renderer_copy_transfer3d_from_host(struct vrend_context *ctx,
@@ -10056,7 +10066,7 @@ static void vrend_resource_copy_fallback(struct vrend_resource *src_res,
       src_layer_stride = util_format_get_2d_size(src_res->base.format,
                                                  src_stride,
                                                  u_minify(src_res->base.height0, src_level));
-      read_transfer_data(src_res->iov, src_res->num_iovs, tptr,
+      read_transfer_data(&src_res->iov_iter, tptr,
                          src_res->base.format, src_offset,
                          src_stride, src_layer_stride, &box, false);
       /* When on GLES sync the iov that backs the dst resource because
