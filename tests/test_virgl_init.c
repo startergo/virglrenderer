@@ -176,7 +176,8 @@ END_TEST
 
 START_TEST(virgl_init_egl_create_ctx_leak)
 {
-  testvirgl_init_single_ctx();
+  int ret = testvirgl_init_single_ctx();
+  ck_assert_int_eq(ret, 0);
 
   /* don't destroy the context - leak it make sure cleanup catches it */
   /*virgl_renderer_context_destroy(1);*/

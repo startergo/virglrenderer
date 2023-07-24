@@ -121,18 +121,15 @@ int testvirgl_init_single_ctx(void)
     test_cbs.version = 1;
     test_cbs.write_fence = testvirgl_write_fence;
     ret = virgl_renderer_init(&mystruct, context_flags, &test_cbs);
-    ck_assert_int_eq(ret, 0);
     if (ret)
         return ret;
-    ret = virgl_renderer_context_create(1, strlen("test1"), "test1");
-    ck_assert_int_eq(ret, 0);
-    return ret;
-
+    return virgl_renderer_context_create(1, strlen("test1"), "test1");
 }
 
 void testvirgl_init_single_ctx_nr(void)
 {
-    testvirgl_init_single_ctx();
+    int ret = testvirgl_init_single_ctx();
+    ck_assert_int_eq(ret, 0);
 }
 
 void testvirgl_fini_single_ctx(void)
