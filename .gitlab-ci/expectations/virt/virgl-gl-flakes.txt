@@ -3,10 +3,6 @@ dEQP-GLES31.functional.ssbo.layout.3_level_unsized_array.shared.mat4
 dEQP-GLES31.functional.ssbo.layout.random.all_shared_buffer.36
 dEQP-GLES31.functional.ssbo.layout.random.arrays_of_arrays.1
 dEQP-GLES31.functional.ssbo.layout.random.nested_structs_arrays_instance_arrays.22
-KHR-GL30.shaders30.glsl_constructors.bvec4_from_bool_mat3_vs
-KHR-GL30.shaders30.glsl_constructors.bvec4_from_bool_mat4x3_vs
-KHR-GL30.shaders30.glsl_constructors.bvec4_from_mat4x2_vs
-KHR-GL30.shaders30.glsl_constructors.bvec4_from_mat4x3_vs
 KHR-GL31.transform_feedback.capture_special_interleaved_test
 
 shaders@glsl-max-varyings
@@ -70,12 +66,4 @@ spec@!opengl 1.1@read-front samples=2
 spec@!opengl 1.1@read-front samples=4
 spec@!opengl 1.1@texsubimage-unpack
 spec@!opengl 2.0@tex3d-npot
-spec@!opengl 2.0@vertex-program-two-side front back back2@gs-out and fs
-spec@!opengl 2.0@vertex-program-two-side front back back2@vs- gs and fs
-spec@!opengl 2.0@vertex-program-two-side front back front2@gs-out and fs
-spec@!opengl 2.0@vertex-program-two-side front back front2@vs- gs and fs
-spec@!opengl 2.0@vertex-program-two-side front back@gs-out and fs
-spec@!opengl 2.0@vertex-program-two-side front back@vs- gs and fs
-spec@!opengl 2.0@vertex-program-two-side front front2 back2@gs-out and fs
-spec@!opengl 2.0@vertex-program-two-side front front2 back2@vs- gs and fs
 spec@!opengl 3.0@gl30basic
