@@ -374,6 +374,11 @@ if with_tests
  conf_data.set('ENABLE_TESTS', 1)
 endif
 
+with_vcl = get_option('vcl')
+if with_vcl
+   conf_data.set('ENABLE_VCL', 1)
+endif
+
 configure_file(input : 'config.h.meson',
                output : 'config.h',
                configuration : conf_data)
@@ -419,6 +424,7 @@ summary({'c_args': (' ').join(get_option('c_args')),
         'drm-amdgpu': with_drm_amdgpu,
         'render server worker': with_render_server ? with_render_server_worker : 'none',
         'video': with_video,
+        'vcl': with_vcl,
         'tests': with_tests,
         'fuzzer': with_fuzzer,
         'tracing': with_tracing,

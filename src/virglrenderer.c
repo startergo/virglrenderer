@@ -1,6 +1,7 @@
 /**************************************************************************
  *
  * Copyright (C) 2014 Red Hat Inc.
+ * Copyright 2023-2024 Qualcomm Innovation Center, Inc. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,6 +46,7 @@
 #include "vrend_renderer.h"
 #include "proxy/proxy_renderer.h"
 #include "vrend_winsys.h"
+#include "vcl/vcomp_renderer.h"
 
 #ifndef WIN32
 #include "util/libsync.h"
@@ -191,6 +193,9 @@ void virgl_renderer_fill_caps(uint32_t set, uint32_t version,
    case VIRGL_RENDERER_CAPSET_DRM:
       if (state.drm_initialized)
          drm_renderer_capset(caps);
+      break;
+   case VIRGL_RENDERER_CAPSET_VCL:
+      vcomp_get_capset(caps);
       break;
    default:
       break;
@@ -572,6 +577,10 @@ void virgl_renderer_get_cap_set(uint32_t cap_set, uint32_t *max_ver,
    case VIRGL_RENDERER_CAPSET_DRM:
       *max_ver = 0;
       *max_size = drm_renderer_capset(NULL);
+      break;
+   case VIRGL_RENDERER_CAPSET_VCL:
+      *max_ver = 0;
+      *max_size = vcomp_get_capset(NULL);
       break;
    default:
       *max_ver = 0;
