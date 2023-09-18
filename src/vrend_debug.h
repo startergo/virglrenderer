@@ -53,6 +53,7 @@ enum virgl_debug_flags {
    dbg_feature_use = 1 << 17,
    dbg_khr = 1 << 18,
    dbg_d3d = 1 << 19,
+   dbg_dump_cmd_streams = 1 << 20,
 };
 
 const char *vrend_get_comand_name(enum virgl_context_cmd cmd);

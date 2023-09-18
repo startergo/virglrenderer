@@ -165,6 +165,7 @@ static const struct debug_named_value vrend_debug_options[] = {
    {"guestallow", dbg_allow_guest_override, "Allow the guest to override the debug flags"},
    {"khr", dbg_khr, "Enable debug via KHR_debug extension"},
    {"d3d", dbg_d3d, "Enable D3D-related debug"},
+   {"dump_cmd_streams", dbg_dump_cmd_streams, "Dump command streams so they can be used as seeds"},
    DEBUG_NAMED_VALUE_END
 };
 

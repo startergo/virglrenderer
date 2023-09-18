@@ -45,6 +45,9 @@
 #include "vrend_video.h"
 #endif
 
+#define XXH_INLINE_ALL
+#include "util/xxhash.h"
+
 /* decode side */
 #define DECODE_MAX_TOKENS 8000
 
@@ -2012,6 +2015,19 @@ static const vrend_decode_callback decode_table[VIRGL_MAX_COMMANDS] = {
 #endif
 };
 
+static void dump_command_stream_to_file(const void *buffer, size_t size)
+{
+   uint64_t hash = XXH64(buffer, size, 0);
+   char fname[64];
+   snprintf(fname,
+            sizeof(fname), "buffer_%016lx.seed",  hash);
+   FILE *f = fopen(fname, "wb");
+   if (f) {
+      fwrite(buffer, 1, size, f);
+      fclose(f);
+   }
+}
+
 static int vrend_decode_ctx_submit_cmd(struct virgl_context *ctx,
                                        const void *buffer,
                                        size_t size)
@@ -2021,9 +2037,18 @@ static int vrend_decode_ctx_submit_cmd(struct virgl_context *ctx,
    bool bret;
    int ret;
 
+#define TRANSFER_HEADER_SIZE 4096
+
    bret = vrend_hw_switch_context(gdctx->grctx, true);
    if (bret == false)
       return EINVAL;
+
+   if (VREND_DEBUG_ENABLED &&
+       vrend_debug(gdctx->grctx, dbg_dump_cmd_streams) &&
+       size > TRANSFER_HEADER_SIZE) {
+      dump_command_stream_to_file((char *)buffer + TRANSFER_HEADER_SIZE,
+                                  size - TRANSFER_HEADER_SIZE);
+   }
 
    const uint32_t *typed_buf = (const uint32_t *)buffer;
    const uint32_t buf_total = (uint32_t)(size / sizeof(uint32_t));
