@@ -1432,10 +1432,40 @@ int virgl_renderer_export_signalled_fence(void)
    return virgl_fence_get_last_signalled_fence_fd();
 }
 
+static int attach_in_fence_fd(struct virgl_context *ctx, int fence_fd)
+{
+   int ret = -EINVAL;
+
+#ifndef WIN32
+   ret = sync_accumulate("virglrenderer", &ctx->in_fence_fd, fence_fd);
+#endif
+   close(fence_fd);
+
+   return ret;
+}
+
+/* Special entrypoint for vtest, which has received a real fence fd,
+ * not a fence-id
+ */
+int virgl_renderer_attach_fence(int ctx_id, int fence_fd)
+{
+   TRACE_FUNC();
+   struct virgl_context *ctx = virgl_context_lookup(ctx_id);
+   if (!ctx)
+      return EINVAL;
+
+   return attach_in_fence_fd(ctx, fence_fd);
+}
+
+int virgl_renderer_get_fence_fd(uint64_t fence_id)
+{
+   return virgl_fence_get_fd(fence_id);
+}
+
 static int virgl_renderer_context_attach_in_fence(struct virgl_context *ctx,
                                                   uint64_t fence_id)
 {
-   int ret = -EINVAL;
+   int ret;
 
    /*
     * FD will be -1 in two cases:
@@ -1450,11 +1480,7 @@ static int virgl_renderer_context_attach_in_fence(struct virgl_context *ctx,
    if (fd < 0)
       return 0;
 
-#ifndef WIN32
-   ret = sync_accumulate("virglrenderer", &ctx->in_fence_fd, fd);
-#endif
-   close(fd);
-
+   ret = attach_in_fence_fd(ctx, fd);
    if (ret)
       virgl_error("%s: sync_accumulate failed for fence_id=%" PRIu64 " err=%d\n",
                   __func__, fence_id, ret);
