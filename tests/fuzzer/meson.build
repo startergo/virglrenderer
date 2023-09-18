@@ -32,6 +32,16 @@ virgl_fuzzer = executable(
    dependencies : [libvirglrenderer_dep, gallium_dep, epoxy_dep]
 )
 
+virgl_fuzzer_from_states = executable(
+   'virgl_fuzzer_from_states',
+   'virgl_fuzzer_from_states.c',
+   c_args : [ '-fsanitize=fuzzer' ],
+   link_args : [ '-fsanitize=fuzzer' ],
+   link_with: libvrtest,
+   dependencies : [libvirglrenderer_dep, gallium_dep, epoxy_dep]
+)
+
+
 if with_drm
    virgl_drm_fuzzer = executable(
       'virgl_drm_fuzzer',
