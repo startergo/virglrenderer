@@ -193,7 +193,8 @@ int testvirgl_create_backed_simple_2d_res(struct virgl_resource *res,
     args.width = w;
     args.height = h;
     ret = virgl_renderer_resource_create(&args, NULL, 0);
-    ck_assert_int_eq(ret, 0);
+    if (ret)
+       return ret;
 
     res->handle = handle;
     res->base.target = args.target;
@@ -219,7 +220,8 @@ int testvirgl_create_backed_simple_1d_res(struct virgl_resource *res,
 
     testvirgl_init_simple_1d_resource(&args, handle);
     ret = virgl_renderer_resource_create(&args, NULL, 0);
-    ck_assert_int_eq(ret, 0);
+    if (ret)
+       return ret;
 
     res->handle = handle;
     res->base.target = args.target;
@@ -258,7 +260,8 @@ int testvirgl_create_backed_simple_buffer(struct virgl_resource *res,
     testvirgl_init_simple_buffer_sized(&args, handle, size);
     args.bind = binding;
     ret = virgl_renderer_resource_create(&args, NULL, 0);
-    ck_assert_int_eq(ret, 0);
+    if (ret)
+       return ret;
 
     res->handle = handle;
     res->base.target = args.target;
@@ -284,7 +287,8 @@ int testvirgl_create_unbacked_simple_buffer(struct virgl_resource *res,
     testvirgl_init_simple_buffer_sized(&args, handle, size);
     args.bind = binding;
     ret = virgl_renderer_resource_create(&args, NULL, 0);
-    ck_assert_int_eq(ret, 0);
+    if (ret)
+       return ret;
 
     res->handle = handle;
     res->base.target = args.target;
