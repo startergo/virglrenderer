@@ -660,6 +660,7 @@ static int vrend_decode_create_surface_common(struct vrend_context *ctx, const u
    enum virgl_formats format = get_buf_entry(buf, VIRGL_OBJ_SURFACE_FORMAT);
 
    if (format >= PIPE_FORMAT_COUNT) {
+      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_FORMAT, format);
       return EINVAL;
    }
 
