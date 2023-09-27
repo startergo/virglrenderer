@@ -4521,17 +4521,23 @@ int vrend_create_shader(struct vrend_context *ctx,
                         enum pipe_shader_type type, uint32_t pkt_length)
 {
    if (type == PIPE_SHADER_GEOMETRY &&
-       !has_feature(feat_geometry_shader))
+       !has_feature(feat_geometry_shader)) {
+      virgl_error("Geometry shader not supported\n");
       return EINVAL;
+   }
 
    if ((type == PIPE_SHADER_TESS_CTRL ||
         type == PIPE_SHADER_TESS_EVAL) &&
-       !has_feature(feat_tessellation))
+       !has_feature(feat_tessellation)) {
+      virgl_error("Tesselation shaders not supported\n");
        return EINVAL;
+   }
 
    if (type == PIPE_SHADER_COMPUTE &&
-       !has_feature(feat_compute_shader))
+       !has_feature(feat_compute_shader)) {
+      virgl_error("Compute shaders not supported\n");
       return EINVAL;
+   }
 
    /* offlen & VIRGL_OBJ_SHADER_OFFSET_CONT declares whether we have a new shader or
     * a shader continuation
@@ -4545,27 +4551,37 @@ int vrend_create_shader(struct vrend_context *ctx,
    /* if we have an in progress one - don't allow a new shader
       of that type or a different handle. */
    if (sub_ctx->long_shader_in_progress[type]) {
-      if (new_shader == true)
+      if (new_shader == true) {
+         virgl_error("Expected long shader continuation, got new shader\n");
          return EINVAL;
-      if (handle != sub_ctx->long_shader_in_progress[type]->handle)
+      }
+      if (handle != sub_ctx->long_shader_in_progress[type]->handle) {
+         virgl_error("Long shader continuation handle invalid\n");
          return EINVAL;
+      }
    }
 
    /* Ensure that we won't hit an overflow */
-   if (pkt_length >= (UINT32_MAX >> 2))
+   if (pkt_length >= (UINT32_MAX >> 2)) {
+      virgl_error("Packed length overflow\n");
       return EINVAL;
+   }
 
    const uint32_t pkt_length_bytes = pkt_length * 4;
 
    if (new_shader) {
       const uint32_t expected_token_count = (offlen + 3) / 4;  /* round up count */
-      if (expected_token_count < pkt_length)
+      if (expected_token_count < pkt_length) {
+         virgl_error("Invalid expected token count\n");
         return EINVAL;
+      }
 
       struct vrend_shader_selector *sel;
       sel = vrend_create_shader_state(so_info, req_local_mem, type);
-      if (sel == NULL)
+      if (sel == NULL) {
+         virgl_error("Unable to allocate shader state\n");
          return ENOMEM;
+      }
 
       int ret_handle = vrend_renderer_object_insert(ctx, sel, handle, VIRGL_OBJECT_SHADER);
       if (ret_handle == 0) {
@@ -4581,6 +4597,7 @@ int vrend_create_shader(struct vrend_context *ctx,
                                                   &sub_ctx->long_shader_in_progress[type]);
          if (ret != 0) {
             vrend_renderer_object_destroy(ctx, handle);
+            virgl_error("Error storing long shader\n");
             return ret;
          }
       } else {
@@ -4589,6 +4606,7 @@ int vrend_create_shader(struct vrend_context *ctx,
                                             num_tokens);
          if (ret != 0) {
             vrend_renderer_object_destroy(ctx, handle);
+            virgl_error("Error assigning TGSI\n");
             return ret;
          }
       }
@@ -4628,6 +4646,7 @@ int vrend_create_shader(struct vrend_context *ctx,
          sub_ctx->long_shader_in_progress[type] = NULL;
          vrend_destroy_long_shader_buffer(lsbuf);
          if (ret != 0) {
+            virgl_error("Error assigning TGSI\n");
             vrend_renderer_object_destroy(ctx, handle);
             return ret;
          }
