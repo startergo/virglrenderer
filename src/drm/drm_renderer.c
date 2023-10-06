@@ -21,6 +21,10 @@
 #  include "msm/msm_renderer.h"
 #endif
 
+#ifdef ENABLE_DRM_AMDGPU
+#  include "amdgpu/amdgpu_renderer.h"
+#endif
+
 static struct virgl_renderer_capset_drm capset;
 
 static const struct backend {
@@ -35,6 +39,14 @@ static const struct backend {
       .name = "msm",
       .probe = msm_renderer_probe,
       .create = msm_renderer_create,
+   },
+#endif
+#ifdef ENABLE_DRM_AMDGPU
+   {
+      .context_type = VIRTGPU_DRM_CONTEXT_AMDGPU,
+      .name = "amdgpu",
+      .probe = amdgpu_renderer_probe,
+      .create = amdgpu_renderer_create,
    },
 #endif
 };

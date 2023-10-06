@@ -78,6 +78,7 @@ prog_python = import('python').find_installation('python3')
 
 not_found = dependency('', required: false)
 libdrm_dep = dependency('libdrm', version : '>=2.4.50', required: get_option('drm').enabled() or get_option('venus'))
+libdrm_amdgpu_dep = dependency('libdrm_amdgpu', version : '>=2.4.121', required: get_option('drm-amdgpu-experimental'))
 gbm_dep = not_found
 thread_dep = dependency('threads')
 epoxy_dep = dependency('epoxy', version: '>= 1.5.4')
@@ -276,7 +277,14 @@ with_drm_msm = have_vla and get_option('drm-msm-experimental')
 if with_drm_msm
   conf_data.set('ENABLE_DRM_MSM', 1)
 endif
-with_drm = with_drm_msm
+
+with_drm_amdgpu = have_vla and get_option('drm-amdgpu-experimental')
+if with_drm_amdgpu
+  conf_data.set('ENABLE_DRM', 1)
+  conf_data.set('ENABLE_DRM_AMDGPU', 1)
+endif
+
+with_drm = with_drm_msm or with_drm_amdgpu
 
 with_check_gl_errors = get_option('check-gl-errors')
 if with_check_gl_errors
@@ -376,6 +384,7 @@ summary({'c_args': (' ').join(get_option('c_args')),
         'venus': with_venus,
         'drm-msm': with_drm_msm,
         'render server (DEPRECATED)': with_render_server,
+        'drm-amdgpu': with_drm_amdgpu,
         'render server worker': with_render_server ? with_render_server_worker : 'none',
         'video': with_video,
         'tests': with_tests,

@@ -156,6 +156,12 @@ drm_msm_sources = [
    'drm/msm/msm_renderer.h',
 ]
 
+drm_amdgpu_sources = [
+   'drm/drm-uapi/amdgpu_drm.h',
+   'drm/amdgpu/amdgpu_renderer.c',
+   'drm/amdgpu/amdgpu_renderer.h',
+]
+
 proxy_sources = [
    'proxy/proxy_client.c',
    'proxy/proxy_common.c',
@@ -221,6 +227,11 @@ endif
 
 if with_drm_msm
    virgl_sources += drm_msm_sources
+endif
+
+if with_drm_amdgpu
+   virgl_sources += drm_amdgpu_sources
+   virgl_depends += [libdrm_amdgpu_dep]
 endif
 
 if with_render_server
