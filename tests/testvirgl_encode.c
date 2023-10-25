@@ -1043,3 +1043,58 @@ int virgl_encode_bind_shader(struct virgl_context *ctx,
    virgl_encoder_write_dword(ctx->cbuf, type);
    return 0;
 }
+
+int virgl_encode_set_shader_images(struct virgl_context *ctx,
+                                   uint32_t shader_type,
+                                   uint32_t start_slot,
+                                   uint32_t num_images,
+                                   const struct virgl_shader_image *images)
+{
+   virgl_encoder_write_cmd_dword(ctx, VIRGL_CMD0(VIRGL_CCMD_SET_SHADER_IMAGES, 0,
+                                                 VIRGL_SET_SHADER_IMAGE_SIZE(num_images)));
+   virgl_encoder_write_dword(ctx->cbuf, shader_type);
+   virgl_encoder_write_dword(ctx->cbuf, start_slot);
+   for (uint32_t i = 0; i < num_images; ++i) {
+      virgl_encoder_write_dword(ctx->cbuf, images[i].format);
+      virgl_encoder_write_dword(ctx->cbuf, images[i].access);
+      virgl_encoder_write_dword(ctx->cbuf, images[i].layer_offset);
+      virgl_encoder_write_dword(ctx->cbuf, images[i].level_size);
+      virgl_encoder_write_dword(ctx->cbuf, images[i].handle);
+   }
+   return 0;
+}
+
+int virgl_encode_set_shader_buffers(struct virgl_context *ctx,
+                                    uint32_t shader_type,
+                                    uint32_t start_slot,
+                                    uint32_t num_buffers,
+                                    const struct virgl_shader_buffer *buffers)
+{
+   virgl_encoder_write_cmd_dword(ctx, VIRGL_CMD0(VIRGL_CCMD_SET_SHADER_BUFFERS, 0,
+                                                 VIRGL_SET_SHADER_BUFFER_SIZE(num_buffers)));
+   virgl_encoder_write_dword(ctx->cbuf, shader_type);
+   virgl_encoder_write_dword(ctx->cbuf, start_slot);
+   for (uint32_t i = 0; i < num_buffers; ++i) {
+      virgl_encoder_write_dword(ctx->cbuf, buffers[i].offset);
+      virgl_encoder_write_dword(ctx->cbuf, buffers[i].buf_len);
+      virgl_encoder_write_dword(ctx->cbuf, buffers[i].handle);
+   }
+   return 0;
+}
+
+int virgl_encode_simple_launch_grid(struct virgl_context *ctx, uint32_t grid[3])
+{
+   virgl_encoder_write_cmd_dword(ctx, VIRGL_CMD0(VIRGL_CCMD_LAUNCH_GRID, 0, VIRGL_LAUNCH_GRID_SIZE));
+
+   for (int i = 0; i < 3; ++i) /* block */
+      virgl_encoder_write_dword(ctx->cbuf, 0);
+
+   for (int i = 0; i < 3; ++i)
+      virgl_encoder_write_dword(ctx->cbuf, grid[i]);
+
+   virgl_encoder_write_dword(ctx->cbuf, 0);/* indirect handle */
+   virgl_encoder_write_dword(ctx->cbuf, 0);/* indirect offset */
+
+   return 0;
+}
+

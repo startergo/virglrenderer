@@ -117,7 +117,7 @@ static inline void reset_next_resource_slot(void)
    next_resource_slot_impl(true);
 }
 
-static void create_initial_state(void)
+static void create_initial_gfx_state(void)
 {
    struct virgl_surface surf;
    struct pipe_framebuffer_state fb_state;
@@ -373,6 +373,81 @@ static void create_initial_state(void)
    info.count = 6;
    info.mode = PIPE_PRIM_PATCHES;
    virgl_encoder_draw_vbo(&ctx, &info);
+   testvirgl_ctx_send_cmdbuf(&ctx);
+}
+
+static void create_initial_compute_state(void)
+{
+   /* create compute shader */
+   struct pipe_shader_state cs;
+   static const char *text =
+      "COMP\n"
+      "PROPERTY CS_FIXED_BLOCK_WIDTH 2\n"
+      "PROPERTY CS_FIXED_BLOCK_HEIGHT 4\n"
+      "PROPERTY CS_FIXED_BLOCK_DEPTH 1\n"
+      "DCL SV[0], GRID_SIZE\n"
+      "DCL SV[1], BLOCK_ID\n"
+      "DCL SV[2], THREAD_ID\n"
+      "DCL IMAGE[0], 2D, PIPE_FORMAT_R32_UINT\n"
+      "DCL BUFFER[0]\n"
+      "DCL TEMP[0..9]\n"
+      "IMM[0] UINT32 {1, 2, 4, 0}\n"
+      "DCL TEMP[10..13]\n"
+      "DCL TEMP[14]\n"
+      "0: MOV TEMP[14].xyz, SV[1].xyzz\n"
+      "1: SHL TEMP[1].x, SV[0].xxxx, IMM[0].xxxx\n"
+      "2: SHL TEMP[2].xy, TEMP[14].xyzx, IMM[0].xyxx\n"
+      "3: UADD TEMP[3].xy, TEMP[2].xyxx, SV[2].xyxx\n"
+      "4: MOV TEMP[0].xy, TEMP[3].xyxx\n"
+      "5: LOAD TEMP[5], IMAGE[0], TEMP[0], 2D, PIPE_FORMAT_R32_UINT\n"
+      "6: UMUL TEMP[6].x, TEMP[3].yxxx, TEMP[1].xxxx\n"
+      "7: UADD TEMP[7].x, TEMP[6].xxxx, TEMP[3].xxxx\n"
+      "8: SHL TEMP[8].x, TEMP[7].xxxx, IMM[0].zzzz\n"
+      "9: MOV TEMP[9].x, TEMP[5].xxxx\n"
+      "10: STORE BUFFER[0].x, TEMP[8].xxxx, TEMP[9].xxxx\n"
+      "11: END\n";
+
+       memset(&cs, 0, sizeof(cs));
+   int cs_handle = next_object_handle++;
+   virgl_encode_shader_state(&ctx, cs_handle, PIPE_SHADER_COMPUTE,
+                             &cs, text);
+   virgl_encode_bind_shader(&ctx, cs_handle, PIPE_SHADER_COMPUTE);
+
+   uint32_t handles[PIPE_SHADER_TYPES];
+   memset(handles, 0, sizeof(handles));
+   handles[PIPE_SHADER_COMPUTE] = cs_handle;
+   virgl_encode_link_shader(&ctx, handles);
+
+   struct virgl_resource *image = CALLOC_STRUCT(virgl_resource);
+   resources[next_resource_slot()] = image;
+
+   testvirgl_create_backed_simple_2d_res(image, next_resource_handle++, 256, 128);
+   virgl_renderer_ctx_attach_resource(ctx.ctx_id, image->handle);
+
+   struct virgl_shader_image image_view = {
+       .format = PIPE_FORMAT_R32_UINT,
+       .access = PIPE_IMAGE_ACCESS_READ,
+       .handle = image->handle,
+       .layer_offset = 0,
+       .level_size = 1
+   };
+
+   virgl_encode_set_shader_images(&ctx, PIPE_SHADER_COMPUTE, 0, 1, &image_view);
+
+   struct virgl_resource *buffer = CALLOC_STRUCT(virgl_resource);
+   resources[next_resource_slot()] = buffer;
+   testvirgl_create_backed_simple_buffer(buffer, next_resource_handle++, 256, VIRGL_BIND_SHADER_BUFFER);
+   virgl_renderer_ctx_attach_resource(ctx.ctx_id, buffer->handle);
+
+   struct virgl_shader_buffer buffer_view = {
+       .buf_len = 256,
+       .offset = 0,
+       .handle = buffer->handle
+   };
+
+   virgl_encode_set_shader_buffers(&ctx, PIPE_SHADER_COMPUTE, 0, 1, &buffer_view);
+   uint32_t grid[3] = {2, 4, 1};
+   virgl_encode_simple_launch_grid(&ctx, grid);
    testvirgl_ctx_send_cmdbuf(&ctx);
 }
 
@@ -991,7 +1066,10 @@ int LLVMFuzzerTestOneInput(const uint8_t* raw_data, size_t raw_size)
       return 0;
 
    testvirgl_init_ctx_cmdbuf(&ctx);
-   create_initial_state();
+   if (*raw_data & 1)
+      create_initial_gfx_state();
+   else
+      create_initial_compute_state();
 
 #define MAX_COMMAND_SIZE (16 * 1024)
    static_assert(MAX_COMMAND_SIZE <= UINT16_MAX, "size must fit in 16-bit integer");

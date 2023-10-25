@@ -33,6 +33,21 @@ struct virgl_surface {
    uint32_t handle;
 };
 
+struct virgl_shader_image {
+   uint32_t format;
+   uint32_t access;
+   uint32_t layer_offset;
+   uint32_t level_size;
+   uint32_t handle;
+};
+
+struct virgl_shader_buffer {
+   uint32_t offset;
+   uint32_t buf_len;
+   uint32_t handle;
+};
+
+
 static inline void virgl_encoder_write_dword(struct virgl_cmd_buf *state,
                                             uint32_t dword)
 {
@@ -188,11 +203,25 @@ int virgl_encode_set_sampler_views(struct virgl_context *ctx,
                                   uint32_t num_views,
                                   struct virgl_sampler_view **views);
 
+int virgl_encode_set_shader_images(struct virgl_context *ctx,
+                                   uint32_t shader_type,
+                                   uint32_t start_slot,
+                                   uint32_t num_views,
+                                   const struct virgl_shader_image *images);
+
+int virgl_encode_set_shader_buffers(struct virgl_context *ctx,
+                                    uint32_t shader_type,
+                                    uint32_t start_slot,
+                                    uint32_t num_buffers,
+                                    const struct virgl_shader_buffer *buffers);
+
 int virgl_encode_bind_sampler_states(struct virgl_context *ctx,
                                     uint32_t shader_type,
                                     uint32_t start_slot,
                                     uint32_t num_handles,
                                     uint32_t *handles);
+
+int virgl_encode_simple_launch_grid(struct virgl_context *ctx, uint32_t grid[3]);
 
 int virgl_encoder_set_index_buffer(struct virgl_context *ctx,
                                   const struct pipe_index_buffer *ib);
