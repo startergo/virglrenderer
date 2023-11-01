@@ -1005,6 +1005,21 @@ static inline void update_handles(uint32_t cmd, uint32_t *buf, uint32_t size)
           update_object_handle(VIRGL_OBJECT_STREAMOUT_TARGET,
                                buf + VIRGL_SET_STREAMOUT_TARGETS_H0 + i);
       break;
+   case VIRGL_CCMD_LAUNCH_GRID: {
+      uint64_t prev_grid_size = 1;
+      for (int i = 0; i < 3; ++i) {
+          /* A high work group count triggers a GPU reset that may bring
+           * down X11 (Radeonsi) or even result in a hard system lockup (Iris),
+           * see https://gitlab.freedesktop.org/mesa/mesa/-/issues/10075.
+           * So limit the all-over size of the grid (also to avoid that the
+           * shaders run too long) */
+          static const uint64_t grid_size_limit = 0x1000000ul;
+          uint64_t new_grid_size = prev_grid_size * buf[VIRGL_LAUNCH_GRID_X + i];
+          if (new_grid_size > grid_size_limit)
+              buf[VIRGL_LAUNCH_GRID_X + i] = grid_size_limit / prev_grid_size;
+          prev_grid_size *= buf[VIRGL_LAUNCH_GRID_X + i];
+      }
+   }
    default:
        break;
    }
