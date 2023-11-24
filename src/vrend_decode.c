@@ -1503,12 +1503,28 @@ static int vrend_decode_transfer3d(struct vrend_context *ctx, const uint32_t *bu
                                       transfer_mode);
 }
 
+static int check_copy_transfer3d_handles(struct vrend_context *ctx, uint32_t src_handle,  uint32_t dst_handle,
+                                         struct vrend_resource *src_res, struct vrend_resource *dst_res)
+{
+   if (!src_res || !src_res->iov) {
+      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, src_handle);
+      return EINVAL;
+   }
+
+   if (!dst_res) {
+      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, dst_handle);
+      return EINVAL;
+   }
+   return 0;
+}
+
 static int vrend_decode_copy_transfer3d(struct vrend_context *ctx, const uint32_t *buf, uint32_t length)
 {
    struct pipe_box box;
    struct vrend_transfer_info info;
    uint32_t dst_handle;
    uint32_t src_handle;
+   struct vrend_resource *src_res, *dst_res;
 
    if (length != VIRGL_COPY_TRANSFER3D_SIZE)
       return EINVAL;
@@ -1521,23 +1537,36 @@ static int vrend_decode_copy_transfer3d(struct vrend_context *ctx, const uint32_
    uint32_t flags = get_buf_entry(buf, VIRGL_COPY_TRANSFER3D_FLAGS);
    bool read_from_host = (flags & VIRGL_COPY_TRANSFER3D_FLAGS_READ_FROM_HOST) != 0;
    info.synchronized = (flags & VIRGL_COPY_TRANSFER3D_FLAGS_SYNCHRONIZED) != 0;
+   info.offset = get_buf_entry(buf, VIRGL_COPY_TRANSFER3D_SRC_RES_OFFSET);
 
-   if (!read_from_host) {
+   if (unlikely(read_from_host)) {
+      vrend_decode_transfer_common(buf, &src_handle, &info);
+      dst_handle = get_buf_entry(buf, VIRGL_COPY_TRANSFER3D_SRC_RES_HANDLE);
+
+      src_res = vrend_renderer_ctx_res_lookup(ctx, src_handle);
+      dst_res = vrend_renderer_ctx_res_lookup(ctx, dst_handle);
+
+      int ret = check_copy_transfer3d_handles(ctx, src_handle, dst_handle, src_res, dst_res);
+      if (ret)
+         return ret;
+
+      return vrend_renderer_copy_transfer3d_from_host(ctx, dst_handle, src_handle, dst_res, src_res,
+                                                      &info);
+   } else {
       // this means that guest would like to make transfer to host
       // it can also mean that guest is using legacy copy transfer path
       vrend_decode_transfer_common(buf, &dst_handle, &info);
-      info.offset = get_buf_entry(buf, VIRGL_COPY_TRANSFER3D_SRC_RES_OFFSET);
       src_handle = get_buf_entry(buf, VIRGL_COPY_TRANSFER3D_SRC_RES_HANDLE);
 
-      return vrend_renderer_copy_transfer3d(ctx, dst_handle, src_handle,
-                                             &info);
-   } else {
-      vrend_decode_transfer_common(buf, &src_handle, &info);
-      info.offset = get_buf_entry(buf, VIRGL_COPY_TRANSFER3D_SRC_RES_OFFSET);
-      dst_handle = get_buf_entry(buf, VIRGL_COPY_TRANSFER3D_SRC_RES_HANDLE);
+      src_res = vrend_renderer_ctx_res_lookup(ctx, src_handle);
+      dst_res = vrend_renderer_ctx_res_lookup(ctx, dst_handle);
 
-      return vrend_renderer_copy_transfer3d_from_host(ctx, dst_handle, src_handle,
-                                                      &info);
+      int ret = check_copy_transfer3d_handles(ctx, src_handle, dst_handle, src_res, dst_res);
+      if (ret)
+         return ret;
+
+      return vrend_renderer_copy_transfer3d(ctx, dst_handle, dst_res, src_res,
+                                            &info);
    }
 }
 

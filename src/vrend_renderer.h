@@ -326,13 +326,13 @@ int vrend_transfer_inline_write(struct vrend_context *ctx,
 
 int vrend_renderer_copy_transfer3d(struct vrend_context *ctx,
                                    uint32_t dst_handle,
-                                   uint32_t src_handle,
+                                   struct vrend_resource *dst_res, struct vrend_resource *src_res,
                                    const struct vrend_transfer_info *info);
 
-int vrend_renderer_copy_transfer3d_from_host(struct vrend_context *ctx,
-                                   uint32_t dst_handle,
-                                   uint32_t src_handle,
-                                   const struct vrend_transfer_info *info);
+int vrend_renderer_copy_transfer3d_from_host(struct vrend_context *ctx, uint32_t dst_handle,
+                                             uint32_t src_handle,
+                                             struct vrend_resource *src_res, struct vrend_resource *dst_res,
+                                             const struct vrend_transfer_info *info);
 
 void vrend_set_viewport_states(struct vrend_context *ctx,
                                uint32_t start_slot, uint32_t num_viewports,

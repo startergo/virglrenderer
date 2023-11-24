@@ -9879,29 +9879,11 @@ int vrend_transfer_inline_write(struct vrend_context *ctx,
 
 int vrend_renderer_copy_transfer3d(struct vrend_context *ctx,
                                    uint32_t dst_handle,
-                                   uint32_t src_handle,
+
+                                   struct vrend_resource *dst_res,
+                                   struct vrend_resource *src_res,
                                    const struct vrend_transfer_info *info)
 {
-   struct vrend_resource *src_res, *dst_res;
-
-   src_res = vrend_renderer_ctx_res_lookup(ctx, src_handle);
-   dst_res = vrend_renderer_ctx_res_lookup(ctx, dst_handle);
-
-   if (!src_res) {
-      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, src_handle);
-      return EINVAL;
-   }
-
-   if (!dst_res) {
-      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, dst_handle);
-      return EINVAL;
-   }
-
-   if (!src_res->iov) {
-      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, dst_handle);
-      return EINVAL;
-   }
-
    if (!resource_contains_box(dst_res, info->box, info->level)) {
       vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_CMD_BUFFER, dst_handle);
       return EINVAL;
@@ -9953,32 +9935,14 @@ int vrend_renderer_copy_transfer3d(struct vrend_context *ctx,
 }
 
 int vrend_renderer_copy_transfer3d_from_host(struct vrend_context *ctx,
-                                   uint32_t dst_handle,
-                                   uint32_t src_handle,
-                                   const struct vrend_transfer_info *info)
+                                             uint32_t dst_handle,
+                                             uint32_t src_handle,
+                                             struct vrend_resource *dst_res,
+                                             struct vrend_resource *src_res,
+                                             const struct vrend_transfer_info *info)
 {
-   struct vrend_resource *src_res, *dst_res;
-
-   src_res = vrend_renderer_ctx_res_lookup(ctx, src_handle);
-   dst_res = vrend_renderer_ctx_res_lookup(ctx, dst_handle);
-
-   if (!src_res) {
-      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, src_handle);
-      return EINVAL;
-   }
-
-   if (!dst_res) {
-      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, dst_handle);
-      return EINVAL;
-   }
-
-   if (!dst_res->iov) {
-      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, dst_handle);
-      return EINVAL;
-   }
-
    if (!resource_contains_box(src_res, info->box, info->level)) {
-      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_CMD_BUFFER, dst_handle);
+      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_RESOURCE_OUT_OF_RANGE, src_handle);
       return EINVAL;
    }
 
