@@ -277,7 +277,7 @@ enum virgl_context_cmd {
 #define VIRGL_OBJ_SHADER_SO_OUTPUT_STREAM(x) (((x) & 0x03) << 0)
 
 /* viewport state */
-#define VIRGL_SET_VIEWPORT_STATE_SIZE(num_viewports) ((6 * num_viewports) + 1)
+#define VIRGL_SET_VIEWPORT_STATE_SIZE(num_viewports) ((6 * (num_viewports)) + 1)
 #define VIRGL_SET_VIEWPORT_START_SLOT 1
 #define VIRGL_SET_VIEWPORT_STATE_SCALE_0(x) (2 + (x * 6))
 #define VIRGL_SET_VIEWPORT_STATE_SCALE_1(x) (3 + (x * 6))
@@ -287,7 +287,7 @@ enum virgl_context_cmd {
 #define VIRGL_SET_VIEWPORT_STATE_TRANSLATE_2(x) (7 + (x * 6))
 
 /* framebuffer state */
-#define VIRGL_SET_FRAMEBUFFER_STATE_SIZE(nr_cbufs) (nr_cbufs + 2)
+#define VIRGL_SET_FRAMEBUFFER_STATE_SIZE(nr_cbufs) ((nr_cbufs) + 2)
 #define VIRGL_SET_FRAMEBUFFER_STATE_NR_CBUFS 1
 #define VIRGL_SET_FRAMEBUFFER_STATE_NR_ZSURF_HANDLE 2
 #define VIRGL_SET_FRAMEBUFFER_STATE_CBUF_HANDLE(x) ((x) + 3)
