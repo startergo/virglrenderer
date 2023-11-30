@@ -7864,6 +7864,10 @@ void vrend_destroy_context(struct vrend_context *ctx)
    vrend_video_destroy_context(ctx->video);
 #endif
 
+   list_for_each_entry_safe(struct vrend_resource, res, &ctx->vrend_resources, head) {
+      free(res);
+   }
+
    list_for_each_entry_safe(struct vrend_untyped_resource, untyped_res, &ctx->untyped_resources, head)
       free(untyped_res);
    vrend_ctx_resource_fini_table(ctx->res_hash);
