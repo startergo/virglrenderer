@@ -184,6 +184,7 @@ video_sources = [
 vcl_sources = [
    'vcl/vcomp_common.c',
    'vcl/vcomp_common.h',
+   'vcl/vcomp_context.c',
    'vcl/vcomp_renderer.c',
    'vcl/vcomp_renderer.h',
 ]

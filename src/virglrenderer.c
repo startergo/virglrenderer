@@ -256,6 +256,9 @@ int virgl_renderer_context_create_with_flags(uint32_t ctx_id,
          return EINVAL;
       ctx = drm_renderer_create(nlen, name);
       break;
+   case VIRGL_RENDERER_CAPSET_VCL:
+      ctx = vcomp_context_create(ctx_id, nlen, name);
+      break;
    default:
       return EINVAL;
       break;
@@ -748,7 +751,8 @@ virgl_context_foreach_retire_fences(struct virgl_context *ctx,
    /* vrend contexts are polled explicitly by the caller */
    if (ctx->capset_id != VIRGL_RENDERER_CAPSET_VIRGL &&
        ctx->capset_id != VIRGL_RENDERER_CAPSET_VIRGL2 &&
-       !(state.flags & VIRGL_RENDERER_ASYNC_FENCE_CB))
+       !(state.flags & VIRGL_RENDERER_ASYNC_FENCE_CB) &&
+       ctx->capset_id != VIRGL_RENDERER_CAPSET_VCL)
    {
       assert(ctx->retire_fences);
       ctx->retire_fences(ctx);
