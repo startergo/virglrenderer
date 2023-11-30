@@ -268,6 +268,7 @@ libvirglrenderer = library(
 pkg = import('pkgconfig')
 pkg.generate(libvirglrenderer,
    description: 'virgl GL renderer',
+   extra_cflags: pkg_cflags,
    subdirs: 'virgl'
 )
 

@@ -80,8 +80,13 @@ m_dep = cc.find_library('m', required : false)
 conf_data = configuration_data()
 conf_data.set('VERSION', meson.project_version())
 conf_data.set('_GNU_SOURCE', 1)
+# Compile unstable APIs unconditionally to avoid building two variants of
+# the lib. It's up to virglrenderer users to decide whether to use these
+# APIs. Unstable APIs may be changed or removed without a notice.
 conf_data.set('VIRGL_RENDERER_UNSTABLE_APIS', 1)
 conf_data.set('ENABLE_DRM', libdrm_dep.found())
+
+pkg_cflags = []
 
 has_attribute_cleanup = cc.compiles('''
    void func(void *v) {}
@@ -331,6 +336,11 @@ with_fuzzer = get_option('fuzzer')
 with_tests = get_option('tests')
 with_valgrind = get_option('valgrind')
 
+with_unstable_apis = get_option('unstable-apis')
+if with_unstable_apis
+  pkg_cflags += '-DVIRGL_RENDERER_UNSTABLE_APIS=1'
+endif
+
 subdir('src')
 if not with_host_windows
    subdir('vtest')
@@ -361,4 +371,5 @@ summary({'c_args': (' ').join(get_option('c_args')),
         'tests': with_tests,
         'fuzzer': with_fuzzer,
         'tracing': with_tracing,
+        'unstable-apis': with_unstable_apis,
         }, section: 'Configuration')
