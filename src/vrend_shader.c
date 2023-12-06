@@ -2379,9 +2379,11 @@ static void emit_so_movs(const struct dump_ctx *ctx,
             ctx->so_names[i] = strdup(out_var);
          }
       } else {
-         char ntemp[8];
-         snprintf(ntemp, 8, "tfout%d", i);
-         ctx->so_names[i] = strdup(ntemp);
+         if (!ctx->so_names[i]) {
+            char ntemp[8];
+            snprintf(ntemp, 8, "tfout%d", i);
+            ctx->so_names[i] = strdup(ntemp);
+         }
       }
       if (ctx->so->output[i].num_components == 1) {
          if (output->is_int)
