@@ -296,6 +296,7 @@ msm_renderer_probe(int fd, struct virgl_renderer_capset_drm *capset)
    get_param64(fd, MSM_PARAM_GMEM_BASE,  &capset->u.msm.gmem_base);
    get_param64(fd, MSM_PARAM_CHIP_ID,    &capset->u.msm.chip_id);
    get_param32(fd, MSM_PARAM_MAX_FREQ,   &capset->u.msm.max_freq);
+   get_param32(fd, MSM_PARAM_HIGHEST_BANK_BIT, &capset->u.msm.highest_bank_bit);
 
    nr_timelines = capset->u.msm.priorities;
    uabi_version = capset->version_minor;
@@ -313,6 +314,7 @@ msm_renderer_probe(int fd, struct virgl_renderer_capset_drm *capset)
    drm_log("gmem_base:           0x%0" PRIx64, capset->u.msm.gmem_base);
    drm_log("chip_id:             0x%0" PRIx64, capset->u.msm.chip_id);
    drm_log("max_freq:            %u", capset->u.msm.max_freq);
+   drm_log("highest_bank_bit:    %u", capset->u.msm.highest_bank_bit);
 
    if (!capset->u.msm.va_size) {
       drm_log("Host kernel does not support userspace allocated IOVA");
