@@ -904,3 +904,21 @@ _mesa_hash_table_u64_remove(struct hash_table_u64 *ht, uint64_t key)
       free(_key);
    }
 }
+
+void
+hash_table_u64_call_foreach(struct hash_table_u64 *ht,
+                            void (*callback)(const void *key,
+                                             void *data,
+                                             void *closure),
+                            void *closure)
+{
+   if (ht->freed_key_data)
+      callback(FREED_KEY_VALUE, ht->freed_key_data, closure);
+
+   if (ht->deleted_key_data)
+      callback((void *)DELETED_KEY_VALUE, ht->deleted_key_data, closure);
+
+   hash_table_foreach(ht->table, entry)
+       callback(entry->key, entry->data, closure);
+}
+

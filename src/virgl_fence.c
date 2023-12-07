@@ -40,7 +40,7 @@ static void virgl_fence_table_cleanup_cb(UNUSED const void *key, void *data,
 void
 virgl_fence_table_cleanup(void)
 {
-   hash_table_call_foreach(virgl_fence_table->table,
+   hash_table_u64_call_foreach(virgl_fence_table,
                            virgl_fence_table_cleanup_cb, NULL);
 
    _mesa_hash_table_u64_destroy(virgl_fence_table);
@@ -117,8 +117,8 @@ virgl_fence_set_fd_locked(uint64_t fence_id, int fd)
    struct virgl_fence *fence;
 
    /* walk up all fences and retire signaled ones */
-   hash_table_call_foreach(virgl_fence_table->table,
-                           virgl_fence_table_retire_cb, NULL);
+   hash_table_u64_call_foreach(virgl_fence_table,
+                               virgl_fence_table_retire_cb, NULL);
 
    fence = _mesa_hash_table_u64_search(virgl_fence_table, fence_id);
    if (fence)

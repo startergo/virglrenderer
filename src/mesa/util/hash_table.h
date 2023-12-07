@@ -189,6 +189,13 @@ _mesa_hash_table_u64_remove(struct hash_table_u64 *ht, uint64_t key);
 void
 _mesa_hash_table_u64_clear(struct hash_table_u64 *ht);
 
+void
+hash_table_u64_call_foreach(struct hash_table_u64 *ht,
+                            void (*callback)(const void *key,
+                                             void *data,
+                                             void *closure),
+                            void *closure);
+
 #ifdef __cplusplus
 } /* extern C */
 #endif
