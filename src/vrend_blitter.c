@@ -906,17 +906,17 @@ void vrend_renderer_blit_gl(ASSERTED struct vrend_context *ctx,
    glBindTexture(src_res->target, 0);
 }
 
+static void delete_program_cb(struct hash_entry *entry)
+{
+   glDeleteProgram((GLuint)pointer_to_uintptr(entry->data));
+}
+
 void vrend_blitter_fini(void)
 {
    vrend_blit_ctx.initialised = false;
    vrend_clicbs->destroy_gl_context(vrend_blit_ctx.gl_context);
-   if (vrend_blit_ctx.blit_programs) {
-      hash_table_foreach(vrend_blit_ctx.blit_programs->table, entry) {
-         glDeleteProgram((GLuint)pointer_to_uintptr(entry->data));
-      }
-
-      _mesa_hash_table_u64_destroy(vrend_blit_ctx.blit_programs);
-   }
+   if (vrend_blit_ctx.blit_programs)
+      _mesa_hash_table_u64_destroy(vrend_blit_ctx.blit_programs, delete_program_cb);
    memset(&vrend_blit_ctx, 0, sizeof(vrend_blit_ctx));
 }
 
