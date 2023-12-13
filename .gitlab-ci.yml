@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1054773
+  MESA_PIPELINE_ID: 1068128
   MESA_PROJECT_PATH: mesa/mesa
   STORAGE_HOST: s3.freedesktop.org
   CI_REGISTRY_IMAGE: "registry.freedesktop.org/${MESA_PROJECT_PATH}"
@@ -43,7 +43,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: 1188b218c61c8f33815e75bc8422cb80e3b468ec
+    ref: 2e46dd062470b07d1c297275ab5a7a2040e1ab80
     file:
       - '/.gitlab-ci/image-tags.yml'
 
