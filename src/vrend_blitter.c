@@ -914,9 +914,9 @@ static void delete_program_cb(struct hash_entry *entry)
 void vrend_blitter_fini(void)
 {
    vrend_blit_ctx.initialised = false;
-   vrend_clicbs->destroy_gl_context(vrend_blit_ctx.gl_context);
    if (vrend_blit_ctx.blit_programs)
       _mesa_hash_table_u64_destroy(vrend_blit_ctx.blit_programs, delete_program_cb);
+   vrend_clicbs->destroy_gl_context(vrend_blit_ctx.gl_context);
    memset(&vrend_blit_ctx, 0, sizeof(vrend_blit_ctx));
 }
 
