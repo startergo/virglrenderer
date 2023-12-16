@@ -9942,7 +9942,7 @@ int vrend_renderer_copy_transfer3d(struct vrend_context *ctx,
                                            src_res->num_iovs,
                                            info) == 0;
          if (success)
-            return success;
+            return 0;
          virgl_warn("GBM copy transfer failed, try GL\n");
       }
    }
@@ -10016,13 +10016,13 @@ int vrend_renderer_copy_transfer3d_from_host(struct vrend_context *ctx,
       }
 
       if (use_gbm) {
-         bool success = virgl_gbm_transfer(dst_res->gbm_bo,
+         bool success = virgl_gbm_transfer(src_res->gbm_bo,
                                            VIRGL_TRANSFER_FROM_HOST,
-                                           src_res->iov,
-                                           src_res->num_iovs,
+                                           dst_res->iov,
+                                           dst_res->num_iovs,
                                            info) == 0;
          if (success)
-            return success;
+            return 0;
          virgl_warn("GBM read failed, try GL\n");
       }
    }
