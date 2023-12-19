@@ -41,6 +41,10 @@
 START_TEST(virgl_fence_create)
 {
    int ret;
+
+   ret = virgl_renderer_create_fence(1, 0);
+   ck_assert_int_eq(ret, EINVAL);
+
    ret = testvirgl_init_single_ctx();
    ck_assert_int_eq(ret, 0);
 

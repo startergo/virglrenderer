@@ -2060,6 +2060,9 @@ static int vrend_decode_ctx_submit_fence(struct virgl_context *ctx,
    if (ring_idx)
       return -EINVAL;
 
+   if (!dctx->grctx)
+      return EINVAL;
+
    return vrend_renderer_create_fence(dctx->grctx, flags, fence_id);
 }
 

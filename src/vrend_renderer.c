@@ -11145,9 +11145,6 @@ int vrend_renderer_create_fence(struct vrend_context *ctx,
 {
    struct vrend_fence *fence;
 
-   if (!ctx)
-      return EINVAL;
-
    fence = malloc(sizeof(struct vrend_fence));
    if (!fence)
       return ENOMEM;
@@ -13305,6 +13302,8 @@ int vrend_renderer_resource_unmap(struct pipe_resource *pres)
 
 int vrend_renderer_create_ctx0_fence(uint32_t fence_id)
 {
+   if (!vrend_state.ctx0)
+         return EINVAL;
    return vrend_renderer_create_fence(vrend_state.ctx0,
          VIRGL_RENDERER_FENCE_FLAG_MERGEABLE, fence_id);
 }
