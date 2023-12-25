@@ -238,8 +238,9 @@ vkr_context_get_object(struct vkr_context *ctx, vkr_object_id obj_id)
 {
    mtx_lock(&ctx->object_mutex);
    const struct hash_entry *entry = _mesa_hash_table_search(ctx->object_table, &obj_id);
+   void *obj = likely(entry) ? entry->data : NULL;
    mtx_unlock(&ctx->object_mutex);
-   return likely(entry) ? entry->data : NULL;
+   return obj;
 }
 
 void

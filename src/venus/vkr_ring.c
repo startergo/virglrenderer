@@ -128,7 +128,7 @@ vkr_ring_create(const struct vkr_ring_layout *layout,
    if (!ring->cmd)
       goto err_cmd_malloc;
 
-   if (vkr_cs_decoder_init(&ring->decoder, &ctx->cs_fatal_error, ctx->object_table))
+   if (vkr_cs_decoder_init(&ring->decoder, ctx))
       goto err_cs_decoder_init;
 
    if (vkr_cs_encoder_init(&ring->encoder, &ctx->cs_fatal_error))

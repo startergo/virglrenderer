@@ -50,13 +50,12 @@ vkr_cs_encoder_seek_stream_locked(struct vkr_cs_encoder *enc, size_t pos)
 }
 
 int
-vkr_cs_decoder_init(struct vkr_cs_decoder *dec,
-                    bool *fatal_error,
-                    const struct hash_table *object_table)
+vkr_cs_decoder_init(struct vkr_cs_decoder *dec, struct vkr_context *ctx)
 {
    memset(dec, 0, sizeof(*dec));
-   dec->fatal_error = fatal_error;
-   dec->object_table = object_table;
+   dec->fatal_error = &ctx->cs_fatal_error;
+   dec->object_table = ctx->object_table;
+   dec->object_mutex = &ctx->object_mutex;
    return mtx_init(&dec->mutex, mtx_plain);
 }
 

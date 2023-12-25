@@ -61,6 +61,7 @@ struct vkr_cs_decoder_temp_pool {
 
 struct vkr_cs_decoder {
    const struct hash_table *object_table;
+   mtx_t *object_mutex;
 
    bool *fatal_error;
    struct vkr_cs_decoder_temp_pool temp_pool;
@@ -169,9 +170,7 @@ vkr_cs_encoder_write(struct vkr_cs_encoder *enc,
 }
 
 int
-vkr_cs_decoder_init(struct vkr_cs_decoder *dec,
-                    bool *fatal_error,
-                    const struct hash_table *object_table);
+vkr_cs_decoder_init(struct vkr_cs_decoder *dec, struct vkr_context *ctx);
 
 void
 vkr_cs_decoder_fini(struct vkr_cs_decoder *dec);
@@ -280,9 +279,11 @@ vkr_cs_decoder_lookup_object(const struct vkr_cs_decoder *dec,
    if (!id)
       return NULL;
 
+   mtx_lock(dec->object_mutex);
    const struct hash_entry *entry =
       _mesa_hash_table_search((struct hash_table *)dec->object_table, &id);
    obj = likely(entry) ? entry->data : NULL;
+   mtx_unlock(dec->object_mutex);
    if (unlikely(!obj || obj->type != type)) {
       if (obj)
          vkr_log("object %" PRIu64 " has type %d, not %d", id, obj->type, type);
