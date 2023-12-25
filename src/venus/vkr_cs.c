@@ -56,7 +56,7 @@ vkr_cs_decoder_init(struct vkr_cs_decoder *dec, struct vkr_context *ctx)
    dec->fatal_error = &ctx->cs_fatal_error;
    dec->object_table = ctx->object_table;
    dec->object_mutex = &ctx->object_mutex;
-   return mtx_init(&dec->mutex, mtx_plain);
+   return mtx_init(&dec->resource_mutex, mtx_plain);
 }
 
 void
@@ -68,7 +68,7 @@ vkr_cs_decoder_fini(struct vkr_cs_decoder *dec)
    if (pool->buffers)
       free(pool->buffers);
 
-   mtx_destroy(&dec->mutex);
+   mtx_destroy(&dec->resource_mutex);
 }
 
 bool
@@ -78,18 +78,18 @@ vkr_cs_decoder_set_resource_stream(struct vkr_cs_decoder *dec,
                                    size_t offset,
                                    size_t size)
 {
-   mtx_lock(&dec->mutex);
+   mtx_lock(&dec->resource_mutex);
    struct vkr_resource *res = vkr_context_get_resource(ctx, res_id);
    if (unlikely(!res || res->fd_type != VIRGL_RESOURCE_FD_SHM || size > res->size ||
                 offset > res->size - size)) {
-      mtx_unlock(&dec->mutex);
+      mtx_unlock(&dec->resource_mutex);
       return false;
    }
 
    dec->resource = res;
    dec->cur = res->u.data + offset;
    dec->end = dec->cur + size;
-   mtx_unlock(&dec->mutex);
+   mtx_unlock(&dec->resource_mutex);
    return true;
 }
 

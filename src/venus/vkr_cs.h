@@ -74,7 +74,7 @@ struct vkr_cs_decoder {
    bool saved_state_valid;
 
    /* protect against resource destroy */
-   mtx_t mutex;
+   mtx_t resource_mutex;
    const struct vkr_resource *resource;
 
    const uint8_t *cur;
@@ -209,9 +209,9 @@ vkr_cs_decoder_set_resource_stream(struct vkr_cs_decoder *dec,
 static inline bool
 vkr_cs_decoder_check_stream(struct vkr_cs_decoder *dec, const struct vkr_resource *res)
 {
-   mtx_lock(&dec->mutex);
+   mtx_lock(&dec->resource_mutex);
    const bool ok = dec->resource != res;
-   mtx_unlock(&dec->mutex);
+   mtx_unlock(&dec->resource_mutex);
    return ok;
 }
 
