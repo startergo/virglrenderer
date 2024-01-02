@@ -41,6 +41,12 @@ binary_age    = 1
 interface_age = 8
 revision      = 8
 
+virgl_version = meson.project_version()
+version_array = virgl_version.split('.')
+virgl_major_version = version_array[0].to_int()
+virgl_minor_version = version_array[1].to_int()
+virgl_micro_version = version_array[2].to_int()
+
 cc = meson.get_compiler('c')
 
 if cc.get_id() == 'gcc' and cc.version().version_compare('< 4.1')

@@ -278,4 +278,17 @@ libvirglrenderer_dep = declare_dependency(
    dependencies : [libvirgl_dep, gallium_dep]
 )
 
+# Version header
+version_conf = configuration_data()
+version_conf.set('VIRGL_MAJOR_VERSION', virgl_major_version)
+version_conf.set('VIRGL_MINOR_VERSION', virgl_minor_version)
+version_conf.set('VIRGL_MICRO_VERSION', virgl_micro_version)
+
+configure_file(
+  input: 'virgl-version.h.meson',
+  output: 'virgl-version.h',
+  configuration: version_conf,
+  install_dir: join_paths(get_option('includedir'), 'virgl'),
+)
+
 install_headers('virglrenderer.h', subdir : 'virgl')

@@ -31,6 +31,8 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
+#include "virgl-version.h"
+
 struct virgl_box;
 struct iovec;
 
