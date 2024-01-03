@@ -488,3 +488,7 @@ spec@arb_texture_float@texwrap formats bordercolor@GL_LUMINANCE16F_ARB- border c
 spec@arb_texture_float@texwrap formats bordercolor-swizzled@GL_RGB16F- swizzled- border color only,Fail
 spec@arb_texture_float@texwrap formats bordercolor@GL_RGB32F- border color only,Fail
 spec@arb_texture_float@texwrap formats bordercolor@GL_LUMINANCE_ALPHA16F_ARB- border color only,Fail
+
+# uprev Mesa in virglrenderer
+KHR-GL43.texture_view.view_sampling,Fail
+
