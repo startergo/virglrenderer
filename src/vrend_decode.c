@@ -740,14 +740,13 @@ static int vrend_decode_create_sampler_state(struct vrend_context *ctx, const ui
    state.wrap_s = tmp & 0x7;
    state.wrap_t = (tmp >> 3) & 0x7;
    state.wrap_r = (tmp >> 6) & 0x7;
-   state.min_img_filter = (tmp >> 9) & 0x3;
+   state.min_img_filter = (tmp >> 9) & 0x1;
    state.min_mip_filter = (tmp >> 11) & 0x3;
-   state.mag_img_filter = (tmp >> 13) & 0x3;
+   state.mag_img_filter = (tmp >> 13) & 0x1;
    state.compare_mode = (tmp >> 15) & 0x1;
    state.compare_func = (tmp >> 16) & 0x7;
    state.seamless_cube_map = (tmp >> 19) & 0x1;
-   state.max_anisotropy = (float)((tmp >> 20) & 0x3f);
-   state.normalized_coords = 0;
+   state.max_anisotropy = (tmp >> 20) & 0x1f;
 
    state.lod_bias = uif(get_buf_entry(buf, VIRGL_OBJ_SAMPLER_STATE_LOD_BIAS));
    state.min_lod = uif(get_buf_entry(buf, VIRGL_OBJ_SAMPLER_STATE_MIN_LOD));
