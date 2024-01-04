@@ -708,6 +708,10 @@ static void virgl_test_transfer_inline(enum pipe_texture_target target,
   ck_assert_int_eq(ret, invalid ? EINVAL : 0);
   virgl_renderer_ctx_detach_resource(ctx.ctx_id, res.handle);
 
+  virgl_encoder_inline_write(&ctx, &res, 0, 0, (struct pipe_box *)&box, data, box.width * elsize, 0);
+  ret = testvirgl_ctx_send_cmdbuf(&ctx);
+  ck_assert_int_eq(ret, EINVAL);
+
   virgl_renderer_resource_unref(res.handle);
   testvirgl_fini_ctx_cmdbuf(&ctx);
   free(data);
