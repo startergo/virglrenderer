@@ -1175,8 +1175,7 @@ static int vrend_decode_get_query_result(struct vrend_context *ctx, const uint32
    uint32_t handle = get_buf_entry(buf, VIRGL_QUERY_RESULT_HANDLE);
    uint32_t wait = get_buf_entry(buf, VIRGL_QUERY_RESULT_WAIT);
 
-   vrend_get_query_result(ctx, handle, wait);
-   return 0;
+   return vrend_get_query_result(ctx, handle, wait);
 }
 
 static int vrend_decode_get_query_result_qbo(struct vrend_context *ctx, const uint32_t *buf, uint32_t length)
@@ -1191,8 +1190,7 @@ static int vrend_decode_get_query_result_qbo(struct vrend_context *ctx, const ui
    uint32_t offset = get_buf_entry(buf, VIRGL_QUERY_RESULT_QBO_OFFSET);
    int32_t index = get_buf_entry(buf, VIRGL_QUERY_RESULT_QBO_INDEX);
 
-   vrend_get_query_result_qbo(ctx, handle, qbo_handle, wait, result_type, offset, index);
-   return 0;
+   return vrend_get_query_result_qbo(ctx, handle, qbo_handle, wait, result_type, offset, index);
 }
 
 static int vrend_decode_set_render_condition(struct vrend_context *ctx, const uint32_t *buf, uint32_t length)

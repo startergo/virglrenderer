@@ -288,6 +288,10 @@ int virgl_encoder_end_query(struct virgl_context *ctx,
                            uint32_t handle);
 int virgl_encoder_get_query_result(struct virgl_context *ctx,
                                   uint32_t handle, boolean wait);
+int virgl_encoder_get_query_result_qbo(struct virgl_context *ctx,
+                                      uint32_t handle, uint32_t handle_qbo,
+                                      boolean wait_qbo, uint32_t result_type,
+                                      uint32_t type_qbo, uint32_t qbo_index);
 
 int virgl_encoder_render_condition(struct virgl_context *ctx,
                                   uint32_t handle, boolean condition,

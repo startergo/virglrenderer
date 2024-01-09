@@ -11611,7 +11611,7 @@ int vrend_end_query(struct vrend_context *ctx, uint32_t handle)
    return 0;
 }
 
-void vrend_get_query_result(struct vrend_context *ctx, uint32_t handle,
+int vrend_get_query_result(struct vrend_context *ctx, uint32_t handle,
                             UNUSED uint32_t wait)
 {
    struct vrend_query *q;
@@ -11619,7 +11619,7 @@ void vrend_get_query_result(struct vrend_context *ctx, uint32_t handle,
 
    q = vrend_object_lookup(ctx->sub->object_hash, handle, VIRGL_OBJECT_QUERY);
    if (!q)
-      return;
+      return EINVAL;
 
    ret = vrend_check_query(q);
    if (ret) {
@@ -11630,6 +11630,7 @@ void vrend_get_query_result(struct vrend_context *ctx, uint32_t handle,
 
    atomic_store(&vrend_state.has_waiting_queries,
                 !list_is_empty(&vrend_state.waiting_query_list));
+   return 0;
 }
 
 #define COPY_QUERY_RESULT_TO_BUFFER(resid, offset, pvalue, size, multiplier) \
@@ -11644,7 +11645,7 @@ static inline void *buffer_offset(intptr_t i)
    return (void *)i;
 }
 
-void vrend_get_query_result_qbo(struct vrend_context *ctx, uint32_t handle,
+int vrend_get_query_result_qbo(struct vrend_context *ctx, uint32_t handle,
                                 uint32_t qbo_handle,
                                 uint32_t wait, uint32_t result_type, uint32_t offset,
                                 int32_t index)
@@ -11653,16 +11654,16 @@ void vrend_get_query_result_qbo(struct vrend_context *ctx, uint32_t handle,
   struct vrend_resource *res;
 
   if (!has_feature(feat_qbo))
-     return;
+     return EINVAL;
 
   q = vrend_object_lookup(ctx->sub->object_hash, handle, VIRGL_OBJECT_QUERY);
   if (!q)
-     return;
+     return EINVAL;
 
   res = vrend_renderer_ctx_res_lookup(ctx, qbo_handle);
   if (!res || !res->gl_id) {
      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, qbo_handle);
-     return;
+     return EINVAL;
   }
 
   VREND_DEBUG(dbg_query, ctx, "Get query result from Query:%d\n", q->id);
@@ -11727,6 +11728,8 @@ void vrend_get_query_result_qbo(struct vrend_context *ctx, uint32_t handle,
   }
 
   glBindBuffer(GL_QUERY_BUFFER, 0);
+
+  return 0;
 }
 
 static void vrend_pause_render_condition(struct vrend_context *ctx, bool pause)

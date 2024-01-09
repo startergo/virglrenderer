@@ -1498,6 +1498,77 @@ START_TEST(virgl_test_create_surface_fail_layers)
 }
 END_TEST
 
+START_TEST(virgl_test_query)
+{
+   struct virgl_context ctx;
+   struct virgl_resource res = {0};
+   struct virgl_resource qbo = {0};
+   int ret;
+
+   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ck_assert_int_eq(ret, 0);
+
+   /* init and create simple 2D resource */
+   ret = testvirgl_create_backed_simple_buffer(&res, 1, 50, VIRGL_BIND_CUSTOM);
+   ck_assert_int_eq(ret, 0);
+
+   ret = testvirgl_create_backed_simple_buffer(&qbo, 2, 50, VIRGL_BIND_QUERY_BUFFER);
+   ck_assert_int_eq(ret, 0);
+
+   /* attach resource to context */
+   virgl_renderer_ctx_attach_resource(ctx.ctx_id, res.handle);
+   virgl_renderer_ctx_attach_resource(ctx.ctx_id, qbo.handle);
+
+   virgl_encoder_create_query(&ctx, 2000, 0, &res, 0);
+   virgl_encoder_begin_query(&ctx, 2000);
+   virgl_encoder_end_query(&ctx, 2000);
+   virgl_encoder_get_query_result(&ctx, 2000, 1);
+   virgl_encoder_get_query_result_qbo(&ctx, 2000, qbo.handle, 1, 4, 100, 0);
+
+   /* submit the cmd stream */
+   ret = testvirgl_ctx_send_cmdbuf(&ctx);
+   ck_assert_int_eq(ret, 0);
+
+   virgl_renderer_ctx_detach_resource(ctx.ctx_id, res.handle);
+
+   /* Try with invalid resource */
+   virgl_encoder_create_query(&ctx, 100, 0, &res, 0);
+
+   /* submit the cmd stream */
+   ret = testvirgl_ctx_send_cmdbuf(&ctx);
+   ck_assert_int_eq(ret, EINVAL);
+
+   virgl_encoder_begin_query(&ctx, 100);
+
+   /* submit the cmd stream */
+   ret = testvirgl_ctx_send_cmdbuf(&ctx);
+   ck_assert_int_eq(ret, EINVAL);
+
+   virgl_encoder_end_query(&ctx, 100);
+
+   /* submit the cmd stream */
+   ret = testvirgl_ctx_send_cmdbuf(&ctx);
+   ck_assert_int_eq(ret, EINVAL);
+
+   virgl_encoder_get_query_result(&ctx, 100, 1);
+
+   /* submit the cmd stream */
+   ret = testvirgl_ctx_send_cmdbuf(&ctx);
+   ck_assert_int_eq(ret, EINVAL);
+
+   virgl_encoder_get_query_result_qbo(&ctx, 100, qbo.handle, 1, 4, 100, 0);
+
+   /* submit the cmd stream */
+   ret = testvirgl_ctx_send_cmdbuf(&ctx);
+   ck_assert_int_eq(ret, EINVAL);
+
+   /* cleanup */
+   testvirgl_destroy_backed_res(&res);
+
+   testvirgl_fini_ctx_cmdbuf(&ctx);
+}
+END_TEST
+
 static void test_vertex_elements(int ve_num, int expected_error)
 {
    struct virgl_context ctx;
@@ -1923,6 +1994,7 @@ static Suite *virgl_init_suite(void)
   tcase_add_test(tc_core, virgl_test_draw_vbo_fail_not_recoverable);
   tcase_add_test(tc_core, virgl_test_bind_images_shader_pass);
   tcase_add_test(tc_core, virgl_test_bind_images_shader_fail_layers);
+  tcase_add_test(tc_core, virgl_test_query);
 
   suite_add_tcase(s, tc_core);
   return s;

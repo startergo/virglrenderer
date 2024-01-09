@@ -958,6 +958,22 @@ int virgl_encoder_get_query_result(struct virgl_context *ctx,
    return 0;
 }
 
+int virgl_encoder_get_query_result_qbo(struct virgl_context *ctx,
+                                      uint32_t handle, uint32_t handle_qbo,
+                                      boolean wait_qbo, uint32_t result_type,
+                                      uint32_t type_qbo, uint32_t qbo_index)
+{
+   virgl_encoder_write_cmd_dword(ctx, VIRGL_CMD0(VIRGL_CCMD_GET_QUERY_RESULT_QBO, 0, 6));
+   virgl_encoder_write_dword(ctx->cbuf, handle);
+   virgl_encoder_write_dword(ctx->cbuf, handle_qbo);
+   virgl_encoder_write_dword(ctx->cbuf, wait_qbo ? 1 : 0);
+   virgl_encoder_write_dword(ctx->cbuf, result_type);
+   virgl_encoder_write_dword(ctx->cbuf, type_qbo);
+   virgl_encoder_write_dword(ctx->cbuf, qbo_index);
+
+   return 0;
+}
+
 int virgl_encoder_render_condition(struct virgl_context *ctx,
                                   uint32_t handle, boolean condition,
                                   uint mode)
