@@ -185,6 +185,9 @@ vcl_sources = [
    'vcl/vcomp_common.c',
    'vcl/vcomp_common.h',
    'vcl/vcomp_context.c',
+   'vcl/vcomp_context.h',
+   'vcl/vcomp_cs.c',
+   'vcl/vcomp_cs.h',
    'vcl/vcomp_renderer.c',
    'vcl/vcomp_renderer.h',
 ]
@@ -259,12 +262,13 @@ endif
 
 if with_vcl
    virgl_sources += vcl_sources
+   virgl_depends += [vcl_dep]
 endif
 
 libvirgl = static_library(
    'virgl',
    virgl_sources,
-   include_directories: [inc_gallium, inc_configuration, 'venus', 'drm', 'drm/drm-uapi'],
+   include_directories: [inc_gallium, inc_configuration, 'vcl', 'venus', 'drm', 'drm/drm-uapi'],
    dependencies : virgl_depends,
 )
 

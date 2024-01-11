@@ -6,7 +6,10 @@
 #ifndef VCOMP_COMMON_H
 #define VCOMP_COMMON_H
 
-void
-vcomp_log(const char *fmt, ...);
+#include <stdint.h>
+
+typedef uint64_t vcomp_object_id;
+
+void vcomp_log(const char *fmt, ...);
 
 #endif /* VCOMP_COMMON_H */

@@ -1,25 +1,20 @@
 /*
+ * Copyright 2020 Google LLC
  * Copyright 2024 Qualcomm Innovation Center, Inc. All Rights Reserved.
  * SPDX-License-Identifier: MIT
  */
 
+#include "vcomp_context.h"
 #include "vcomp_common.h"
 #include "vcomp_renderer.h"
 
+#include "vcl-protocol/vcl_protocol_renderer_dispatches.h"
+
 #include "util/hash_table.h"
 #include "util/u_memory.h"
-#include "virgl_context.h"
 #include "vrend_renderer.h"
 
 #include <errno.h>
-
-struct vcomp_context
-{
-   struct virgl_context base;
-   char debug_name[32];
-
-   struct hash_table *resource_table;
-};
 
 struct vcomp_resource_attachment
 {
@@ -147,6 +142,53 @@ vcomp_context_transfer_3d(struct virgl_context *ctx,
    return 0;
 }
 
+typedef int (*vcomp_decode_callback)(struct vcomp_context *ctx, const uint32_t *buf, uint32_t length);
+
+static int
+vcomp_context_submit_cmd(struct virgl_context *base, const void *buffer, size_t size)
+{
+   struct vcomp_context *ctx = (struct vcomp_context *)base;
+   int ret = 0;
+
+   /* CS error is considered fatal (destroy the context?) */
+   if (vcomp_cs_decoder_get_fatal(&ctx->decoder))
+      return -EINVAL;
+
+   vcomp_cs_decoder_set_stream(&ctx->decoder, buffer, size);
+
+   while (vcomp_cs_decoder_has_command(&ctx->decoder))
+   {
+      vcl_dispatch_command(&ctx->dispatch);
+      if (vcomp_cs_decoder_get_fatal(&ctx->decoder))
+      {
+         ret = -EINVAL;
+         break;
+      }
+   }
+
+   vcomp_cs_decoder_reset(&ctx->decoder);
+
+   return ret;
+}
+
+static void
+vcomp_dispatch_debug_log(UNUSED struct vcl_dispatch_context *dispatch, const char *msg)
+{
+   vcomp_log(msg);
+}
+
+static void
+vcomp_context_init_dispatch(struct vcomp_context *vctx)
+{
+   struct vcl_dispatch_context *dispatch = &vctx->dispatch;
+
+   dispatch->data = vctx;
+   dispatch->debug_log = vcomp_dispatch_debug_log;
+
+   dispatch->encoder = (struct vcl_cs_encoder *)&vctx->encoder;
+   dispatch->decoder = (struct vcl_cs_decoder *)&vctx->decoder;
+}
+
 static void
 vcomp_context_init_base(struct vcomp_context *vctx,
                         uint32_t ctx_id)
@@ -158,6 +200,7 @@ vcomp_context_init_base(struct vcomp_context *vctx,
    ctx->attach_resource = vcomp_context_attach_resource;
    ctx->detach_resource = vcomp_context_detach_resource;
    ctx->transfer_3d = vcomp_context_transfer_3d;
+   ctx->submit_cmd = vcomp_context_submit_cmd;
 }
 
 struct virgl_context *
@@ -181,7 +224,11 @@ vcomp_context_create(int id, uint32_t nlen, const char *debug_name)
    if (!vctx->resource_table)
       goto err_ctx_resource_table;
 
+   vcomp_cs_decoder_init(&vctx->decoder, vctx->resource_table);
+   vcomp_cs_encoder_init(&vctx->encoder, &vctx->decoder.fatal_error);
+
    vcomp_context_init_base(vctx, id);
+   vcomp_context_init_dispatch(vctx);
 
    vcomp_log("context %d created: `%s`", vctx->base.ctx_id, vctx->debug_name);
 
