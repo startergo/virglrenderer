@@ -128,7 +128,7 @@ virgl_fence_set_fd_locked(uint64_t fence_id, int fd)
    fence->fd = os_dupfd_cloexec(fd);
    if (fence->fd < 0) {
       free(fence);
-      return fd;
+      return -errno;
    }
 
    fence->id = fence_id;
