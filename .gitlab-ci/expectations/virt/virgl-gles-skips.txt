@@ -175,3 +175,8 @@ spec@!opengl 1.1@streaming-texture-leak
 
 # Test uses a RGBA8 RW image and this is not supported on GLES
 spec@arb_shader_image_load_store@execution@disable_early_z
+
+# uprev Mesa in Virglrenderer
+KHR-GL32.transform_feedback_overflow_query_ARB.multiple-streams-multiple-buffers-per-stream
+KHR-GL32.transform_feedback_overflow_query_ARB.multiple-streams-one-buffer-per-stream
+

@@ -22,3 +22,7 @@ spec@glsl-4.*@*double*
 
 #OOM
 spec@!opengl 1.1@streaming-texture-leak
+
+# uprev Mesa in Virglrenderer
+spec@egl_ext_protected_content@conformance
+

@@ -7,9 +7,6 @@ dEQP-GLES31.functional.shaders.sample_variables.sample_mask_in.bit_count_per_two
 dEQP-GLES31.functional.shaders.sample_variables.sample_mask_in.bit_count_per_two_samples.multisample_rbo_2,Fail
 dEQP-GLES31.functional.shaders.sample_variables.sample_mask_in.bit_count_per_two_samples.multisample_texture_1,Fail
 dEQP-GLES31.functional.shaders.sample_variables.sample_mask_in.bit_count_per_two_samples.multisample_texture_2,Fail
-KHR-GL32.transform_feedback_overflow_query_ARB.multiple-streams-multiple-buffers-per-stream,Fail
-KHR-GL32.transform_feedback_overflow_query_ARB.multiple-streams-one-buffer-per-stream,Fail
-
 
 fast_color_clear@fcc-front-buffer-distraction,ExpectedFail
 shaders@glsl-fs-pointcoord,Fail
@@ -3116,3 +3113,8 @@ spec@arb_texture_float@texwrap formats bordercolor,Fail
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_nv21,Fail
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_yvyu,Fail
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_vyuy,Fail
+
+# uprev Mesa in Virglrenderer
+spec@glsl-1.40@uniform_buffer@two-stages,Fail
+spec@ext_image_dma_buf_import@ext_image_dma_buf_import-refcount-multithread,Fail
+

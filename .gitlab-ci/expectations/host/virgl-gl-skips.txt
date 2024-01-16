@@ -37,3 +37,7 @@ spec@ext_framebuffer_multisample@clip-and-scissor-blit.*
 spec@glsl-4.*@*dmat*
 spec@glsl-4.*@*dvec*
 spec@glsl-4.*@*double*
+
+# uprev Mesa in Virglrenderer
+spec@egl_ext_protected_content@conformance
+

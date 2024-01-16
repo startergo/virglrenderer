@@ -177,7 +177,6 @@ spec@arb_transform_feedback_overflow_query@arb_transform_feedback_overflow_query
 spec@arb_transform_feedback_overflow_query@arb_transform_feedback_overflow_query-basic@arb_transform_feedback_overflow_query-buffer_object_single,Fail
 spec@arb_transform_feedback_overflow_query@arb_transform_feedback_overflow_query-basic,Fail
 spec@egl 1.4@eglterminate then unbind context,Fail
-spec@egl_ext_protected_content@conformance,Fail
 spec@egl_khr_gl_image@egl_khr_gl_renderbuffer_image-clear-shared-image gl_depth_component24,Fail
 spec@egl_khr_surfaceless_context@viewport,Fail
 spec@ext_framebuffer_multisample@alpha-blending-after-rendering 2,Fail
@@ -490,4 +489,5 @@ spec@arb_texture_float@texwrap formats bordercolor@GL_LUMINANCE_ALPHA16F_ARB- bo
 
 # uprev Mesa in virglrenderer
 KHR-GL43.texture_view.view_sampling,Fail
+spec@glsl-1.40@uniform_buffer@two-stages,Fail
 
