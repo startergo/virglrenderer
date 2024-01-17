@@ -186,6 +186,7 @@ vkr_dispatch_vkCreateDevice(struct vn_dispatch_context *dispatch,
    mtx_init(&dev->free_sync_mutex, mtx_plain);
    list_inithead(&dev->free_syncs);
 
+   mtx_init(&dev->object_mutex, mtx_plain);
    list_inithead(&dev->objects);
 
    list_add(&dev->base.track_head, &physical_dev->devices);
@@ -313,6 +314,8 @@ vkr_device_destroy(struct vkr_context *ctx, struct vkr_device *dev, bool destroy
       if (result != VK_SUCCESS)
          vkr_log("vkDeviceWaitIdle(%p) failed(%d)", dev, (int32_t)result);
    }
+
+   mtx_destroy(&dev->object_mutex);
 
    if (!list_is_empty(&dev->objects)) {
       list_for_each_entry_safe (struct vkr_object, obj, &dev->objects, track_head)
