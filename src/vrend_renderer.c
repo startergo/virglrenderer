@@ -12150,7 +12150,7 @@ static void vrend_renderer_fill_caps_v2(int gl_ver, int gles_ver,  union virgl_c
     * this value to avoid regressions when a guest with a new mesa version is
     * run on an old virgl host. Use it also to indicate non-cap fixes on the
     * host that help enable features in the guest. */
-   caps->v2.host_feature_check_version = 21;
+   caps->v2.host_feature_check_version = 22;
 
    /* Forward host GL_RENDERER to the guest. */
    strncpy(caps->v2.renderer, renderer, sizeof(caps->v2.renderer) - 1);
@@ -12592,6 +12592,9 @@ static void vrend_renderer_fill_caps_v2(int gl_ver, int gles_ver,  union virgl_c
 
    if (has_feature(feat_texture_mirror_clamp_to_edge))
       caps->v2.capability_bits_v2 |= VIRGL_CAP_V2_MIRROR_CLAMP_TO_EDGE;
+
+   if (has_feature(feat_texture_mirror_clamp))
+      caps->v2.capability_bits_v2 |= VIRGL_CAP_V2_MIRROR_CLAMP;
 
 #ifdef ENABLE_VIDEO
    vrend_video_fill_caps(caps);
