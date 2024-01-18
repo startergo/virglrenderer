@@ -74,6 +74,7 @@ struct global_state {
    bool external_winsys_initialized;
    bool drm_initialized;
    bool fence_initialized;
+   bool vcomp_initialized;
 };
 
 static struct global_state state;
@@ -195,7 +196,8 @@ void virgl_renderer_fill_caps(uint32_t set, uint32_t version,
          drm_renderer_capset(caps);
       break;
    case VIRGL_RENDERER_CAPSET_VCL:
-      vcomp_get_capset(caps);
+      if (state.vcomp_initialized)
+         vcomp_get_capset(caps);
       break;
    default:
       break;
@@ -777,6 +779,9 @@ void virgl_renderer_cleanup(UNUSED void *cookie)
    if (state.resource_initialized)
       virgl_resource_table_cleanup();
 
+   if (state.vcomp_initialized)
+      vcomp_renderer_fini();
+
    if (state.proxy_initialized)
       proxy_renderer_fini();
 
@@ -965,6 +970,13 @@ int virgl_renderer_init(void *cookie, int flags, struct virgl_renderer_callbacks
       state.fence_initialized = true;
    }
 
+   if (!state.vcomp_initialized) {
+      ret = vcomp_renderer_init();
+      if (ret)
+         goto fail;
+      state.vcomp_initialized = true;
+   }
+
    return 0;
 
 fail:
@@ -999,6 +1011,9 @@ void virgl_renderer_reset(void)
 
    if (state.resource_initialized)
       virgl_resource_table_reset();
+
+   if (state.vcomp_initialized)
+      vcomp_renderer_reset();
 
    if (state.proxy_initialized)
       proxy_renderer_reset();

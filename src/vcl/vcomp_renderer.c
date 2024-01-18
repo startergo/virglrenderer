@@ -10,6 +10,20 @@
 
 #include <string.h>
 
+int vcomp_renderer_init(void)
+{
+   vcomp_log("initialized");
+   return 0;
+}
+
+void vcomp_renderer_fini(void)
+{
+}
+
+void vcomp_renderer_reset(void)
+{
+}
+
 size_t
 vcomp_get_capset(void *capset)
 {
