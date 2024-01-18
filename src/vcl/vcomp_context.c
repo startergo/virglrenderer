@@ -90,6 +90,63 @@ vcomp_context_detach_resource(struct virgl_context *ctx, struct virgl_resource *
    vcomp_context_remove_resource(vctx, res->res_id);
 }
 
+static int
+vcomp_context_transfer_send_iov(UNUSED struct vcomp_context *vctx,
+                                struct vrend_resource *vres,
+                                const struct iovec *iov,
+                                int iov_count,
+                                const struct vrend_transfer_info *info)
+{
+   return vrend_write_to_iovec(iov, iov_count, info->offset, vres->ptr, info->box->width);
+}
+
+static int
+vcomp_context_transfer_3d(struct virgl_context *ctx,
+                          struct virgl_resource *res,
+                          const struct vrend_transfer_info *info,
+                          int transfer_mode)
+{
+   struct vcomp_context *vctx = (struct vcomp_context *)ctx;
+
+   if (!res->pipe_resource)
+   {
+      vcomp_log("transfer-3d: Failed to find resource %d", res->res_id);
+      return EINVAL;
+   }
+
+   struct vrend_resource *vres = (struct vrend_resource *)res->pipe_resource;
+
+   // TODO: switch context?
+
+   const struct iovec *iov;
+   int iov_count;
+
+   if (info->iovec && info->iovec_cnt)
+   {
+      iov = info->iovec;
+      iov_count = info->iovec_cnt;
+   }
+   else
+   {
+      iov = vres->iov;
+      iov_count = vres->num_iovs;
+   }
+
+   // TODO check transfer and iov bounds
+
+   switch (transfer_mode)
+   {
+   case VIRGL_TRANSFER_TO_HOST:
+      return EINVAL;
+   case VIRGL_TRANSFER_FROM_HOST:
+      return vcomp_context_transfer_send_iov(vctx, vres, iov, iov_count, info);
+   default:
+      assert(false);
+   }
+
+   return 0;
+}
+
 static void
 vcomp_context_init_base(struct vcomp_context *vctx,
                         uint32_t ctx_id)
@@ -100,6 +157,7 @@ vcomp_context_init_base(struct vcomp_context *vctx,
    ctx->destroy = vcomp_context_destroy;
    ctx->attach_resource = vcomp_context_attach_resource;
    ctx->detach_resource = vcomp_context_detach_resource;
+   ctx->transfer_3d = vcomp_context_transfer_3d;
 }
 
 struct virgl_context *
