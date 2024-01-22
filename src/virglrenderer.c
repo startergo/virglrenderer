@@ -1211,10 +1211,17 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
       if (!ret)
          res->map_size = map_size;
    } else {
-      switch (res->fd_type) {
+      enum virgl_resource_fd_type fd_type = res->fd_type;
+      int fd = res->fd;
+
+      /* Create a transient dmabuf. */
+      if (fd_type == VIRGL_RESOURCE_OPAQUE_HANDLE)
+         fd_type = virgl_resource_export_fd(res, &fd);
+
+      switch (fd_type) {
       case VIRGL_RESOURCE_FD_DMABUF:
       case VIRGL_RESOURCE_FD_SHM:
-         map = mmap(NULL, res->map_size, PROT_WRITE | PROT_READ, MAP_SHARED, res->fd, 0);
+         map = mmap(NULL, res->map_size, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
          map_size = res->map_size;
          break;
       case VIRGL_RESOURCE_FD_OPAQUE:
@@ -1227,6 +1234,9 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
           */
          break;
       }
+
+      if (fd_type != res->fd_type)
+         close(fd);
    }
 
    if (!map || map == MAP_FAILED)
@@ -1252,12 +1262,12 @@ int virgl_renderer_resource_unmap(uint32_t res_handle)
       switch (res->fd_type) {
       case VIRGL_RESOURCE_FD_DMABUF:
       case VIRGL_RESOURCE_FD_SHM:
+      case VIRGL_RESOURCE_OPAQUE_HANDLE:
          ret = munmap(res->mapped, res->map_size);
          break;
       case VIRGL_RESOURCE_FD_OPAQUE:
          ret = vkr_allocator_resource_unmap(res);
          break;
-      case VIRGL_RESOURCE_OPAQUE_HANDLE:
       case VIRGL_RESOURCE_FD_INVALID:
          /* Avoid a default case so that -Wswitch will tell us at compile time
           * if a new virgl resource type is added without being handled here.
