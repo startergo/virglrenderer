@@ -1889,6 +1889,108 @@ START_TEST(virgl_test_draw_vbo_fail_not_recoverable)
 }
 END_TEST
 
+START_TEST(virgl_streamout_create_fail)
+{
+   struct virgl_context ctx;
+   struct virgl_resource res;
+   struct virgl_resource vbo;
+   struct virgl_resource xfb;
+   struct virgl_surface surf;
+   struct pipe_framebuffer_state fb_state;
+   struct pipe_vertex_element ve[2];
+   struct pipe_vertex_buffer vbuf;
+   int ve_handle, xfb_handle;
+   int ctx_handle = 1;
+   union pipe_color_union color;
+   struct virgl_box box;
+   int ret;
+   int tw = 300, th = 300;
+
+   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ck_assert_int_eq(ret, 0);
+
+   /* init and create simple 2D resource */
+   ret = testvirgl_create_backed_simple_2d_res(&res, 1, tw, th);
+   ck_assert_int_eq(ret, 0);
+
+   /* attach resource to context */
+   virgl_renderer_ctx_attach_resource(ctx.ctx_id, res.handle);
+
+   /* create a surface for the resource */
+   memset(&surf, 0, sizeof(surf));
+   surf.base.format = PIPE_FORMAT_B8G8R8X8_UNORM;
+   surf.handle = ctx_handle++;
+   surf.base.texture = &res.base;
+
+   virgl_encoder_create_surface(&ctx, surf.handle, &res, &surf.base);
+
+   /* set the framebuffer state */
+   fb_state.nr_cbufs = 1;
+   fb_state.zsbuf = NULL;
+   fb_state.cbufs[0] = &surf.base;
+   virgl_encoder_set_framebuffer_state(&ctx, &fb_state);
+
+   /* clear the resource */
+   /* clear buffer to green */
+   color.f[0] = 0.0;
+   color.f[1] = 1.0;
+   color.f[2] = 0.0;
+   color.f[3] = 1.0;
+   virgl_encode_clear(&ctx, PIPE_CLEAR_COLOR0, &color, 0.0, 0);
+
+   /* create vertex elements */
+   ve_handle = ctx_handle++;
+   memset(ve, 0, sizeof(ve));
+   ve[0].src_offset = Offset(struct vertex, position);
+   ve[0].src_format = PIPE_FORMAT_R32G32B32A32_FLOAT;
+   ve[1].src_offset = Offset(struct vertex, color);
+   ve[1].src_format = PIPE_FORMAT_R32G32B32A32_FLOAT;
+   virgl_encoder_create_vertex_elements(&ctx, ve_handle, 2, ve);
+
+   virgl_encode_bind_object(&ctx, ve_handle, VIRGL_OBJECT_VERTEX_ELEMENTS);
+
+   /* create vbo */
+   ret = testvirgl_create_backed_simple_buffer(&vbo, 2, sizeof(vertices), PIPE_BIND_VERTEX_BUFFER);
+   ck_assert_int_eq(ret, 0);
+   virgl_renderer_ctx_attach_resource(ctx.ctx_id, vbo.handle);
+
+   /* inline write the data to it */
+   box.x = 0;
+   box.y = 0;
+   box.z = 0;
+   box.w = sizeof(vertices);
+   box.h = 1;
+   box.d = 1;
+   virgl_encoder_inline_write(&ctx, &vbo, 0, 0, (struct pipe_box *)&box, &vertices, box.w, 0);
+
+   vbuf.stride = sizeof(struct vertex);
+   vbuf.buffer_offset = 0;
+   vbuf.buffer = &vbo.base;
+   virgl_encoder_set_vertex_buffers(&ctx, 1, &vbuf);
+
+   /* create stream output buffer */
+   ret = testvirgl_create_backed_simple_buffer(&xfb, 3, 3*sizeof(vertices), PIPE_BIND_STREAM_OUTPUT);
+   ck_assert_int_eq(ret, 0);
+   virgl_renderer_ctx_attach_resource(ctx.ctx_id, xfb.handle);
+
+   /* set streamout target */
+   xfb_handle = ctx_handle++;
+   virgl_encoder_create_so_target(&ctx, xfb_handle, 0, 0, 3*sizeof(vertices));
+
+   ret = testvirgl_ctx_send_cmdbuf(&ctx);
+   ck_assert_int_eq(ret, EINVAL);
+
+   // /* cleanup */
+   virgl_renderer_ctx_detach_resource(ctx.ctx_id, res.handle);
+
+   testvirgl_destroy_backed_res(&xfb);
+   testvirgl_destroy_backed_res(&vbo);
+   testvirgl_destroy_backed_res(&res);
+
+   testvirgl_fini_ctx_cmdbuf(&ctx);
+}
+END_TEST
+
 static Suite *virgl_init_suite(void)
 {
   Suite *s;
@@ -1923,6 +2025,7 @@ static Suite *virgl_init_suite(void)
   tcase_add_test(tc_core, virgl_test_draw_vbo_fail_not_recoverable);
   tcase_add_test(tc_core, virgl_test_bind_images_shader_pass);
   tcase_add_test(tc_core, virgl_test_bind_images_shader_fail_layers);
+  tcase_add_test(tc_core, virgl_streamout_create_fail);
 
   suite_add_tcase(s, tc_core);
   return s;
