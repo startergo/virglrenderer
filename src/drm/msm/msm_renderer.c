@@ -132,7 +132,6 @@ struct msm_object {
    uint32_t size;
    bool exported   : 1;
    bool exportable : 1;
-   struct virgl_resource *res;
    uint8_t *map;
 };
 
@@ -409,8 +408,6 @@ msm_renderer_attach_resource(struct virgl_context *vctx, struct virgl_resource *
          return;
       }
    }
-
-   obj->res = res;
 }
 
 static void
@@ -421,7 +418,7 @@ msm_renderer_detach_resource(struct virgl_context *vctx, struct virgl_resource *
 
    drm_dbg("obj=%p, res_id=%u", obj, res->res_id);
 
-   if (!obj || (obj->res != res))
+   if (!obj)
       return;
 
    if (res->fd_type == VIRGL_RESOURCE_FD_SHM) {
