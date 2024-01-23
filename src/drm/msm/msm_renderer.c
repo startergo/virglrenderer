@@ -26,6 +26,7 @@
 #include "util/u_thread.h"
 
 #include "drm_fence.h"
+#include "drm_hw.h"
 
 #include "msm_drm.h"
 #include "msm_proto.h"
@@ -62,7 +63,7 @@ struct msm_context {
    uint8_t *rsp_mem;
    uint32_t rsp_mem_sz;
 
-   struct msm_ccmd_rsp *current_rsp;
+   struct vdrm_ccmd_rsp *current_rsp;
 
    int fd;
 
@@ -327,7 +328,7 @@ msm_renderer_unmap_blob(struct msm_context *mctx)
    if (!mctx->shmem)
       return;
 
-   uint32_t blob_size = mctx->rsp_mem_sz + mctx->shmem->rsp_mem_offset;
+   uint32_t blob_size = mctx->rsp_mem_sz + mctx->shmem->base.rsp_mem_offset;
 
    munmap(mctx->shmem, blob_size);
 
@@ -533,11 +534,11 @@ msm_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t blob
          return -ENOMEM;
       }
 
-      mctx->shmem->rsp_mem_offset = sizeof(*mctx->shmem);
+      mctx->shmem->base.rsp_mem_offset = sizeof(*mctx->shmem);
 
       uint8_t *ptr = (uint8_t *)mctx->shmem;
-      mctx->rsp_mem = &ptr[mctx->shmem->rsp_mem_offset];
-      mctx->rsp_mem_sz = blob_size - mctx->shmem->rsp_mem_offset;
+      mctx->rsp_mem = &ptr[mctx->shmem->base.rsp_mem_offset];
+      mctx->rsp_mem_sz = blob_size - mctx->shmem->base.rsp_mem_offset;
 
       blob->type = VIRGL_RESOURCE_FD_SHM;
       blob->u.fd = fd;
@@ -608,13 +609,13 @@ msm_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t blob
 }
 
 static void *
-msm_context_rsp_noshadow(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_context_rsp_noshadow(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    return &mctx->rsp_mem[hdr->rsp_off];
 }
 
 static void *
-msm_context_rsp(struct msm_context *mctx, const struct msm_ccmd_req *hdr, unsigned len)
+msm_context_rsp(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr, unsigned len)
 {
    unsigned rsp_mem_sz = mctx->rsp_mem_sz;
    unsigned off = hdr->rsp_off;
@@ -624,7 +625,7 @@ msm_context_rsp(struct msm_context *mctx, const struct msm_ccmd_req *hdr, unsign
       return NULL;
    }
 
-   struct msm_ccmd_rsp *rsp = msm_context_rsp_noshadow(mctx, hdr);
+   struct vdrm_ccmd_rsp *rsp = msm_context_rsp_noshadow(mctx, hdr);
 
    assert(len >= sizeof(*rsp));
 
@@ -646,13 +647,13 @@ msm_context_rsp(struct msm_context *mctx, const struct msm_ccmd_req *hdr, unsign
 }
 
 static int
-msm_ccmd_nop(UNUSED struct msm_context *mctx, UNUSED const struct msm_ccmd_req *hdr)
+msm_ccmd_nop(UNUSED struct msm_context *mctx, UNUSED const struct vdrm_ccmd_req *hdr)
 {
    return 0;
 }
 
 static int
-msm_ccmd_ioctl_simple(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_ccmd_ioctl_simple(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_ioctl_simple_req *req = to_msm_ccmd_ioctl_simple_req(hdr);
    unsigned payload_len = _IOC_SIZE(req->cmd);
@@ -716,7 +717,7 @@ msm_ccmd_ioctl_simple(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
 }
 
 static int
-msm_ccmd_gem_new(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_ccmd_gem_new(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_gem_new_req *req = to_msm_ccmd_gem_new_req(hdr);
    int ret = 0;
@@ -778,7 +779,7 @@ out_error:
 }
 
 static int
-msm_ccmd_gem_set_iova(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_ccmd_gem_set_iova(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_gem_set_iova_req *req = to_msm_ccmd_gem_set_iova_req(hdr);
    struct msm_object *obj = msm_get_object_from_res_id(mctx, req->res_id);
@@ -815,7 +816,7 @@ out_error:
 }
 
 static int
-msm_ccmd_gem_cpu_prep(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_ccmd_gem_cpu_prep(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_gem_cpu_prep_req *req = to_msm_ccmd_gem_cpu_prep_req(hdr);
    struct msm_ccmd_gem_cpu_prep_rsp *rsp = msm_context_rsp(mctx, hdr, sizeof(*rsp));
@@ -837,7 +838,7 @@ msm_ccmd_gem_cpu_prep(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
 }
 
 static int
-msm_ccmd_gem_set_name(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_ccmd_gem_set_name(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_gem_set_name_req *req = to_msm_ccmd_gem_set_name_req(hdr);
 
@@ -880,7 +881,7 @@ msm_dump_submit(struct drm_msm_gem_submit *req)
 }
 
 static int
-msm_ccmd_gem_submit(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_ccmd_gem_submit(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_gem_submit_req *req = to_msm_ccmd_gem_submit_req(hdr);
 
@@ -991,7 +992,7 @@ map_object(struct msm_context *mctx, struct msm_object *obj)
 }
 
 static int
-msm_ccmd_gem_upload(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_ccmd_gem_upload(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_gem_upload_req *req = to_msm_ccmd_gem_upload_req(hdr);
    int ret;
@@ -1017,7 +1018,7 @@ msm_ccmd_gem_upload(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
 }
 
 static int
-msm_ccmd_submitqueue_query(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_ccmd_submitqueue_query(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_submitqueue_query_req *req =
       to_msm_ccmd_submitqueue_query_req(hdr);
@@ -1043,7 +1044,7 @@ msm_ccmd_submitqueue_query(struct msm_context *mctx, const struct msm_ccmd_req *
 }
 
 static int
-msm_ccmd_wait_fence(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_ccmd_wait_fence(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_wait_fence_req *req = to_msm_ccmd_wait_fence_req(hdr);
    struct msm_ccmd_wait_fence_rsp *rsp = msm_context_rsp(mctx, hdr, sizeof(*rsp));
@@ -1073,7 +1074,7 @@ msm_ccmd_wait_fence(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
 }
 
 static int
-msm_ccmd_set_debuginfo(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+msm_ccmd_set_debuginfo(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_set_debuginfo_req *req = to_msm_ccmd_set_debuginfo_req(hdr);
 
@@ -1109,7 +1110,7 @@ msm_ccmd_set_debuginfo(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
 
 static const struct ccmd {
    const char *name;
-   int (*handler)(struct msm_context *mctx, const struct msm_ccmd_req *hdr);
+   int (*handler)(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr);
    size_t size;
 } ccmd_dispatch[] = {
 #define HANDLER(N, n)                                                                    \
@@ -1128,7 +1129,7 @@ static const struct ccmd {
 };
 
 static int
-submit_cmd_dispatch(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
+submit_cmd_dispatch(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    int ret;
 
@@ -1159,7 +1160,7 @@ submit_cmd_dispatch(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
       memcpy(&buf[0], hdr, hdr->len);
       memset(&buf[hdr->len], 0, ccmd->size - hdr->len);
 
-      ret = ccmd->handler(mctx, (struct msm_ccmd_req *)buf);
+      ret = ccmd->handler(mctx, (struct vdrm_ccmd_req *)buf);
    } else {
       ret = ccmd->handler(mctx, hdr);
    }
@@ -1176,7 +1177,7 @@ submit_cmd_dispatch(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
     * copy is used, and we need to copy back to the actual rsp
     * buffer.
     */
-   struct msm_ccmd_rsp *rsp = msm_context_rsp_noshadow(mctx, hdr);
+   struct vdrm_ccmd_rsp *rsp = msm_context_rsp_noshadow(mctx, hdr);
    if (mctx->current_rsp && (mctx->current_rsp != rsp)) {
       unsigned len = rsp->len;
       memcpy(rsp, mctx->current_rsp, len);
@@ -1195,7 +1196,7 @@ submit_cmd_dispatch(struct msm_context *mctx, const struct msm_ccmd_req *hdr)
        * could just use p_atomic_set.
        */
       uint32_t seqno = hdr->seqno;
-      p_atomic_xchg(&mctx->shmem->seqno, seqno);
+      p_atomic_xchg(&mctx->shmem->base.seqno, seqno);
    }
 
    return 0;
@@ -1207,8 +1208,8 @@ msm_renderer_submit_cmd(struct virgl_context *vctx, const void *_buffer, size_t 
    struct msm_context *mctx = to_msm_context(vctx);
    const uint8_t *buffer = _buffer;
 
-   while (size >= sizeof(struct msm_ccmd_req)) {
-      const struct msm_ccmd_req *hdr = (const struct msm_ccmd_req *)buffer;
+   while (size >= sizeof(struct vdrm_ccmd_req)) {
+      const struct vdrm_ccmd_req *hdr = (const struct vdrm_ccmd_req *)buffer;
 
       /* Sanity check first: */
       if ((hdr->len > size) || (hdr->len < sizeof(*hdr)) || (hdr->len % 4)) {
