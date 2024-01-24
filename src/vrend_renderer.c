@@ -3639,17 +3639,18 @@ void vrend_set_single_sampler_view(struct vrend_context *ctx,
                                    uint32_t index,
                                    uint32_t handle)
 {
+   struct vrend_shader_view *shader_view = &ctx->sub->views[shader_type];
    struct vrend_sampler_view *view = NULL;
    struct vrend_texture *tex;
 
    if (handle) {
       view = vrend_object_lookup(ctx->sub->object_hash, handle, VIRGL_OBJECT_SAMPLER_VIEW);
       if (!view) {
-         vrend_sampler_view_reference(&ctx->sub->views[shader_type].views[index], NULL);
+         vrend_sampler_view_reference(&shader_view->views[index], NULL);
          vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_HANDLE, handle);
          return;
       }
-      if (ctx->sub->views[shader_type].views[index] == view) {
+      if (shader_view->views[index] == view) {
          return;
       }
       /* we should have a reference to this texture taken at create time */
@@ -3659,7 +3660,7 @@ void vrend_set_single_sampler_view(struct vrend_context *ctx,
          return;
       }
 
-      ctx->sub->views[shader_type].dirty_mask |= 1u << index;
+      shader_view->dirty_mask |= 1u << index;
 
       if (!has_bit(view->texture->storage_bits, VREND_STORAGE_GL_BUFFER)) {
          if (view->texture->gl_id == view->gl_id) {
@@ -3704,7 +3705,7 @@ void vrend_set_single_sampler_view(struct vrend_context *ctx,
 
             if (tex->cur_srgb_decode != view->srgb_decode && util_format_is_srgb(tex->base.base.format)) {
                if (has_feature(feat_samplers))
-                  ctx->sub->views[shader_type].dirty_mask |= (1u << index);
+                  shader_view->dirty_mask |= (1u << index);
                else if (has_feature(feat_texture_srgb_decode)) {
                   glTexParameteri(view->texture->target, GL_TEXTURE_SRGB_DECODE_EXT,
                                   view->srgb_decode);
@@ -3742,7 +3743,7 @@ void vrend_set_single_sampler_view(struct vrend_context *ctx,
       }
    }
 
-   vrend_sampler_view_reference(&ctx->sub->views[shader_type].views[index], view);
+   vrend_sampler_view_reference(&shader_view->views[index], view);
 }
 
 void vrend_set_num_sampler_views(struct vrend_context *ctx,
