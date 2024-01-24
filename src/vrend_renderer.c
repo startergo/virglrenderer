@@ -645,6 +645,10 @@ struct vrend_shader_view {
    struct vrend_sampler_view *views[PIPE_MAX_SHADER_SAMPLER_VIEWS];
    uint32_t old_ids[PIPE_MAX_SHADER_SAMPLER_VIEWS];
    uint32_t dirty_mask;
+
+   // only used for gles host contexts to emulate textureQueryLevels()
+   int32_t texture_levels[PIPE_MAX_SAMPLERS];
+   int32_t n_samplers;
 };
 
 struct vrend_viewport {
@@ -723,9 +727,6 @@ struct vrend_sub_context {
    struct pipe_constant_buffer cbs[PIPE_SHADER_TYPES][PIPE_MAX_CONSTANT_BUFFERS];
    uint32_t const_bufs_used_mask[PIPE_SHADER_TYPES];
    uint32_t const_bufs_dirty[PIPE_SHADER_TYPES];
-
-   int32_t texture_levels[PIPE_SHADER_TYPES][PIPE_MAX_SAMPLERS];
-   int32_t n_samplers[PIPE_SHADER_TYPES];
 
    uint32_t fb_id;
    int nr_cbufs;
@@ -3749,10 +3750,11 @@ void vrend_set_num_sampler_views(struct vrend_context *ctx,
    int last_slot = start_slot + num_sampler_views;
    int i;
 
-   for (i = last_slot; i < ctx->sub->views[shader_type].num_views; i++)
-      vrend_sampler_view_reference(&ctx->sub->views[shader_type].views[i], NULL);
+   struct vrend_shader_view *shader_view = &ctx->sub->views[shader_type];
+   for (i = last_slot; i < shader_view->num_views; i++)
+      vrend_sampler_view_reference(&shader_view->views[i], NULL);
 
-   ctx->sub->views[shader_type].num_views = last_slot;
+   shader_view->num_views = last_slot;
 }
 
 int vrend_set_single_image_view(struct vrend_context *ctx,
@@ -5189,16 +5191,16 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
                                            int shader_type,
                                            int next_sampler_id)
 {
+   struct vrend_shader_view *shader_view = &sub_ctx->views[shader_type];
    int sampler_index = 0;
    int n_samplers = 0;
-   uint32_t dirty = sub_ctx->views[shader_type].dirty_mask;
+   uint32_t dirty = shader_view->dirty_mask;
    uint32_t mask = sub_ctx->prog->samplers_used_mask[shader_type];
-   struct vrend_shader_view *sviews = &sub_ctx->views[shader_type];
 
    while (mask) {
       int i = u_bit_scan(&mask);
 
-      struct vrend_sampler_view *tview = sviews->views[i];
+      struct vrend_sampler_view *tview = shader_view->views[i];
       if ((dirty & (1 << i)) && tview) {
          if (sub_ctx->prog->shadow_samp_mask[shader_type] & (1 << i)) {
             struct vrend_texture *tex = (struct vrend_texture *)tview->texture;
@@ -5247,15 +5249,15 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
 
             if (vrend_state.use_gles) {
                const unsigned levels = tview->levels ? tview->levels : tview->texture->base.last_level + 1u;
-               sub_ctx->texture_levels[shader_type][n_samplers++] = levels;
+               shader_view->texture_levels[n_samplers++] = levels;
             }
 
-            if (sub_ctx->views[shader_type].old_ids[i] != id ||
-                sub_ctx->views[shader_type].dirty_mask & (1 << i)) {
+            if (shader_view->old_ids[i] != id ||
+                shader_view->dirty_mask & (1 << i)) {
                vrend_apply_sampler_state(sub_ctx, tview->texture,
                                          sub_ctx->sampler_state[shader_type][i],
                                          next_sampler_id, tview);
-               sviews->old_ids[i] = id;
+               shader_view->old_ids[i] = id;
             }
             dirty &= ~(1 << i);
          }
@@ -5264,8 +5266,8 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
       next_sampler_id++;
    }
 
-   sub_ctx->n_samplers[shader_type] = n_samplers;
-   sub_ctx->views[shader_type].dirty_mask = dirty;
+   shader_view->n_samplers = n_samplers;
+   shader_view->dirty_mask = dirty;
 
    return next_sampler_id;
 }
@@ -5534,8 +5536,8 @@ static void vrend_draw_bind_objects(struct vrend_sub_context *sub_ctx, bool new_
          if (sub_ctx->prog->tex_levels_uniform_id[shader_type] != -1) {
             vrend_set_active_pipeline_stage(sub_ctx->prog, shader_type);
             glUniform1iv(sub_ctx->prog->tex_levels_uniform_id[shader_type],
-                         sub_ctx->n_samplers[shader_type],
-                         sub_ctx->texture_levels[shader_type]);
+                         sub_ctx->views[shader_type].n_samplers,
+                         sub_ctx->views[shader_type].texture_levels);
          }
       }
    }
