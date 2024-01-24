@@ -876,8 +876,8 @@ static void vrend_update_frontface_state(struct vrend_sub_context *ctx);
 static void vrend_destroy_program(struct vrend_linked_shader_program *ent);
 static void vrend_apply_sampler_state(struct vrend_sub_context *sub_ctx,
                                       struct vrend_resource *res,
-                                      uint32_t shader_type,
-                                      int id, int sampler_id,
+                                      struct vrend_sampler_state *sampler_state,
+                                      int sampler_id,
                                       struct vrend_sampler_view *tview);
 static void vrend_object_bind_dsa_to_sub_context(struct vrend_sub_context *sub_ctx,
                                                  uint32_t handle);
@@ -5233,13 +5233,12 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
 
          if (tview->texture) {
             GLuint id = tview->gl_id;
-            struct vrend_resource *texture = tview->texture;
             GLenum target = tview->target;
 
             debug_texture(__func__, tview->texture);
 
             if (has_bit(tview->texture->storage_bits, VREND_STORAGE_GL_BUFFER)) {
-               id = texture->tbo_tex_id;
+               id = tview->texture->tbo_tex_id;
                target = GL_TEXTURE_BUFFER;
             }
 
@@ -5253,7 +5252,8 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
 
             if (sub_ctx->views[shader_type].old_ids[i] != id ||
                 sub_ctx->sampler_views_dirty[shader_type] & (1 << i)) {
-               vrend_apply_sampler_state(sub_ctx, texture, shader_type, i,
+               vrend_apply_sampler_state(sub_ctx, tview->texture,
+                                         sub_ctx->sampler_state[shader_type][i],
                                          next_sampler_id, tview);
                sviews->old_ids[i] = id;
             }
@@ -7012,14 +7012,12 @@ void vrend_bind_sampler_states(struct vrend_context *ctx,
 
 static void vrend_apply_sampler_state(struct vrend_sub_context *sub_ctx,
                                       struct vrend_resource *res,
-                                      uint32_t shader_type,
-                                      int id,
+                                      struct vrend_sampler_state *sampler_state,
                                       int sampler_id,
                                       struct vrend_sampler_view *tview)
 {
    struct vrend_texture *tex = (struct vrend_texture *)res;
-   struct vrend_sampler_state *vstate = sub_ctx->sampler_state[shader_type][id];
-   struct pipe_sampler_state *state = &vstate->base;
+   struct pipe_sampler_state *state = &sampler_state->base;
    bool set_all = false;
    GLenum target = tex->base.target;
 
@@ -7044,7 +7042,7 @@ static void vrend_apply_sampler_state(struct vrend_sub_context *sub_ctx,
     */
    bool is_emulated_alpha = vrend_format_is_emulated_alpha(tview->format);
    if (has_feature(feat_samplers)) {
-      int sampler = vstate->ids[tview->srgb_decode == GL_SKIP_DECODE_EXT ? 0 : 1];
+      int sampler = sampler_state->ids[tview->srgb_decode == GL_SKIP_DECODE_EXT ? 0 : 1];
       if (is_emulated_alpha) {
          union pipe_color_union border_color;
          border_color = state->border_color;
