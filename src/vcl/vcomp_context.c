@@ -7,6 +7,7 @@
 #include "vcomp_context.h"
 #include "vcomp_common.h"
 #include "vcomp_renderer.h"
+#include "vcomp_transport.h"
 
 #include "vcl-protocol/vcl_protocol_renderer_dispatches.h"
 
@@ -187,6 +188,8 @@ vcomp_context_init_dispatch(struct vcomp_context *vctx)
 
    dispatch->encoder = (struct vcl_cs_encoder *)&vctx->encoder;
    dispatch->decoder = (struct vcl_cs_decoder *)&vctx->decoder;
+
+   vcomp_context_init_transport_dispatch(vctx);
 }
 
 static void

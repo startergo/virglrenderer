@@ -190,6 +190,8 @@ vcl_sources = [
    'vcl/vcomp_cs.h',
    'vcl/vcomp_renderer.c',
    'vcl/vcomp_renderer.h',
+   'vcl/vcomp_transport.c',
+   'vcl/vcomp_transport.h',
 ]
 
 virgl_depends = [
