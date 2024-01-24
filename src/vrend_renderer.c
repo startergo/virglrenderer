@@ -643,6 +643,7 @@ struct vrend_constants {
 struct vrend_shader_view {
    int num_views;
    struct vrend_sampler_view *views[PIPE_MAX_SHADER_SAMPLER_VIEWS];
+   struct vrend_sampler_state *samplers[PIPE_MAX_SAMPLERS];
    uint32_t old_ids[PIPE_MAX_SHADER_SAMPLER_VIEWS];
    uint32_t dirty_mask;
 
@@ -722,7 +723,6 @@ struct vrend_sub_context {
 
    struct vrend_constants consts[PIPE_SHADER_TYPES];
    bool const_dirty[PIPE_SHADER_TYPES];
-   struct vrend_sampler_state *sampler_state[PIPE_SHADER_TYPES][PIPE_MAX_SAMPLERS];
 
    struct pipe_constant_buffer cbs[PIPE_SHADER_TYPES][PIPE_MAX_CONSTANT_BUFFERS];
    uint32_t const_bufs_used_mask[PIPE_SHADER_TYPES];
@@ -2466,16 +2466,19 @@ static void vrend_destroy_sampler_state_object(void *obj_ptr)
       for (enum pipe_shader_type shader_type = PIPE_SHADER_VERTEX;
            shader_type < PIPE_SHADER_TYPES;
            shader_type++) {
+         struct vrend_shader_view *shader_view = &sub_ctx->views[shader_type];
+
          int deleted_samplers = 0;
          for (uint32_t sampler = 0; sampler < PIPE_MAX_SAMPLERS; sampler++) {
-            if (sub_ctx->sampler_state[shader_type][sampler] == state) {
-               sub_ctx->sampler_state[shader_type][sampler] = NULL;
-               sub_ctx->views[shader_type].dirty_mask |= (1u << sampler);
+            if (shader_view->samplers[sampler] == state) {
+               shader_view->samplers[sampler] = NULL;
+               shader_view->dirty_mask |= (1u << sampler);
                deleted_samplers++;
             } else if (deleted_samplers) {
-               sub_ctx->sampler_state[shader_type][sampler-deleted_samplers] = sub_ctx->sampler_state[shader_type][sampler];
-               sub_ctx->sampler_state[shader_type][sampler] = NULL;
-               sub_ctx->views[shader_type].dirty_mask |= (1u << sampler);
+               shader_view->samplers[sampler-deleted_samplers] =
+                  shader_view->samplers[sampler];
+               shader_view->samplers[sampler] = NULL;
+               shader_view->dirty_mask |= (1u << sampler);
             }
          }
       }
@@ -5255,7 +5258,7 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
             if (shader_view->old_ids[i] != id ||
                 shader_view->dirty_mask & (1 << i)) {
                vrend_apply_sampler_state(sub_ctx, tview->texture,
-                                         sub_ctx->sampler_state[shader_type][i],
+                                         shader_view->samplers[i],
                                          next_sampler_id, tview);
                shader_view->old_ids[i] = id;
             }
@@ -7007,7 +7010,7 @@ void vrend_bind_sampler_states(struct vrend_context *ctx,
 
       if (state)
          state->sub_ctx = ctx->sub;
-      ctx->sub->sampler_state[shader_type][start_slot + i] = state;
+      ctx->sub->views[shader_type].samplers[start_slot + i] = state;
       ctx->sub->views[shader_type].dirty_mask |= (1u << (start_slot + i));
    }
 }
