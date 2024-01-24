@@ -724,8 +724,6 @@ struct vrend_sub_context {
    uint32_t const_bufs_used_mask[PIPE_SHADER_TYPES];
    uint32_t const_bufs_dirty[PIPE_SHADER_TYPES];
 
-   int num_sampler_states[PIPE_SHADER_TYPES];
-
    uint32_t sampler_views_dirty[PIPE_SHADER_TYPES];
    int32_t texture_levels[PIPE_SHADER_TYPES][PIPE_MAX_SAMPLERS];
    int32_t n_samplers[PIPE_SHADER_TYPES];
@@ -2472,7 +2470,6 @@ static void vrend_destroy_sampler_state_object(void *obj_ptr)
          for (uint32_t sampler = 0; sampler < PIPE_MAX_SAMPLERS; sampler++) {
             if (sub_ctx->sampler_state[shader_type][sampler] == state) {
                sub_ctx->sampler_state[shader_type][sampler] = NULL;
-               sub_ctx->num_sampler_states[shader_type]--;
                sub_ctx->sampler_views_dirty[shader_type] |= (1u << sampler);
                deleted_samplers++;
             } else if (deleted_samplers) {
@@ -6996,8 +6993,6 @@ void vrend_bind_sampler_states(struct vrend_context *ctx,
       vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_CMD_BUFFER, num_states);
       return;
    }
-
-   ctx->sub->num_sampler_states[shader_type] = num_states;
 
    for (i = 0; i < num_states; i++) {
       if (handles[i] == 0)
