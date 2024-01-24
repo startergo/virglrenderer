@@ -3651,6 +3651,7 @@ void vrend_set_single_sampler_view(struct vrend_context *ctx,
       /* we should have a reference to this texture taken at create time */
       tex = (struct vrend_texture *)view->texture;
       if (!tex) {
+         virgl_warn("sampler view %u missing texture reference\n", handle);
          return;
       }
 
