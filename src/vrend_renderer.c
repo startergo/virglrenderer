@@ -5195,18 +5195,20 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
                                            int shader_type,
                                            int next_sampler_id)
 {
+   struct vrend_linked_shader_program *sprog = sub_ctx->prog;
    struct vrend_shader_view *shader_view = &sub_ctx->views[shader_type];
+
    int sampler_index = 0;
    int n_samplers = 0;
    uint32_t dirty = shader_view->dirty_mask;
-   uint32_t mask = sub_ctx->prog->samplers_used_mask[shader_type];
+   uint32_t mask = sprog->samplers_used_mask[shader_type];
 
    while (mask) {
       int i = u_bit_scan(&mask);
 
       struct vrend_sampler_view *tview = shader_view->views[i];
       if ((dirty & (1 << i)) && tview) {
-         if (sub_ctx->prog->shadow_samp_mask[shader_type] & (1 << i)) {
+         if (sprog->shadow_samp_mask[shader_type] & (1 << i)) {
             struct vrend_texture *tex = (struct vrend_texture *)tview->texture;
 
             /* The modes LUMINANCE, INTENSITY, and ALPHA only apply when a depth texture
@@ -5225,12 +5227,12 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
                memcpy(tex->cur_swizzle, swizzle, 4 * sizeof(GLint));
             }
 
-            glUniform4f(sub_ctx->prog->shadow_samp_mask_locs[shader_type][sampler_index],
+            glUniform4f(sprog->shadow_samp_mask_locs[shader_type][sampler_index],
                         (tview->gl_swizzle[0] == GL_ZERO || tview->gl_swizzle[0] == GL_ONE) ? 0.0 : 1.0,
                         (tview->gl_swizzle[1] == GL_ZERO || tview->gl_swizzle[1] == GL_ONE) ? 0.0 : 1.0,
                         (tview->gl_swizzle[2] == GL_ZERO || tview->gl_swizzle[2] == GL_ONE) ? 0.0 : 1.0,
                         (tview->gl_swizzle[3] == GL_ZERO || tview->gl_swizzle[3] == GL_ONE) ? 0.0 : 1.0);
-            glUniform4f(sub_ctx->prog->shadow_samp_add_locs[shader_type][sampler_index],
+            glUniform4f(sprog->shadow_samp_add_locs[shader_type][sampler_index],
                         tview->gl_swizzle[0] == GL_ONE ? 1.0 : 0.0,
                         tview->gl_swizzle[1] == GL_ONE ? 1.0 : 0.0,
                         tview->gl_swizzle[2] == GL_ONE ? 1.0 : 0.0,
