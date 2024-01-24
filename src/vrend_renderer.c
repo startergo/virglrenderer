@@ -456,14 +456,16 @@ struct vrend_linked_shader_program {
 
    uint32_t ubo_used_mask[PIPE_SHADER_TYPES];
    uint32_t samplers_used_mask[PIPE_SHADER_TYPES];
+   // a subset of samplers_used_mask
+   uint32_t shadow_samp_mask[PIPE_SHADER_TYPES];
 
+   // ignore elements corresponding to unset bits of shadow_samp_mask
    GLuint *shadow_samp_mask_locs[PIPE_SHADER_TYPES];
    GLuint *shadow_samp_add_locs[PIPE_SHADER_TYPES];
 
    GLint const_location[PIPE_SHADER_TYPES];
 
    GLuint *attrib_locs;
-   uint32_t shadow_samp_mask[PIPE_SHADER_TYPES];
 
    GLuint separate_virgl_block_id[PIPE_SHADER_TYPES];
    GLint virgl_block_bind;
@@ -640,16 +642,25 @@ struct vrend_constants {
    uint32_t num_allocated_consts;
 };
 
+// bound sampler view (texture) state associated with the current
+// program or pipeline stage
 struct vrend_shader_view {
-   int num_views;
+   // a possibly sparse array of sampler views, with upper limit `max_num_views`
+   // on the length. must test each element for non-null.
+   int max_num_views;
    struct vrend_sampler_view *views[PIPE_MAX_SHADER_SAMPLER_VIEWS];
    struct vrend_sampler_state *samplers[PIPE_MAX_SAMPLERS];
    uint32_t old_ids[PIPE_MAX_SHADER_SAMPLER_VIEWS];
+
+   // for elements of `views` and 'samplers' indicated by set dirty bits:
+   // texture-to-texture-unit binding is needed before next draw
    uint32_t dirty_mask;
 
-   // only used for gles host contexts to emulate textureQueryLevels()
-   int32_t texture_levels[PIPE_MAX_SAMPLERS];
-   int32_t n_samplers;
+   // only used for gles host contexts to emulate textureQueryLevels().
+   // compact array corresponding only to valid elements of `views`, with length
+   // equal to `num_used_views`
+   int32_t texture_levels[PIPE_MAX_SHADER_SAMPLER_VIEWS];
+   uint32_t num_used_views;
 };
 
 struct vrend_viewport {
@@ -3755,10 +3766,10 @@ void vrend_set_num_sampler_views(struct vrend_context *ctx,
    int i;
 
    struct vrend_shader_view *shader_view = &ctx->sub->views[shader_type];
-   for (i = last_slot; i < shader_view->num_views; i++)
+   for (i = last_slot; i < shader_view->max_num_views; i++)
       vrend_sampler_view_reference(&shader_view->views[i], NULL);
 
-   shader_view->num_views = last_slot;
+   shader_view->max_num_views = last_slot;
 }
 
 int vrend_set_single_image_view(struct vrend_context *ctx,
@@ -4289,7 +4300,7 @@ static inline void vrend_fill_shader_key(struct vrend_sub_context *sub_ctx,
    if (type == PIPE_SHADER_GEOMETRY)
       key->gs.emit_clip_distance = sub_ctx->rs_state.clip_plane_enable != 0;
 
-   for (int i = 0; i < sub_ctx->views[type].num_views; i++) {
+   for (int i = 0; i < sub_ctx->views[type].max_num_views; i++) {
       struct vrend_sampler_view *view = sub_ctx->views[type].views[i];
       if (!view)
          continue;
@@ -5199,7 +5210,6 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
    struct vrend_shader_view *shader_view = &sub_ctx->views[shader_type];
 
    int sampler_index = 0;
-   int n_samplers = 0;
    uint32_t dirty = shader_view->dirty_mask;
    uint32_t mask = sprog->samplers_used_mask[shader_type];
 
@@ -5255,7 +5265,7 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
 
             if (vrend_state.use_gles) {
                const unsigned levels = tview->levels ? tview->levels : tview->texture->base.last_level + 1u;
-               shader_view->texture_levels[n_samplers++] = levels;
+               shader_view->texture_levels[sampler_index] = levels;
             }
 
             if (shader_view->old_ids[i] != id ||
@@ -5272,7 +5282,7 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
       next_sampler_id++;
    }
 
-   shader_view->n_samplers = n_samplers;
+   shader_view->num_used_views = sampler_index;
    shader_view->dirty_mask = dirty;
 
    return next_sampler_id;
@@ -5542,7 +5552,7 @@ static void vrend_draw_bind_objects(struct vrend_sub_context *sub_ctx, bool new_
          if (sub_ctx->prog->tex_levels_uniform_id[shader_type] != -1) {
             vrend_set_active_pipeline_stage(sub_ctx->prog, shader_type);
             glUniform1iv(sub_ctx->prog->tex_levels_uniform_id[shader_type],
-                         sub_ctx->views[shader_type].n_samplers,
+                         sub_ctx->views[shader_type].num_used_views,
                          sub_ctx->views[shader_type].texture_levels);
          }
       }
