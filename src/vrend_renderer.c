@@ -643,7 +643,6 @@ struct vrend_constants {
 struct vrend_shader_view {
    int num_views;
    struct vrend_sampler_view *views[PIPE_MAX_SHADER_SAMPLER_VIEWS];
-   uint32_t res_id[PIPE_MAX_SHADER_SAMPLER_VIEWS];
    uint32_t old_ids[PIPE_MAX_SHADER_SAMPLER_VIEWS];
 };
 
