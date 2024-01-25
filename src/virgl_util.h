@@ -166,4 +166,7 @@ void trace_end(void **scope);
 #define TRACE_SCOPE_END(SCOPE_OBJ) (void)SCOPE_OBJ
 #endif /* ENABLE_TRACING */
 
+/* Utility to name a dmabuf using DMA_BUF_SET_NAME_B. */
+void set_dmabuf_name(int fd, const char *name);
+
 #endif /* VIRGL_UTIL_H */

@@ -42,6 +42,11 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#ifdef HAVE_DMABUF_H
+#include <linux/dma-buf.h>
+#include <sys/ioctl.h>
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -349,3 +354,14 @@ void trace_end(void **func_name)
    fprintf(stderr, "LEAVE %s\n", (const char *) *func_name);
 }
 #endif
+
+void set_dmabuf_name(int fd, const char *name)
+{
+   #ifdef HAVE_DMABUF_H
+   if (name && *name != '\0')
+      ioctl(fd, DMA_BUF_SET_NAME_B, name);
+   #else
+   (void)fd;
+   (void)name;
+   #endif
+}
