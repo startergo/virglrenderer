@@ -459,6 +459,8 @@ struct vrend_linked_shader_program {
    // a subset of samplers_used_mask
    uint32_t shadow_samp_mask[PIPE_SHADER_TYPES];
 
+   // compact arrays of uniform locations for each set bit in samplers_used_mask
+   GLuint *sampler_locs[PIPE_SHADER_TYPES];
    // ignore elements corresponding to unset bits of shadow_samp_mask
    GLuint *shadow_samp_mask_locs[PIPE_SHADER_TYPES];
    GLuint *shadow_samp_add_locs[PIPE_SHADER_TYPES];
@@ -1639,10 +1641,11 @@ static int bind_sampler_locs(struct vrend_linked_shader_program *sprog,
    const struct vrend_shader_info *sinfo = &sprog->ss[shader_type]->sel->sinfo;
 
    if (sinfo->samplers_used_mask) {
+      unsigned nsamp = util_bitcount(sinfo->samplers_used_mask);
+      sprog->sampler_locs[shader_type] = calloc(nsamp, sizeof(GLuint));
       if (sinfo->shadow_samp_mask) {
-         unsigned nsamp = util_bitcount(sinfo->samplers_used_mask);
-         sprog->shadow_samp_mask_locs[shader_type] = calloc(nsamp, sizeof(uint32_t));
-         sprog->shadow_samp_add_locs[shader_type] = calloc(nsamp, sizeof(uint32_t));
+         sprog->shadow_samp_mask_locs[shader_type] = calloc(nsamp, sizeof(GLuint));
+         sprog->shadow_samp_add_locs[shader_type] = calloc(nsamp, sizeof(GLuint));
       } else {
          sprog->shadow_samp_mask_locs[shader_type] = sprog->shadow_samp_add_locs[shader_type] = NULL;
       }
@@ -1660,8 +1663,8 @@ static int bind_sampler_locs(struct vrend_linked_shader_program *sprog,
             snprintf(name, 32, "%ssamp%d", prefix, i);
 
          vrend_set_active_pipeline_stage(sprog, shader_type);
-         glUniform1i(vrend_get_uniform_location(sprog, name, shader_type),
-                     next_sampler_id++);
+         sprog->sampler_locs[shader_type][sampler_index] =
+            vrend_get_uniform_location(sprog, name, shader_type);
 
          if (sinfo->shadow_samp_mask & (1 << i)) {
             snprintf(name, 32, "%sshadmask%d", prefix, i);
@@ -1674,6 +1677,7 @@ static int bind_sampler_locs(struct vrend_linked_shader_program *sprog,
          sampler_index++;
       }
    } else {
+      sprog->sampler_locs[shader_type] = NULL;
       sprog->shadow_samp_mask_locs[shader_type] = NULL;
       sprog->shadow_samp_add_locs[shader_type] = NULL;
       assert(!sinfo->shadow_samp_mask);
@@ -2262,6 +2266,7 @@ static void vrend_destroy_program(struct vrend_linked_shader_program *ent)
    for (i = PIPE_SHADER_VERTEX; i <= PIPE_SHADER_COMPUTE; i++) {
       if (ent->ss[i])
          list_del(&ent->sl[i]);
+      free(ent->sampler_locs[i]);
       free(ent->shadow_samp_mask_locs[i]);
       free(ent->shadow_samp_add_locs[i]);
       free(ent->img_locs[i]);
@@ -5216,9 +5221,11 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
 
    while (mask) {
       int i = u_bit_scan(&mask);
-
       struct vrend_sampler_view *tview = shader_view->views[i];
+
       if ((dirty & (1 << i)) && tview) {
+         glUniform1i(sprog->sampler_locs[shader_type][sampler_index], next_sampler_id);
+
          if (sprog->shadow_samp_mask[shader_type] & (1 << i)) {
             struct vrend_texture *tex = (struct vrend_texture *)tview->texture;
 
