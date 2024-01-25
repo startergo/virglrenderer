@@ -5283,7 +5283,6 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
                                          next_sampler_id, tview);
                shader_view->old_ids[i] = id;
             }
-            dirty &= ~(1 << i);
          }
       }
       sampler_index++;
@@ -5291,7 +5290,7 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
    }
 
    shader_view->num_used_views = sampler_index;
-   shader_view->dirty_mask = dirty;
+   shader_view->dirty_mask = 0;
 
    return next_sampler_id;
 }
