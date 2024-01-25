@@ -3677,7 +3677,7 @@ void vrend_set_single_sampler_view(struct vrend_context *ctx,
          return;
       }
 
-      shader_view->dirty_mask |= 1u << index;
+      shader_view->dirty_mask |= (1u << index);
 
       if (!has_bit(view->texture->storage_bits, VREND_STORAGE_GL_BUFFER)) {
          if (view->texture->gl_id == view->gl_id) {
@@ -3721,9 +3721,7 @@ void vrend_set_single_sampler_view(struct vrend_context *ctx,
             }
 
             if (tex->cur_srgb_decode != view->srgb_decode && util_format_is_srgb(tex->base.base.format)) {
-               if (has_feature(feat_samplers))
-                  shader_view->dirty_mask |= (1u << index);
-               else if (has_feature(feat_texture_srgb_decode)) {
+               if (!has_feature(feat_samplers) && has_feature(feat_texture_srgb_decode)) {
                   glTexParameteri(view->texture->target, GL_TEXTURE_SRGB_DECODE_EXT,
                                   view->srgb_decode);
                   tex->cur_srgb_decode = view->srgb_decode;
