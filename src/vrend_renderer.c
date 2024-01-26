@@ -652,7 +652,6 @@ struct vrend_shader_view {
    int max_num_views;
    struct vrend_sampler_view *views[PIPE_MAX_SHADER_SAMPLER_VIEWS];
    struct vrend_sampler_state *samplers[PIPE_MAX_SAMPLERS];
-   uint32_t old_ids[PIPE_MAX_SHADER_SAMPLER_VIEWS];
 
    // for elements of `views` and 'samplers' indicated by set dirty bits:
    // texture-to-texture-unit binding is needed before next draw
@@ -5268,18 +5267,13 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
 
             glActiveTexture(GL_TEXTURE0 + next_sampler_id);
             glBindTexture(target, id);
+            vrend_apply_sampler_state(sub_ctx, tview->texture,
+                                      shader_view->samplers[i],
+                                      next_sampler_id, tview);
 
             if (vrend_state.use_gles) {
                const unsigned levels = tview->levels ? tview->levels : tview->texture->base.last_level + 1u;
                shader_view->texture_levels[sampler_index] = levels;
-            }
-
-            if (shader_view->old_ids[i] != id ||
-                shader_view->dirty_mask & (1 << i)) {
-               vrend_apply_sampler_state(sub_ctx, tview->texture,
-                                         shader_view->samplers[i],
-                                         next_sampler_id, tview);
-               shader_view->old_ids[i] = id;
             }
          }
       }
