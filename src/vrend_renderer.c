@@ -379,6 +379,7 @@ struct global_renderer_state {
    uint32_t max_texture_cube_size;
    uint32_t max_shader_patch_varyings;
    uint32_t max_vertex_attributes;
+   uint32_t max_texture_units;
 
    /* inferred GL caching type */
    uint32_t inferred_gl_caching_type;
@@ -5221,6 +5222,7 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
       struct vrend_sampler_view *tview = shader_view->views[i];
 
       if ((dirty & (1 << i)) && tview) {
+         glActiveTexture(GL_TEXTURE0 + next_sampler_id);
          glUniform1i(sprog->sampler_locs[shader_type][sampler_index], next_sampler_id);
 
          if (sprog->shadow_samp_mask[shader_type] & (1 << i)) {
@@ -5265,7 +5267,6 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
                target = GL_TEXTURE_BUFFER;
             }
 
-            glActiveTexture(GL_TEXTURE0 + next_sampler_id);
             glBindTexture(target, id);
             vrend_apply_sampler_state(sub_ctx, tview->texture,
                                       shader_view->samplers[i],
@@ -5283,6 +5284,11 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
 
    shader_view->num_used_views = sampler_index;
    shader_view->dirty_mask = 0;
+
+   // Since we use a dirty mask to elide some unnecessary state update API
+   // calls, we must ensure that a later glBindTexture() used for another reason
+   // (such as texture allocation) doesn't affect our fragile sampler bindings.
+   glActiveTexture(GL_TEXTURE0 + vrend_state.max_texture_units - 1);
 
    return next_sampler_id;
 }
@@ -7597,6 +7603,9 @@ int vrend_renderer_init(const struct vrend_if_cbs *cbs, uint32_t flags)
 
    /* For testing we need to know maximum */
    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, (GLint*)&vrend_state.max_vertex_attributes);
+
+   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS,
+                 (GLint*)&vrend_state.max_texture_units);
 
    /* Mesa clamps this value to 8 anyway, so just make sure that this side
     * doesn't exceed the number to be on the save side when using 8-bit masks

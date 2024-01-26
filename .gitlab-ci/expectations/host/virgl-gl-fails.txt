@@ -460,7 +460,6 @@ spec@arb_viewport_array@display-list,Fail
 spec@!opengl 1.1@line-flat-clip-color,Fail
 spec@arb_texture_float@texwrap formats bordercolor,Fail
 KHR-GL43.cull_distance.functional,Fail
-KHR-GL43.compute_shader.resource-subroutine,Fail
 KHR-GL43.shader_image_load_store.incomplete_textures,Fail
 KHR-GL43.shader_image_load_store.basic-allTargets-store,Fail
 spec@arb_texture_float@texwrap formats bordercolor@GL_INTENSITY32F_ARB- border color only,Fail
