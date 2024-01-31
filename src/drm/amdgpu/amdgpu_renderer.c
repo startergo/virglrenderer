@@ -26,6 +26,7 @@
 #include "util/bitscan.h"
 #include "util/hash_table.h"
 #include "util/macros.h"
+#include "util/os_file.h"
 #include "util/u_atomic.h"
 #include "util/u_math.h"
 #include "pipe/p_state.h"
@@ -149,6 +150,8 @@ struct amdgpu_object {
 
    uint32_t flags;
    uint32_t size;
+
+   bool has_metadata : 1;
    bool exported   : 1;
 };
 
@@ -441,6 +444,15 @@ amdgpu_renderer_export_opaque_handle(struct virgl_context *vctx,
    snprintf(dmabufname, sizeof(dmabufname) - 1, "e:%d-%s",
             obj->res_id, ctx->debug_name);
    set_dmabuf_name(*out_fd, dmabufname);
+
+   if (res->fd_type == VIRGL_RESOURCE_OPAQUE_HANDLE && obj->has_metadata) {
+      /* Interpret set_metadata as lazy VIRTGPU_BLOB_FLAG_USE_SHAREABLE. */
+      res->fd = os_dupfd_cloexec(*out_fd);
+      res->fd_type = VIRGL_RESOURCE_FD_DMABUF;
+      print(2, "res_id: %d became VIRGL_RESOURCE_FD_DMABUF", res->res_id);
+   } else {
+      print(3, "res_id: %d one time export", res->res_id);
+   }
 
    return VIRGL_RESOURCE_FD_DMABUF;
 }
@@ -777,6 +789,8 @@ amdgpu_ccmd_set_metadata(struct amdgpu_context *ctx, const struct vdrm_ccmd_req 
    if (rsp->ret) {
       print(0, "amdgpu_bo_set_metadata failed for res: %d", req->res_id);
    }
+
+   obj->has_metadata = true;
 
    return 0;
 }
