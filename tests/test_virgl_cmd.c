@@ -1309,6 +1309,9 @@ START_TEST(virgl_test_encode_sampler_view)
    ret = testvirgl_ctx_send_cmdbuf(&ctx);
    ck_assert_int_eq(ret, EINVAL);
 
+   testvirgl_destroy_backed_res(&res);
+   testvirgl_destroy_backed_res(&res2);
+
    testvirgl_fini_ctx_cmdbuf(&ctx);
 }
 END_TEST
@@ -1362,6 +1365,9 @@ START_TEST(virgl_test_encode_sampler_view_fail_layers)
    ret = testvirgl_ctx_send_cmdbuf(&ctx);
    ck_assert_int_eq(ret, EINVAL);
 
+   testvirgl_destroy_backed_res(&res);
+   testvirgl_destroy_backed_res(&res2);
+
    testvirgl_fini_ctx_cmdbuf(&ctx);
 }
 END_TEST
@@ -1395,6 +1401,8 @@ START_TEST(virgl_test_encode_sampler_view_texture_buffer)
    ck_assert_int_eq(ret, 0);
    ret = testvirgl_ctx_send_cmdbuf(&ctx);
    ck_assert_int_eq(ret, 0);
+
+   testvirgl_destroy_backed_res(&res);
 
    testvirgl_fini_ctx_cmdbuf(&ctx);
 }
