@@ -496,8 +496,7 @@ static void virgl_test_bind_images_shader(int first_layer, int last_layer, int e
 {
     struct virgl_context ctx;
     struct virgl_resource res;
-    struct virgl_surface surf;
-    struct pipe_framebuffer_state fb_state;
+    struct virgl_surface surf = {0};
     int ret;
     int tw = 300, th = 300;
 
@@ -512,9 +511,11 @@ static void virgl_test_bind_images_shader(int first_layer, int last_layer, int e
     virgl_renderer_ctx_attach_resource(ctx.ctx_id, res.handle);
 
     /* set the framebuffer state */
-    fb_state.nr_cbufs = 1;
-    fb_state.zsbuf = NULL;
-    fb_state.cbufs[0] = &surf.base;
+    struct pipe_framebuffer_state fb_state = {
+       .nr_cbufs = 1,
+       .zsbuf = NULL,
+       .cbufs[0] = &surf.base
+    };
     virgl_encoder_set_framebuffer_state(&ctx, &fb_state);
 
     /* Create shader images */
