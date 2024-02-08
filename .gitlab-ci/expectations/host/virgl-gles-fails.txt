@@ -275,8 +275,6 @@ spec@arb_texture_compression@texwrap formats bordercolor-swizzled@GL_COMPRESSED_
 spec@arb_texture_compression@texwrap formats bordercolor-swizzled@GL_COMPRESSED_RGB- swizzled- border color only,Fail
 spec@arb_texture_cube_map_array@arb_texture_cube_map_array-sampler-cube-array-shadow,Fail
 spec@arb_texture_cube_map_array@fbo-generatemipmap-cubemap array s3tc_dxt1,Fail
-spec@arb_texture_multisample@arb_texture_multisample-dsa-texelfetch,Fail
-spec@arb_texture_multisample@arb_texture_multisample-dsa-texelfetch@Texture type: GL_RGB9_E5,Fail
 spec@arb_texture_query_lod@execution@fs-texturequerylod-nearest-biased,Fail
 spec@arb_texture_rectangle@texwrap rect bordercolor,Fail
 spec@arb_texture_rectangle@texwrap rect bordercolor@GL_RGBA8- border color only,Fail
@@ -3089,3 +3087,11 @@ spec@arb_texture_float@texwrap formats bordercolor@GL_LUMINANCE_ALPHA16F_ARB- bo
 # uprev Mesa in Virglrenderer
 spec@glsl-1.40@uniform_buffer@two-stages,Fail
 
+spec@arb_copy_image@arb_copy_image-formats --samples=2,Fail
+spec@arb_copy_image@arb_copy_image-formats --samples=2@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
+spec@arb_copy_image@arb_copy_image-formats --samples=4,Fail
+spec@arb_copy_image@arb_copy_image-formats --samples=4@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
+spec@nv_copy_image@nv_copy_image-formats --samples=2,Fail
+spec@nv_copy_image@nv_copy_image-formats --samples=2@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
+spec@nv_copy_image@nv_copy_image-formats --samples=4,Fail
+spec@nv_copy_image@nv_copy_image-formats --samples=4@Source: GL_ALPHA/Destination: GL_ALPHA,Fail

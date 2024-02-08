@@ -159,3 +159,4 @@ spec@!opengl 3.0@gl30basic
 spec@arb_get_texture_sub_image@arb_get_texture_sub_image-get
 spec@ext_packed_depth_stencil@depthstencil-render-miplevels 585 d=z24_s8
 dEQP-GLES31.functional.copy_image.non_compressed.viewclass_32_bits.rg16ui_r32f.texture3d_to_cubemap
+spec@ext_image_dma_buf_import@ext_image_dma_buf_import-refcount-multithread

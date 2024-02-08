@@ -308,8 +308,6 @@ spec@arb_texture_float@texwrap formats bordercolor-swizzled@GL_RGB16F- swizzled-
 spec@arb_texture_float@texwrap formats bordercolor-swizzled@GL_RGB32F- swizzled- border color only,Fail
 spec@arb_texture_float@texwrap formats bordercolor-swizzled@GL_RGBA16F- swizzled- border color only,Fail
 spec@arb_texture_float@texwrap formats bordercolor-swizzled@GL_RGBA32F- swizzled- border color only,Fail
-spec@arb_texture_multisample@arb_texture_multisample-dsa-texelfetch,Fail
-spec@arb_texture_multisample@arb_texture_multisample-dsa-texelfetch@Texture type: GL_RGB9_E5,Fail
 spec@arb_texture_query_lod@execution@fs-texturequerylod-nearest-biased,Fail
 spec@arb_texture_rectangle@texwrap rect bordercolor,Fail
 spec@arb_texture_rectangle@texwrap rect bordercolor@GL_RGBA8- border color only,Fail
@@ -3118,3 +3116,11 @@ spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_vyuy,Fail
 spec@glsl-1.40@uniform_buffer@two-stages,Fail
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-refcount-multithread,Fail
 
+spec@nv_copy_image@nv_copy_image-formats --samples=4,Fail
+spec@nv_copy_image@nv_copy_image-formats --samples=4@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
+spec@arb_copy_image@arb_copy_image-formats --samples=2,Fail
+spec@arb_copy_image@arb_copy_image-formats --samples=2@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
+spec@arb_copy_image@arb_copy_image-formats --samples=4,Fail
+spec@arb_copy_image@arb_copy_image-formats --samples=4@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
+spec@nv_copy_image@nv_copy_image-formats --samples=2,Fail
+spec@nv_copy_image@nv_copy_image-formats --samples=2@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
