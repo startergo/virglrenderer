@@ -1090,6 +1090,11 @@ varying_bit_from_semantic_and_index(enum tgsi_semantic semantic, int index)
    case TGSI_SEMANTIC_PSIZE:
       return VARYING_SLOT_PSIZ;
    case TGSI_SEMANTIC_GENERIC:
+      if (unlikely(index >= MAX_VARYING)) {
+         virgl_warn("Warning: Out of range TGSI_SEMANTIC_GENERIC index: %d\n", index);
+         return VARYING_SLOT_VAR0;
+      }
+
       return VARYING_SLOT_VAR0 + index;
    case TGSI_SEMANTIC_FACE:
       return VARYING_SLOT_FACE;
@@ -1105,7 +1110,11 @@ varying_bit_from_semantic_and_index(enum tgsi_semantic semantic, int index)
    case TGSI_SEMANTIC_CLIPVERTEX:
       return VARYING_SLOT_CLIP_VERTEX;
    case TGSI_SEMANTIC_TEXCOORD:
-      assert(index < 8);
+      if (unlikely(index >= 8)) {
+         virgl_warn("Warning: Out of range TGSI_SEMANTIC_TEXCOORD index: %d\n", index);
+         return VARYING_SLOT_TEX0;
+      }
+
       return (VARYING_SLOT_TEX0 + index);
    case TGSI_SEMANTIC_PCOORD:
       return VARYING_SLOT_PNTC;
@@ -1118,6 +1127,11 @@ varying_bit_from_semantic_and_index(enum tgsi_semantic semantic, int index)
    case TGSI_SEMANTIC_TESSOUTER:
       return VARYING_SLOT_TESS_LEVEL_OUTER;
    case TGSI_SEMANTIC_PATCH:
+      if (unlikely(index >= MAX_VARYING)) {
+         virgl_warn("Warning: Out of range TGSI_SEMANTIC_PATCH index: %d\n", index);
+         return VARYING_SLOT_PATCH0;
+      }
+
       return VARYING_SLOT_PATCH0 + index;
    default:
       virgl_warn("Warning: Bad TGSI semantic: %d/%d\n", semantic, index);
