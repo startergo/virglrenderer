@@ -123,12 +123,41 @@ vcomp_dispatch_clGetPlatformIDs(struct vcl_dispatch_context *dispatch,
    }
 }
 
+static bool
+vcomp_context_contains_platform_id(struct vcomp_context *vctx, struct vcomp_platform *platform)
+{
+   for (uint32_t i = 0; i < vctx->platform_count; i++)
+   {
+      if (vctx->platforms[i] == platform)
+      {
+         return true;
+      }
+   }
+   return false;
+}
+
+static void
+vcomp_dispatch_clGetPlatformInfo(UNUSED struct vcl_dispatch_context *dispatch,
+                                 struct vcl_command_clGetPlatformInfo *args)
+{
+   struct vcomp_context *vctx = dispatch->data;
+
+   struct vcomp_platform *platform = vcomp_platform_from_handle(args->platform);
+   if (!vcomp_context_contains_platform_id(vctx, platform))
+   {
+      args->ret = CL_INVALID_PLATFORM;
+      return;
+   }
+
+   args->ret = clGetPlatformInfo(platform->base.handle.platform, args->param_name, args->param_value_size, args->param_value, args->param_value_size_ret);
+}
+
 void vcomp_context_init_platform_dispatch(struct vcomp_context *vctx)
 {
    struct vcl_dispatch_context *dispatch = &vctx->dispatch;
 
-   dispatch->dispatch_clGetPlatformIDs =
-       vcomp_dispatch_clGetPlatformIDs;
+   dispatch->dispatch_clGetPlatformIDs = vcomp_dispatch_clGetPlatformIDs;
+   dispatch->dispatch_clGetPlatformInfo = vcomp_dispatch_clGetPlatformInfo;
 }
 
 void vcomp_platform_destroy(struct vcomp_context *vctx, struct vcomp_platform *platform)
