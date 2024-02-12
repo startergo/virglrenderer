@@ -25,6 +25,10 @@ struct vcomp_context
    struct vcomp_cs_decoder decoder;
    struct vcomp_cs_encoder encoder;
    struct vcl_dispatch_context dispatch;
+
+   uint32_t platform_count;
+   cl_platform_id *platform_handles;
+   struct vcomp_platform **platforms;
 };
 
 static inline void

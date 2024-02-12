@@ -19,9 +19,23 @@ struct vcomp_object
    union
    {
       uint64_t u64;
-      cl_platform_id platform_id;
+      cl_platform_id platform;
    } handle;
 };
+
+/* define a type-safe cast function */
+#define VCOMP_DEFINE_OBJECT_CAST(vcomp_type, cl_type)                                        \
+   static inline struct vcomp_##vcomp_type *vcomp_##vcomp_type##_from_handle(cl_type handle) \
+   {                                                                                         \
+      struct vcomp_##vcomp_type *obj = (struct vcomp_##vcomp_type *)(uintptr_t)handle;       \
+      if (obj)                                                                               \
+      {                                                                                      \
+         assert(obj->base.id);                                                               \
+         assert(obj->base.handle.vcomp_type);                                                \
+         assert((uintptr_t)obj->base.handle.vcomp_type == obj->base.handle.u64);             \
+      }                                                                                      \
+      return obj;                                                                            \
+   }
 
 void vcomp_log(const char *fmt, ...);
 

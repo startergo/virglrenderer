@@ -37,6 +37,17 @@ static void
 vcomp_context_destroy(struct virgl_context *ctx)
 {
    struct vcomp_context *vctx = (struct vcomp_context *)ctx;
+   for (uint32_t i = 0; i < vctx->platform_count; i++)
+   {
+      struct vcomp_platform *platform = vctx->platforms[i];
+      if (!platform)
+         break;
+      vcomp_platform_destroy(vctx, platform);
+   }
+
+   free(vctx->platform_handles);
+   free(vctx->platforms);
+
    _mesa_hash_table_destroy(vctx->object_table, vcomp_context_free_object);
    _mesa_hash_table_destroy(vctx->resource_table, vcomp_context_free_resource);
 
