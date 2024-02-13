@@ -12,6 +12,9 @@
 
 #include "vcl-protocol/vcl_protocol_renderer_dispatches.h"
 
+#define XXH_INLINE_ALL
+#include "util/xxhash.h"
+
 #include "util/hash_table.h"
 #include "util/u_memory.h"
 #include "vrend_renderer.h"
@@ -34,7 +37,9 @@ static void
 vcomp_context_destroy(struct virgl_context *ctx)
 {
    struct vcomp_context *vctx = (struct vcomp_context *)ctx;
+   _mesa_hash_table_destroy(vctx->object_table, vcomp_context_free_object);
    _mesa_hash_table_destroy(vctx->resource_table, vcomp_context_free_resource);
+
    free(vctx);
 }
 
@@ -208,6 +213,18 @@ vcomp_context_init_base(struct vcomp_context *vctx,
    ctx->submit_cmd = vcomp_context_submit_cmd;
 }
 
+static uint32_t
+vcomp_hash_u64(const void *key)
+{
+   return XXH32(key, sizeof(uint64_t), 0);
+}
+
+static bool
+vcomp_key_u64_equal(const void *key1, const void *key2)
+{
+   return *(const uint64_t *)key1 == *(const uint64_t *)key2;
+}
+
 struct virgl_context *
 vcomp_context_create(int id, uint32_t nlen, const char *debug_name)
 {
@@ -224,12 +241,17 @@ vcomp_context_create(int id, uint32_t nlen, const char *debug_name)
       vctx->debug_name[max_nlen] = 0;
    }
 
+   vctx->object_table =
+       _mesa_hash_table_create(NULL, vcomp_hash_u64, vcomp_key_u64_equal);
+   if (!vctx->object_table)
+      goto err_ctx_object_table;
+
    vctx->resource_table =
        _mesa_hash_table_create(NULL, _mesa_hash_u32, _mesa_key_u32_equal);
    if (!vctx->resource_table)
       goto err_ctx_resource_table;
 
-   vcomp_cs_decoder_init(&vctx->decoder, vctx->resource_table);
+   vcomp_cs_decoder_init(&vctx->decoder, vctx->object_table, vctx->resource_table);
    vcomp_cs_encoder_init(&vctx->encoder, &vctx->decoder.fatal_error);
 
    vcomp_context_init_base(vctx, id);
@@ -240,6 +262,8 @@ vcomp_context_create(int id, uint32_t nlen, const char *debug_name)
    return &vctx->base;
 
 err_ctx_resource_table:
+   _mesa_hash_table_destroy(vctx->object_table, vcomp_context_free_object);
+err_ctx_object_table:
    free(vctx);
    return NULL;
 }

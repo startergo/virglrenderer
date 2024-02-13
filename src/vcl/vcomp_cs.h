@@ -16,6 +16,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "util/hash_table.h"
 #include "util/macros.h"
 #include "util/u_math.h"
 
@@ -25,7 +26,7 @@
  */
 #define VCOMP_CS_DECODER_TEMP_POOL_MAX_SIZE (1u * 1024 * 1024 * 1024)
 
-typedef uint64_t vcl_object_id;
+typedef uint64_t vcomp_object_id;
 
 struct vcomp_cs_encoder
 {
@@ -58,6 +59,7 @@ struct vcomp_cs_decoder_temp_pool
 
 struct vcomp_cs_decoder
 {
+   const struct hash_table *object_table;
    const struct hash_table *resource_table;
 
    bool fatal_error;
@@ -68,18 +70,13 @@ struct vcomp_cs_decoder
    const uint8_t *end;
 };
 
-struct vcomp_object
-{
-   union
-   {
-      uint64_t u64;
-   } handle;
-};
-
 static inline void
-vcomp_cs_decoder_init(struct vcomp_cs_decoder *dec, const struct hash_table *resource_table)
+vcomp_cs_decoder_init(struct vcomp_cs_decoder *dec,
+                      struct hash_table *object_table,
+                      struct hash_table *resource_table)
 {
    memset(dec, 0, sizeof(*dec));
+   dec->object_table = object_table;
    dec->resource_table = resource_table;
 }
 
@@ -131,12 +128,31 @@ vcomp_cs_decoder_reset(struct vcomp_cs_decoder *dec)
    dec->end = NULL;
 }
 
+static inline void
+vcomp_cs_decoder_set_fatal(const struct vcomp_cs_decoder *dec)
+{
+   ((struct vcomp_cs_decoder *)dec)->fatal_error = true;
+}
+
 static inline struct vcomp_object *
 vcomp_cs_decoder_lookup_object(const struct vcomp_cs_decoder *dec,
                                vcomp_object_id id)
 {
-   // TODO: implement this
-   return NULL;
+   struct vcomp_object *obj;
+
+   if (!id)
+      return NULL;
+
+   const struct hash_entry *entry =
+       _mesa_hash_table_search((struct hash_table *)dec->object_table, &id);
+   obj = likely(entry) ? entry->data : NULL;
+   if (unlikely(!obj))
+   {
+      vcomp_log("failed to look up object %" PRIu64, id);
+      vcomp_cs_decoder_set_fatal(dec);
+   }
+
+   return obj;
 }
 
 static uint8_t *
@@ -220,12 +236,6 @@ vcomp_cs_encoder_write(struct vcomp_cs_encoder *enc,
    enc->cur += size;
 }
 
-static inline void
-vcomp_cs_decoder_set_fatal(const struct vcomp_cs_decoder *dec)
-{
-   ((struct vcomp_cs_decoder *)dec)->fatal_error = true;
-}
-
 static inline bool
 vcomp_cs_decoder_peek_internal(const struct vcomp_cs_decoder *dec,
                                size_t size,
@@ -263,21 +273,18 @@ vcomp_cs_decoder_peek(const struct vcomp_cs_decoder *dec,
    vcomp_cs_decoder_peek_internal(dec, size, val, val_size);
 }
 
-static inline bool
-vcomp_cs_handle_indirect_id(void *type)
-{
-   return false;
-}
-
-static inline vcl_object_id
+static inline vcomp_object_id
 vcomp_cs_handle_load_id(const void **handle)
 {
-   return 0;
+   const vcomp_object_id *p = (const vcomp_object_id *)handle;
+   return *p;
 }
 
 static inline void
-vcomp_cs_handle_store_id(void **handle, vcl_object_id id)
+vcomp_cs_handle_store_id(void **handle, vcomp_object_id id)
 {
+   vcomp_object_id *p = (vcomp_object_id *)handle;
+   *p = id;
 }
 
 static inline void
@@ -319,7 +326,8 @@ static inline void *
 vcomp_cs_decoder_alloc_temp_array(struct vcomp_cs_decoder *dec, size_t size, size_t count)
 {
    size_t alloc_size;
-   if (unlikely(__builtin_mul_overflow(size, count, &alloc_size))) {
+   if (unlikely(__builtin_mul_overflow(size, count, &alloc_size)))
+   {
       vcomp_log("overflow in array allocation of %zu * %zu bytes", size, count);
       vcomp_cs_decoder_set_fatal(dec);
       return NULL;
