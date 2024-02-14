@@ -9404,6 +9404,7 @@ static int vrend_transfer_send_getteximage(struct vrend_resource *res,
    char *data;
    int elsize = util_format_get_blocksize(res->base.format);
    int compressed = util_format_is_compressed(res->base.format);
+   uint32_t iov_size = vrend_get_iovec_size(iov, num_iovs);
    GLenum target;
    uint32_t send_offset = 0;
    format = tex_conv_table[res->base.format].glformat;
@@ -9418,9 +9419,7 @@ static int vrend_transfer_send_getteximage(struct vrend_resource *res,
    tex_size *= util_format_get_blocksize(res->base.format);
    tex_size *= vrend_get_texture_depth(res, info->level);
 
-   /* glGetnTexImage takes a GLsizei which is a 32 bit unsigned integer, so if the texture size
-    * is larger than that then something is wrong. */
-   if (tex_size > UINT_MAX)
+   if (tex_size > iov_size)
       return EINVAL;
 
    if (info->box->z && res->target != GL_TEXTURE_CUBE_MAP) {
