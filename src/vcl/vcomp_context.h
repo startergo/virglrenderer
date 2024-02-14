@@ -78,4 +78,17 @@ vcomp_context_remove_object(struct vcomp_context *vctx, struct vcomp_object *obj
    }
 }
 
+inline static bool
+vcomp_context_contains_platform(struct vcomp_context *vctx, struct vcomp_platform *platform)
+{
+   for (uint32_t i = 0; i < vctx->platform_count; i++)
+   {
+      if (vctx->platforms[i] == platform)
+      {
+         return true;
+      }
+   }
+   return false;
+}
+
 #endif /* VCOMP_CONTEXT_H */

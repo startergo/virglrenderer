@@ -5,7 +5,7 @@
 
 #include "vcomp_platform.h"
 #include "vcomp_context.h"
-#include "vcomp_common.h"
+#include "vcomp_device.h"
 
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
 
@@ -123,19 +123,6 @@ vcomp_dispatch_clGetPlatformIDs(struct vcl_dispatch_context *dispatch,
    }
 }
 
-static bool
-vcomp_context_contains_platform_id(struct vcomp_context *vctx, struct vcomp_platform *platform)
-{
-   for (uint32_t i = 0; i < vctx->platform_count; i++)
-   {
-      if (vctx->platforms[i] == platform)
-      {
-         return true;
-      }
-   }
-   return false;
-}
-
 static void
 vcomp_dispatch_clGetPlatformInfo(UNUSED struct vcl_dispatch_context *dispatch,
                                  struct vcl_command_clGetPlatformInfo *args)
@@ -143,7 +130,7 @@ vcomp_dispatch_clGetPlatformInfo(UNUSED struct vcl_dispatch_context *dispatch,
    struct vcomp_context *vctx = dispatch->data;
 
    struct vcomp_platform *platform = vcomp_platform_from_handle(args->platform);
-   if (!vcomp_context_contains_platform_id(vctx, platform))
+   if (!vcomp_context_contains_platform(vctx, platform))
    {
       args->ret = CL_INVALID_PLATFORM;
       return;
@@ -162,5 +149,16 @@ void vcomp_context_init_platform_dispatch(struct vcomp_context *vctx)
 
 void vcomp_platform_destroy(struct vcomp_context *vctx, struct vcomp_platform *platform)
 {
+   for (uint32_t i = 0; i < platform->device_count; i++)
+   {
+      struct vcomp_device *device = platform->devices[i];
+      if (!device)
+         break;
+      vcomp_device_destroy(vctx, device);
+   }
+
+   free(platform->device_handles);
+   free(platform->devices);
+
    vcomp_context_remove_object(vctx, &platform->base);
 }

@@ -7,6 +7,7 @@
 #define VCOMP_COMMON_H
 
 #include <assert.h>
+#include <stdbool.h>
 
 #include <vcl-protocol/vcl_cl.h>
 
@@ -20,6 +21,7 @@ struct vcomp_object
    {
       uint64_t u64;
       cl_platform_id platform;
+      cl_device_id device;
    } handle;
 };
 
