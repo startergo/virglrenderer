@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include "vcomp_cl_context.h"
 #include "vcomp_context.h"
 #include "vcomp_common.h"
 #include "vcomp_renderer.h"
@@ -210,6 +211,7 @@ vcomp_context_init_dispatch(struct vcomp_context *vctx)
    vcomp_context_init_transport_dispatch(vctx);
    vcomp_context_init_platform_dispatch(vctx);
    vcomp_context_init_device_dispatch(vctx);
+   vcomp_context_init_context_dispatch(vctx);
 }
 
 static void

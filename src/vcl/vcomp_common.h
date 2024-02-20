@@ -22,6 +22,7 @@ struct vcomp_object
       uint64_t u64;
       cl_platform_id platform;
       cl_device_id device;
+      cl_context cl_context;
    } handle;
 };
 

@@ -13,6 +13,16 @@
 struct vcomp_context;
 
 static void
+vcomp_dispatch_clPrepareContextMESA(struct vcl_dispatch_context *dispatch,
+                                    struct vcl_command_clPrepareContextMESA *args)
+{
+   struct vcomp_context *vctx = dispatch->data;
+   // A prepared handle should be consumed by the next clCreateContext
+   assert(!vctx->prepared_context_handle);
+   vctx->prepared_context_handle = *args->context;
+}
+
+static void
 vcomp_dispatch_clSetReplyBufferMESA(struct vcl_dispatch_context *dispatch,
                                     struct vcl_command_clSetReplyBufferMESA *args)
 {
@@ -41,5 +51,6 @@ void vcomp_context_init_transport_dispatch(struct vcomp_context *vctx)
 {
    struct vcl_dispatch_context *dispatch = &vctx->dispatch;
 
+   dispatch->dispatch_clPrepareContextMESA = vcomp_dispatch_clPrepareContextMESA;
    dispatch->dispatch_clSetReplyBufferMESA = vcomp_dispatch_clSetReplyBufferMESA;
 }

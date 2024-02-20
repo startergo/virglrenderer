@@ -9,15 +9,6 @@
 
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
 
-struct vcomp_device
-{
-   struct vcomp_object base;
-
-   struct vcomp_platform *platform;
-};
-
-VCOMP_DEFINE_OBJECT_CAST(device, cl_device_id)
-
 static cl_int
 vcomp_platform_get_devices(struct vcomp_platform *platform)
 {
