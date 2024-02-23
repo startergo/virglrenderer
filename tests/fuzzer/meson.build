@@ -38,6 +38,6 @@ if with_drm
       'virgl_drm_fuzzer.c',
       c_args : [ '-fsanitize=fuzzer' ],
       link_args : [ '-fsanitize=fuzzer' ],
-      dependencies : [libvirglrenderer_dep]
+      dependencies : [libvirglrenderer_dep, virgl_depends]
    )
 endif
