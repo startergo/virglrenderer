@@ -15,6 +15,7 @@
 
 #include "drm_hw.h"
 #include "drm_renderer.h"
+#include "drm_util.h"
 
 #ifdef ENABLE_DRM_MSM
 #  include "msm/msm_renderer.h"
