@@ -1295,7 +1295,7 @@ msm_renderer_submit_fence(struct virgl_context *vctx, uint32_t flags, uint32_t r
 }
 
 struct virgl_context *
-msm_renderer_create(int fd)
+msm_renderer_create(int fd, UNUSED size_t debug_len, UNUSED const char *debug_name)
 {
    struct msm_context *mctx;
 
