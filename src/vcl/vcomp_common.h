@@ -23,6 +23,7 @@ struct vcomp_object
       cl_platform_id platform;
       cl_device_id device;
       cl_context cl_context;
+      cl_command_queue queue;
    } handle;
 };
 

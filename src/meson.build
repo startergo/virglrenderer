@@ -196,6 +196,8 @@ vcl_sources = [
    'vcl/vcomp_renderer.h',
    'vcl/vcomp_platform.c',
    'vcl/vcomp_platform.h',
+   'vcl/vcomp_queue.c',
+   'vcl/vcomp_queue.h',
    'vcl/vcomp_transport.c',
    'vcl/vcomp_transport.h',
 ]

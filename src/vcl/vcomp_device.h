@@ -9,6 +9,7 @@
 #include "vcomp_common.h"
 
 struct vcomp_context;
+struct vcomp_platform;
 
 struct vcomp_device
 {
