@@ -101,12 +101,27 @@ vcomp_dispatch_clReleaseContext(struct vcl_dispatch_context *dispatch, struct vc
    args->ret = vcomp_cl_context_destroy(vctx, context);
 }
 
+static void
+vcomp_dispatch_clGetContextInfo(UNUSED struct vcl_dispatch_context *dispatch,
+                                struct vcl_command_clGetContextInfo *args)
+{
+   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
+   if (!context)
+   {
+      args->ret = CL_INVALID_CONTEXT;
+      return;
+   }
+
+   args->ret = clGetContextInfo(context->base.handle.cl_context, args->param_name, args->param_value_size, args->param_value, args->param_value_size_ret);
+}
+
 void vcomp_context_init_context_dispatch(struct vcomp_context *vctx)
 {
    struct vcl_dispatch_context *dispatch = &vctx->dispatch;
 
    dispatch->dispatch_clCreateContextMESA = vcomp_dispatch_clCreateContextMESA;
    dispatch->dispatch_clReleaseContext = vcomp_dispatch_clReleaseContext;
+   dispatch->dispatch_clGetContextInfo = vcomp_dispatch_clGetContextInfo;
 }
 
 cl_int vcomp_cl_context_destroy(struct vcomp_context *vctx, struct vcomp_cl_context *context)
