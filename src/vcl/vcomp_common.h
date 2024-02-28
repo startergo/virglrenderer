@@ -25,6 +25,7 @@ struct vcomp_object
       cl_context cl_context;
       cl_command_queue queue;
       cl_mem memory;
+      cl_event event;
    } handle;
 };
 

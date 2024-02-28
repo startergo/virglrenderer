@@ -8,6 +8,7 @@
 #include "vcomp_context.h"
 #include "vcomp_common.h"
 #include "vcomp_device.h"
+#include "vcomp_event.h"
 #include "vcomp_memory.h"
 #include "vcomp_platform.h"
 #include "vcomp_renderer.h"
@@ -216,6 +217,7 @@ vcomp_context_init_dispatch(struct vcomp_context *vctx)
    vcomp_context_init_context_dispatch(vctx);
    vcomp_context_init_queue_dispatch(vctx);
    vcomp_context_init_memory_dispatch(vctx);
+   vcomp_context_init_event_dispatch(vctx);
 }
 
 static void
