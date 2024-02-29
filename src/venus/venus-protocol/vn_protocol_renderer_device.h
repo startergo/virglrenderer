@@ -8530,6 +8530,115 @@ vn_replace_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT_handle(VkPhysicalDevice
     } while (pnext);
 }
 
+/* struct VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->attachmentFeedbackLoopLayout);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT(struct vn_cs_encoder *enc, const VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT });
+    vn_encode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->attachmentFeedbackLoopLayout);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->attachmentFeedbackLoopLayout */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_handle_self(VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->attachmentFeedbackLoopLayout */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_handle(VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_handle_self((VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT chain */
 
 static inline void
@@ -9037,6 +9146,12 @@ vn_encode_VkPhysicalDeviceFeatures2_pnext(struct vn_cs_encoder *enc, const void 
             vn_encode_VkStructureType(enc, &pnext->sType);
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT_self(enc, (const VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self(enc, (const VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
             return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
             vn_encode_simple_pointer(enc, pnext);
@@ -9599,6 +9714,14 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT_self_temp(dec, (VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self_temp(dec, (VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
@@ -10170,6 +10293,14 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(struct vn_cs_decoder *dec
             vn_decode_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT));
         if (pnext) {
@@ -10420,6 +10551,9 @@ vn_replace_VkPhysicalDeviceFeatures2_handle(VkPhysicalDeviceFeatures2 *val)
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_NON_SEAMLESS_CUBE_MAP_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT_handle_self((VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_handle_self((VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT_handle_self((VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT *)pnext);
@@ -11060,6 +11194,14 @@ vn_decode_VkDeviceCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT_self_temp(dec, (VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self_temp(dec, (VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT));
         if (pnext) {
@@ -11378,6 +11520,9 @@ vn_replace_VkDeviceCreateInfo_handle(VkDeviceCreateInfo *val)
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_NON_SEAMLESS_CUBE_MAP_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT_handle_self((VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_handle_self((VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT_handle_self((VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT *)pnext);
