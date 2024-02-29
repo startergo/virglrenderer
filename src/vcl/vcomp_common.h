@@ -24,6 +24,7 @@ struct vcomp_object
       cl_device_id device;
       cl_context cl_context;
       cl_command_queue queue;
+      cl_mem memory;
    } handle;
 };
 

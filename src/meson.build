@@ -192,6 +192,8 @@ vcl_sources = [
    'vcl/vcomp_cs.h',
    'vcl/vcomp_device.c',
    'vcl/vcomp_device.h',
+   'vcl/vcomp_memory.c',
+   'vcl/vcomp_memory.h',
    'vcl/vcomp_renderer.c',
    'vcl/vcomp_renderer.h',
    'vcl/vcomp_platform.c',

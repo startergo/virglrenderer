@@ -155,68 +155,6 @@ vcomp_cs_decoder_lookup_object(const struct vcomp_cs_decoder *dec,
    return obj;
 }
 
-static uint8_t *
-vcomp_cs_encoder_get_ptr(struct vcomp_cs_encoder *enc, size_t size, size_t *ptr_size)
-{
-   while (true)
-   {
-      uint8_t *ptr = enc->cur;
-      const size_t avail = enc->end - enc->cur;
-
-      if (avail)
-      {
-         *ptr_size = MIN2(size, avail);
-         enc->cur += *ptr_size;
-         return ptr;
-      }
-
-      /* TODO: can I write directly to an iovec?
-        if (!vcomp_cs_encoder_next_iov(enc)) {
-           *ptr_size = 0;
-           return size ? NULL : ptr;
-        }
-      */
-   }
-}
-
-static void
-vcomp_cs_encoder_write_internal(struct vcomp_cs_encoder *enc,
-                                size_t size,
-                                const void *val,
-                                size_t val_size)
-{
-   size_t pad_size = size - val_size;
-
-   do
-   {
-      size_t ptr_size;
-      uint8_t *ptr = vcomp_cs_encoder_get_ptr(enc, val_size, &ptr_size);
-      if (unlikely(!ptr))
-      {
-         vcomp_log("failed to write value to the reply stream");
-         vcomp_cs_encoder_set_fatal(enc);
-         return;
-      }
-
-      memcpy(ptr, val, ptr_size);
-      val = (const uint8_t *)val + ptr_size;
-      val_size -= ptr_size;
-   } while (val_size);
-
-   while (pad_size)
-   {
-      size_t ptr_size;
-      const void *ptr = vcomp_cs_encoder_get_ptr(enc, pad_size, &ptr_size);
-      if (unlikely(!ptr))
-      {
-         vcomp_log("failed to write padding to the reply stream");
-         vcomp_cs_encoder_set_fatal(enc);
-         return;
-      }
-      pad_size -= ptr_size;
-   }
-}
-
 static inline void
 vcomp_cs_encoder_write(struct vcomp_cs_encoder *enc,
                        size_t size,
@@ -227,7 +165,8 @@ vcomp_cs_encoder_write(struct vcomp_cs_encoder *enc,
 
    if (unlikely(size > (size_t)(enc->end - enc->cur)))
    {
-      vcomp_cs_encoder_write_internal(enc, size, val, val_size);
+      vcomp_log("failed to write the reply stream");
+      vcomp_cs_encoder_set_fatal(enc);
       return;
    }
 
