@@ -29,8 +29,6 @@ struct vcomp_context
    uint32_t platform_count;
    cl_platform_id *platform_handles;
    struct vcomp_platform **platforms;
-
-   cl_context prepared_context_handle;
 };
 
 static inline void

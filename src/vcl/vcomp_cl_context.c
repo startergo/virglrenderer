@@ -6,15 +6,42 @@
 #include "vcomp_cl_context.h"
 #include "vcomp_context.h"
 #include "vcomp_device.h"
+#include "vcomp_platform.h"
 
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
 
 static void
-vcomp_dispatch_clCreateContext(struct vcl_dispatch_context *dispatch,
-                               struct vcl_command_clCreateContext *args)
+vcomp_dispatch_clCreateContextMESA(struct vcl_dispatch_context *dispatch,
+                                   struct vcl_command_clCreateContextMESA *args)
 {
    struct vcomp_context *vctx = dispatch->data;
-   args->ret = NULL;
+
+   // Check platform in properties
+   for (const cl_context_properties *prop = args->properties;
+        prop != NULL && *prop != 0;
+        prop++)
+   {
+      if (*prop == CL_CONTEXT_PLATFORM)
+      {
+         const cl_context_properties *next = prop + 1;
+         if (!next)
+         {
+            args->ret = CL_INVALID_PROPERTY;
+            return;
+         }
+
+         cl_platform_id *guest_handle = (cl_platform_id *)next;
+         struct vcomp_platform *platform = vcomp_platform_from_handle(*guest_handle);
+         if (!platform || !vcomp_context_contains_platform(vctx, platform))
+         {
+            args->ret = CL_INVALID_PLATFORM;
+            return;
+         }
+
+         *guest_handle = platform->base.handle.platform;
+         break;
+      }
+   }
 
    // Collect host handles
    cl_device_id *handles = calloc(args->num_devices, sizeof(*handles));
@@ -23,14 +50,14 @@ vcomp_dispatch_clCreateContext(struct vcl_dispatch_context *dispatch,
       struct vcomp_device *device = vcomp_device_from_handle(args->devices[i]);
       if (!device || !vcomp_context_contains_platform(vctx, device->platform))
       {
-         args->ret = NULL;
+         args->ret = CL_INVALID_PLATFORM;
          free(handles);
          return;
       }
       handles[i] = device->base.handle.device;
    }
 
-   cl_context ctx = clCreateContext(args->properties, args->num_devices, handles, NULL, NULL, args->errcode_ret);
+   cl_context ctx = clCreateContext(args->properties, args->num_devices, handles, NULL, NULL, &args->ret);
 
    free(handles);
 
@@ -39,22 +66,17 @@ vcomp_dispatch_clCreateContext(struct vcl_dispatch_context *dispatch,
       return;
    }
 
-   // clCreateContext does not take cl_context output handle as input, so we
-   // expect our custom clPrepareContextMESA() to be called before this.
-   if (!vctx->prepared_context_handle)
-   {
-      vcomp_log("clPrepareContextMESA() has not been called");
-      return;
-   }
-   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)&vctx->prepared_context_handle);
+   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->context);
    if (!vcomp_context_validate_object_id(vctx, id))
    {
+      args->ret = CL_INVALID_VALUE;
       return;
    }
 
    struct vcomp_cl_context *context = vcomp_object_alloc(sizeof(*context), id);
    if (!context)
    {
+      args->ret = CL_OUT_OF_HOST_MEMORY;
       return;
    }
 
@@ -62,10 +84,6 @@ vcomp_dispatch_clCreateContext(struct vcl_dispatch_context *dispatch,
    context->base.handle.cl_context = ctx;
 
    vcomp_context_add_object(vctx, &context->base);
-
-   args->ret = vctx->prepared_context_handle;
-   // Consume prepared context
-   vctx->prepared_context_handle = NULL;
 }
 
 static void
@@ -87,7 +105,7 @@ void vcomp_context_init_context_dispatch(struct vcomp_context *vctx)
 {
    struct vcl_dispatch_context *dispatch = &vctx->dispatch;
 
-   dispatch->dispatch_clCreateContext = vcomp_dispatch_clCreateContext;
+   dispatch->dispatch_clCreateContextMESA = vcomp_dispatch_clCreateContextMESA;
    dispatch->dispatch_clReleaseContext = vcomp_dispatch_clReleaseContext;
 }
 
