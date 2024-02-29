@@ -80,7 +80,7 @@ vcomp_dispatch_clReleaseContext(struct vcl_dispatch_context *dispatch, struct vc
       return;
    }
 
-   vcomp_cl_context_destroy(vctx, context);
+   args->ret = vcomp_cl_context_destroy(vctx, context);
 }
 
 void vcomp_context_init_context_dispatch(struct vcomp_context *vctx)
@@ -91,10 +91,10 @@ void vcomp_context_init_context_dispatch(struct vcomp_context *vctx)
    dispatch->dispatch_clReleaseContext = vcomp_dispatch_clReleaseContext;
 }
 
-void
-vcomp_cl_context_destroy(struct vcomp_context *vctx, struct vcomp_cl_context *context)
+cl_int vcomp_cl_context_destroy(struct vcomp_context *vctx, struct vcomp_cl_context *context)
 {
-   clReleaseContext(context->base.handle.cl_context);
+   cl_int ret = clReleaseContext(context->base.handle.cl_context);
    free(context->devices);
    vcomp_context_remove_object(vctx, &context->base);
+   return ret;
 }
