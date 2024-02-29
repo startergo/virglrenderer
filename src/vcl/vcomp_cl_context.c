@@ -9,14 +9,6 @@
 
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
 
-struct vcomp_cl_context
-{
-   struct vcomp_object base;
-
-   struct vcomp_device **devices;
-};
-VCOMP_DEFINE_OBJECT_CAST(cl_context, cl_context)
-
 static void
 vcomp_dispatch_clCreateContext(struct vcl_dispatch_context *dispatch,
                                struct vcl_command_clCreateContext *args)
@@ -91,8 +83,7 @@ vcomp_dispatch_clReleaseContext(struct vcl_dispatch_context *dispatch, struct vc
    vcomp_cl_context_destroy(vctx, context);
 }
 
-void
-vcomp_context_init_context_dispatch(struct vcomp_context *vctx)
+void vcomp_context_init_context_dispatch(struct vcomp_context *vctx)
 {
    struct vcl_dispatch_context *dispatch = &vctx->dispatch;
 

@@ -6,8 +6,17 @@
 #ifndef VCOMP_CL_CONTEXT_H
 #define VCOMP_CL_CONTEXT_H
 
+#include "vcomp_common.h"
+
 struct vcomp_context;
-struct vcomp_cl_context;
+
+struct vcomp_cl_context
+{
+   struct vcomp_object base;
+
+   struct vcomp_device **devices;
+};
+VCOMP_DEFINE_OBJECT_CAST(cl_context, cl_context)
 
 void vcomp_context_init_context_dispatch(struct vcomp_context *vctx);
 
