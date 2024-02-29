@@ -2830,6 +2830,20 @@ int vrend_create_sampler_view(struct vrend_context *ctx,
               view->gl_swizzle[2] = temp;
         }
 
+        // Workaround for clients that attempt this non-spec-conformant (or at
+        // least non-spec-defined) behavior. Gallium seems to allow this for
+        // internally-allocated textures, but textures imported from dmabuf take
+        // a different path that imposes stricter enforcement of allowable
+        // internalformat for glTextureView().
+
+        if (util_format_has_alpha(view->format) &&
+            vrend_resource_has_24bpp_internal_format(view->texture)) {
+           VREND_DEBUG(dbg_tex, ctx, "Fixing view with alpha into EGL-backed texture without alpha (format: %s, view: %s)\n",
+                       util_format_name(view->texture->base.format),
+                       util_format_name(view->format));
+           internalformat = GL_RGB8;
+        }
+
         glTextureView(view->gl_id, view->target, view->texture->gl_id, internalformat,
                       view->u.tex.first_level, view->levels,
                       view->u.tex.first_layer, num_layers);
