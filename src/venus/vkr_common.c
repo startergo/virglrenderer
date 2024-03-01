@@ -100,6 +100,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .KHR_push_descriptor = true,
    .KHR_shader_clock = true,
    /* EXT extensions */
+   .EXT_attachment_feedback_loop_layout = true,
    .EXT_border_color_swizzle = true,
    .EXT_calibrated_timestamps = true,
    .EXT_color_write_enable = true,
