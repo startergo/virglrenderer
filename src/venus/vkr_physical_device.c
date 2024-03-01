@@ -253,7 +253,7 @@ vkr_physical_device_init_extensions(struct vkr_physical_device *physical_dev,
          physical_dev->KHR_external_fence_fd = false;
    }
 
-   physical_dev->extensions = exts;
+   physical_dev->extensions = realloc(exts, sizeof(*exts) * advertised_count);
    physical_dev->extension_count = advertised_count;
 }
 
