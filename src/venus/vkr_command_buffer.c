@@ -1047,6 +1047,15 @@ vkr_dispatch_vkCmdSetTessellationDomainOriginEXT(
    VKR_CMD_CALL(CmdSetTessellationDomainOriginEXT, args, args->domainOrigin);
 }
 
+static void
+vkr_dispatch_vkCmdSetFragmentShadingRateKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdSetFragmentShadingRateKHR *args)
+{
+   VKR_CMD_CALL(CmdSetFragmentShadingRateKHR, args, args->pFragmentSize,
+                args->combinerOps);
+}
+
 void
 vkr_context_init_command_pool_dispatch(struct vkr_context *ctx)
 {
@@ -1238,4 +1247,8 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
    dispatch->dispatch_vkCmdSetSampleMaskEXT = vkr_dispatch_vkCmdSetSampleMaskEXT;
    dispatch->dispatch_vkCmdSetTessellationDomainOriginEXT =
       vkr_dispatch_vkCmdSetTessellationDomainOriginEXT;
+
+   /* VK_KHR_fragment_shading_rate */
+   dispatch->dispatch_vkCmdSetFragmentShadingRateKHR =
+      vkr_dispatch_vkCmdSetFragmentShadingRateKHR;
 }
