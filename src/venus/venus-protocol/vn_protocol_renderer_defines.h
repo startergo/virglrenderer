@@ -340,6 +340,8 @@ typedef enum VkCommandTypeEXT {
     VK_COMMAND_TYPE_vkGetImageDrmFormatModifierPropertiesEXT_EXT = 187,
     VK_COMMAND_TYPE_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT_EXT = 235,
     VK_COMMAND_TYPE_vkGetCalibratedTimestampsEXT_EXT = 236,
+    VK_COMMAND_TYPE_vkGetPhysicalDeviceFragmentShadingRatesKHR_EXT = 277,
+    VK_COMMAND_TYPE_vkCmdSetFragmentShadingRateKHR_EXT = 278,
     VK_COMMAND_TYPE_vkCmdSetLineStippleEXT_EXT = 237,
     VK_COMMAND_TYPE_vkCmdSetVertexInputEXT_EXT = 255,
     VK_COMMAND_TYPE_vkCmdSetPatchControlPointsEXT_EXT = 233,
@@ -2274,6 +2276,20 @@ struct vn_command_vkCmdResolveImage2 {
     const VkResolveImageInfo2* pResolveImageInfo;
 };
 
+struct vn_command_vkCmdSetFragmentShadingRateKHR {
+    VkCommandBuffer commandBuffer;
+    const VkExtent2D* pFragmentSize;
+    const VkFragmentShadingRateCombinerOpKHR combinerOps[2];
+};
+
+struct vn_command_vkGetPhysicalDeviceFragmentShadingRatesKHR {
+    VkPhysicalDevice physicalDevice;
+    uint32_t* pFragmentShadingRateCount;
+    VkPhysicalDeviceFragmentShadingRateKHR* pFragmentShadingRates;
+
+    VkResult ret;
+};
+
 struct vn_command_vkCmdSetVertexInputEXT {
     VkCommandBuffer commandBuffer;
     uint32_t vertexBindingDescriptionCount;
@@ -2671,6 +2687,8 @@ struct vn_dispatch_context {
     void (*dispatch_vkCmdCopyBufferToImage2)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdCopyBufferToImage2 *args);
     void (*dispatch_vkCmdCopyImageToBuffer2)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdCopyImageToBuffer2 *args);
     void (*dispatch_vkCmdResolveImage2)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdResolveImage2 *args);
+    void (*dispatch_vkCmdSetFragmentShadingRateKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetFragmentShadingRateKHR *args);
+    void (*dispatch_vkGetPhysicalDeviceFragmentShadingRatesKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceFragmentShadingRatesKHR *args);
     void (*dispatch_vkCmdSetVertexInputEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetVertexInputEXT *args);
     void (*dispatch_vkCmdSetColorWriteEnableEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetColorWriteEnableEXT *args);
     void (*dispatch_vkCmdSetEvent2)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetEvent2 *args);

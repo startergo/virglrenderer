@@ -1910,6 +1910,68 @@ vn_replace_VkPipelineCreationFeedbackCreateInfo_handle(VkPipelineCreationFeedbac
     } while (pnext);
 }
 
+/* struct VkPipelineFragmentShadingRateStateCreateInfoKHR chain */
+
+static inline void *
+vn_decode_VkPipelineFragmentShadingRateStateCreateInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPipelineFragmentShadingRateStateCreateInfoKHR_self_temp(struct vn_cs_decoder *dec, VkPipelineFragmentShadingRateStateCreateInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkExtent2D_temp(dec, &val->fragmentSize);
+    {
+        const size_t array_size = vn_decode_array_size(dec, 2);
+        vn_decode_VkFragmentShadingRateCombinerOpKHR_array(dec, val->combinerOps, array_size);
+    }
+}
+
+static inline void
+vn_decode_VkPipelineFragmentShadingRateStateCreateInfoKHR_temp(struct vn_cs_decoder *dec, VkPipelineFragmentShadingRateStateCreateInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_STATE_CREATE_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPipelineFragmentShadingRateStateCreateInfoKHR_pnext_temp(dec);
+    vn_decode_VkPipelineFragmentShadingRateStateCreateInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPipelineFragmentShadingRateStateCreateInfoKHR_handle_self(VkPipelineFragmentShadingRateStateCreateInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    vn_replace_VkExtent2D_handle(&val->fragmentSize);
+    /* skip val->combinerOps */
+}
+
+static inline void
+vn_replace_VkPipelineFragmentShadingRateStateCreateInfoKHR_handle(VkPipelineFragmentShadingRateStateCreateInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_STATE_CREATE_INFO_KHR:
+            vn_replace_VkPipelineFragmentShadingRateStateCreateInfoKHR_handle_self((VkPipelineFragmentShadingRateStateCreateInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkPipelineRenderingCreateInfo chain */
 
 static inline void *
@@ -2067,6 +2129,14 @@ vn_decode_VkGraphicsPipelineCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkGraphicsPipelineCreateInfo_pnext_temp(dec);
             vn_decode_VkPipelineCreationFeedbackCreateInfo_self_temp(dec, (VkPipelineCreationFeedbackCreateInfo *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_STATE_CREATE_INFO_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineFragmentShadingRateStateCreateInfoKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkGraphicsPipelineCreateInfo_pnext_temp(dec);
+            vn_decode_VkPipelineFragmentShadingRateStateCreateInfoKHR_self_temp(dec, (VkPipelineFragmentShadingRateStateCreateInfoKHR *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO:
@@ -2245,6 +2315,9 @@ vn_replace_VkGraphicsPipelineCreateInfo_handle(VkGraphicsPipelineCreateInfo *val
             break;
         case VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO:
             vn_replace_VkPipelineCreationFeedbackCreateInfo_handle_self((VkPipelineCreationFeedbackCreateInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_STATE_CREATE_INFO_KHR:
+            vn_replace_VkPipelineFragmentShadingRateStateCreateInfoKHR_handle_self((VkPipelineFragmentShadingRateStateCreateInfoKHR *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO:
             vn_replace_VkPipelineRenderingCreateInfo_handle_self((VkPipelineRenderingCreateInfo *)pnext);

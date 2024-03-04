@@ -2626,6 +2626,67 @@ vn_replace_VkRenderingAttachmentInfo_handle(VkRenderingAttachmentInfo *val)
     } while (pnext);
 }
 
+/* struct VkRenderingFragmentShadingRateAttachmentInfoKHR chain */
+
+static inline void *
+vn_decode_VkRenderingFragmentShadingRateAttachmentInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkRenderingFragmentShadingRateAttachmentInfoKHR_self_temp(struct vn_cs_decoder *dec, VkRenderingFragmentShadingRateAttachmentInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkImageView_lookup(dec, &val->imageView);
+    vn_decode_VkImageLayout(dec, &val->imageLayout);
+    vn_decode_VkExtent2D_temp(dec, &val->shadingRateAttachmentTexelSize);
+}
+
+static inline void
+vn_decode_VkRenderingFragmentShadingRateAttachmentInfoKHR_temp(struct vn_cs_decoder *dec, VkRenderingFragmentShadingRateAttachmentInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkRenderingFragmentShadingRateAttachmentInfoKHR_pnext_temp(dec);
+    vn_decode_VkRenderingFragmentShadingRateAttachmentInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkRenderingFragmentShadingRateAttachmentInfoKHR_handle_self(VkRenderingFragmentShadingRateAttachmentInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    vn_replace_VkImageView_handle(&val->imageView);
+    /* skip val->imageLayout */
+    vn_replace_VkExtent2D_handle(&val->shadingRateAttachmentTexelSize);
+}
+
+static inline void
+vn_replace_VkRenderingFragmentShadingRateAttachmentInfoKHR_handle(VkRenderingFragmentShadingRateAttachmentInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
+            vn_replace_VkRenderingFragmentShadingRateAttachmentInfoKHR_handle_self((VkRenderingFragmentShadingRateAttachmentInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkRenderingInfo chain */
 
 static inline void *
@@ -2645,6 +2706,14 @@ vn_decode_VkRenderingInfo_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkRenderingInfo_pnext_temp(dec);
             vn_decode_VkDeviceGroupRenderPassBeginInfo_self_temp(dec, (VkDeviceGroupRenderPassBeginInfo *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkRenderingFragmentShadingRateAttachmentInfoKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkRenderingInfo_pnext_temp(dec);
+            vn_decode_VkRenderingFragmentShadingRateAttachmentInfoKHR_self_temp(dec, (VkRenderingFragmentShadingRateAttachmentInfoKHR *)pnext);
         }
         break;
     default:
@@ -2737,6 +2806,9 @@ vn_replace_VkRenderingInfo_handle(VkRenderingInfo *val)
             break;
         case VK_STRUCTURE_TYPE_DEVICE_GROUP_RENDER_PASS_BEGIN_INFO:
             vn_replace_VkDeviceGroupRenderPassBeginInfo_handle_self((VkDeviceGroupRenderPassBeginInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
+            vn_replace_VkRenderingFragmentShadingRateAttachmentInfoKHR_handle_self((VkRenderingFragmentShadingRateAttachmentInfoKHR *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -6242,6 +6314,40 @@ static inline void vn_encode_vkCmdResolveImage2_reply(struct vn_cs_encoder *enc,
     /* skip args->pResolveImageInfo */
 }
 
+static inline void vn_decode_vkCmdSetFragmentShadingRateKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetFragmentShadingRateKHR *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pFragmentSize = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pFragmentSize));
+        if (!args->pFragmentSize) return;
+        vn_decode_VkExtent2D_temp(dec, (VkExtent2D *)args->pFragmentSize);
+    } else {
+        args->pFragmentSize = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+    {
+        const size_t array_size = vn_decode_array_size(dec, 2);
+        vn_decode_VkFragmentShadingRateCombinerOpKHR_array(dec, (VkFragmentShadingRateCombinerOpKHR *)args->combinerOps, array_size);
+    }
+}
+
+static inline void vn_replace_vkCmdSetFragmentShadingRateKHR_args_handle(struct vn_command_vkCmdSetFragmentShadingRateKHR *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    if (args->pFragmentSize)
+        vn_replace_VkExtent2D_handle((VkExtent2D *)args->pFragmentSize);
+    /* skip args->combinerOps */
+}
+
+static inline void vn_encode_vkCmdSetFragmentShadingRateKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdSetFragmentShadingRateKHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdSetFragmentShadingRateKHR_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->pFragmentSize */
+    /* skip args->combinerOps */
+}
+
 static inline void vn_decode_vkCmdSetVertexInputEXT_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetVertexInputEXT *args)
 {
     vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
@@ -9233,6 +9339,30 @@ static inline void vn_dispatch_vkCmdResolveImage2(struct vn_dispatch_context *ct
 
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
         vn_encode_vkCmdResolveImage2_reply(ctx->encoder, &args);
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdSetFragmentShadingRateKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdSetFragmentShadingRateKHR args;
+
+    if (!ctx->dispatch_vkCmdSetFragmentShadingRateKHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdSetFragmentShadingRateKHR_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdSetFragmentShadingRateKHR(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
+        vn_encode_vkCmdSetFragmentShadingRateKHR_reply(ctx->encoder, &args);
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }

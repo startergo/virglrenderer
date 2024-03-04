@@ -855,6 +855,72 @@ vn_replace_VkSubpassDescriptionDepthStencilResolve_handle(VkSubpassDescriptionDe
     } while (pnext);
 }
 
+/* struct VkFragmentShadingRateAttachmentInfoKHR chain */
+
+static inline void *
+vn_decode_VkFragmentShadingRateAttachmentInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkFragmentShadingRateAttachmentInfoKHR_self_temp(struct vn_cs_decoder *dec, VkFragmentShadingRateAttachmentInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    if (vn_decode_simple_pointer(dec)) {
+        val->pFragmentShadingRateAttachment = vn_cs_decoder_alloc_temp(dec, sizeof(*val->pFragmentShadingRateAttachment));
+        if (!val->pFragmentShadingRateAttachment) return;
+        vn_decode_VkAttachmentReference2_temp(dec, (VkAttachmentReference2 *)val->pFragmentShadingRateAttachment);
+    } else {
+        val->pFragmentShadingRateAttachment = NULL;
+    }
+    vn_decode_VkExtent2D_temp(dec, &val->shadingRateAttachmentTexelSize);
+}
+
+static inline void
+vn_decode_VkFragmentShadingRateAttachmentInfoKHR_temp(struct vn_cs_decoder *dec, VkFragmentShadingRateAttachmentInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkFragmentShadingRateAttachmentInfoKHR_pnext_temp(dec);
+    vn_decode_VkFragmentShadingRateAttachmentInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkFragmentShadingRateAttachmentInfoKHR_handle_self(VkFragmentShadingRateAttachmentInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    if (val->pFragmentShadingRateAttachment)
+        vn_replace_VkAttachmentReference2_handle((VkAttachmentReference2 *)val->pFragmentShadingRateAttachment);
+    vn_replace_VkExtent2D_handle(&val->shadingRateAttachmentTexelSize);
+}
+
+static inline void
+vn_replace_VkFragmentShadingRateAttachmentInfoKHR_handle(VkFragmentShadingRateAttachmentInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
+            vn_replace_VkFragmentShadingRateAttachmentInfoKHR_handle_self((VkFragmentShadingRateAttachmentInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkSubpassDescription2 chain */
 
 static inline void *
@@ -874,6 +940,14 @@ vn_decode_VkSubpassDescription2_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkSubpassDescription2_pnext_temp(dec);
             vn_decode_VkSubpassDescriptionDepthStencilResolve_self_temp(dec, (VkSubpassDescriptionDepthStencilResolve *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkFragmentShadingRateAttachmentInfoKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkSubpassDescription2_pnext_temp(dec);
+            vn_decode_VkFragmentShadingRateAttachmentInfoKHR_self_temp(dec, (VkFragmentShadingRateAttachmentInfoKHR *)pnext);
         }
         break;
     default:
@@ -997,6 +1071,9 @@ vn_replace_VkSubpassDescription2_handle(VkSubpassDescription2 *val)
             break;
         case VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE:
             vn_replace_VkSubpassDescriptionDepthStencilResolve_handle_self((VkSubpassDescriptionDepthStencilResolve *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
+            vn_replace_VkFragmentShadingRateAttachmentInfoKHR_handle_self((VkFragmentShadingRateAttachmentInfoKHR *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */

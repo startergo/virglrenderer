@@ -13,6 +13,7 @@
 
 struct vn_physical_device_proc_table {
    PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT GetPhysicalDeviceCalibrateableTimeDomainsEXT;
+   PFN_vkGetPhysicalDeviceFragmentShadingRatesKHR GetPhysicalDeviceFragmentShadingRatesKHR;
    PFN_vkGetPhysicalDeviceToolProperties GetPhysicalDeviceToolProperties;
 };
 
@@ -109,6 +110,7 @@ struct vn_device_proc_table {
    PFN_vkCmdSetEvent CmdSetEvent;
    PFN_vkCmdSetEvent2 CmdSetEvent2;
    PFN_vkCmdSetExtraPrimitiveOverestimationSizeEXT CmdSetExtraPrimitiveOverestimationSizeEXT;
+   PFN_vkCmdSetFragmentShadingRateKHR CmdSetFragmentShadingRateKHR;
    PFN_vkCmdSetFrontFace CmdSetFrontFace;
    PFN_vkCmdSetLineRasterizationModeEXT CmdSetLineRasterizationModeEXT;
    PFN_vkCmdSetLineStippleEXT CmdSetLineStippleEXT;
@@ -257,6 +259,7 @@ vn_util_init_physical_device_proc_table(VkInstance instance,
 {
 #define VN_GIPA(instance, cmd) (PFN_ ## cmd)vkGetInstanceProcAddr(instance, #cmd)
    proc_table->GetPhysicalDeviceCalibrateableTimeDomainsEXT = VN_GIPA(instance, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT);
+   proc_table->GetPhysicalDeviceFragmentShadingRatesKHR = VN_GIPA(instance, vkGetPhysicalDeviceFragmentShadingRatesKHR);
    proc_table->GetPhysicalDeviceToolProperties = VN_GIPA(instance, vkGetPhysicalDeviceToolProperties);
    if (!proc_table->GetPhysicalDeviceToolProperties)
       proc_table->GetPhysicalDeviceToolProperties = VN_GIPA(instance, vkGetPhysicalDeviceToolPropertiesEXT);
@@ -491,6 +494,9 @@ vn_util_init_device_proc_table(VkDevice dev,
       NULL;
    proc_table->CmdSetExtraPrimitiveOverestimationSizeEXT =
       ext_table->EXT_extended_dynamic_state3 ? VN_GDPA(dev, vkCmdSetExtraPrimitiveOverestimationSizeEXT) :
+      NULL;
+   proc_table->CmdSetFragmentShadingRateKHR =
+      ext_table->KHR_fragment_shading_rate ? VN_GDPA(dev, vkCmdSetFragmentShadingRateKHR) :
       NULL;
    proc_table->CmdSetFrontFace =
       api_version >= VK_API_VERSION_1_3 ? VN_GDPA(dev, vkCmdSetFrontFace) :

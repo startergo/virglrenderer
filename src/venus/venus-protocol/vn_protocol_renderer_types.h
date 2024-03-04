@@ -2199,6 +2199,32 @@ vn_decode_VkShaderFloatControlsIndependence(struct vn_cs_decoder *dec, VkShaderF
     vn_decode_int32_t(dec, (int32_t *)val);
 }
 
+/* enum VkFragmentShadingRateCombinerOpKHR */
+
+static inline void
+vn_encode_VkFragmentShadingRateCombinerOpKHR(struct vn_cs_encoder *enc, const VkFragmentShadingRateCombinerOpKHR *val)
+{
+    vn_encode_int32_t(enc, (const int32_t *)val);
+}
+
+static inline void
+vn_decode_VkFragmentShadingRateCombinerOpKHR(struct vn_cs_decoder *dec, VkFragmentShadingRateCombinerOpKHR *val)
+{
+    vn_decode_int32_t(dec, (int32_t *)val);
+}
+
+static inline void
+vn_encode_VkFragmentShadingRateCombinerOpKHR_array(struct vn_cs_encoder *enc, const VkFragmentShadingRateCombinerOpKHR *val, uint32_t count)
+{
+    vn_encode_int32_t_array(enc, (const int32_t *)val, count);
+}
+
+static inline void
+vn_decode_VkFragmentShadingRateCombinerOpKHR_array(struct vn_cs_decoder *dec, VkFragmentShadingRateCombinerOpKHR *val, uint32_t count)
+{
+    vn_decode_int32_t_array(dec, (int32_t *)val, count);
+}
+
 /* enum VkVendorId */
 
 static inline void

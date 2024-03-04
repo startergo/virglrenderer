@@ -12,7 +12,7 @@
 
 struct vn_info_extension_table {
    union {
-      bool enabled[115];
+      bool enabled[116];
       struct {
          bool EXT_4444_formats;
          bool EXT_attachment_feedback_loop_layout;
@@ -95,6 +95,7 @@ struct vn_info_extension_table {
          bool KHR_external_semaphore_capabilities;
          bool KHR_external_semaphore_fd;
          bool KHR_format_feature_flags2;
+         bool KHR_fragment_shading_rate;
          bool KHR_get_memory_requirements2;
          bool KHR_get_physical_device_properties2;
          bool KHR_image_format_list;
@@ -142,8 +143,8 @@ struct vn_info_extension {
 };
 
 /* sorted by extension names for bsearch */
-static const uint32_t _vn_info_extension_count = 115;
-static const struct vn_info_extension _vn_info_extensions[115] = {
+static const uint32_t _vn_info_extension_count = 116;
+static const struct vn_info_extension _vn_info_extensions[116] = {
    { "VK_EXT_4444_formats", 341, 1 },
    { "VK_EXT_attachment_feedback_loop_layout", 340, 2 },
    { "VK_EXT_border_color_swizzle", 412, 1 },
@@ -225,6 +226,7 @@ static const struct vn_info_extension _vn_info_extensions[115] = {
    { "VK_KHR_external_semaphore_capabilities", 77, 1 },
    { "VK_KHR_external_semaphore_fd", 80, 1 },
    { "VK_KHR_format_feature_flags2", 361, 2 },
+   { "VK_KHR_fragment_shading_rate", 227, 2 },
    { "VK_KHR_get_memory_requirements2", 147, 1 },
    { "VK_KHR_get_physical_device_properties2", 60, 2 },
    { "VK_KHR_image_format_list", 148, 1 },
