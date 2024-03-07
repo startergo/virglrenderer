@@ -15,6 +15,7 @@ vcomp_dispatch_clCreateContextMESA(struct vcl_dispatch_context *dispatch,
                                    struct vcl_command_clCreateContextMESA *args)
 {
    struct vcomp_context *vctx = dispatch->data;
+   struct vcomp_platform *platform;
 
    // Check platform in properties
    for (const cl_context_properties *prop = args->properties;
@@ -30,14 +31,23 @@ vcomp_dispatch_clCreateContextMESA(struct vcl_dispatch_context *dispatch,
             return;
          }
 
+         /*
+          * This is the guest platform handle which comes within the properties.
+          * Unlike the handles in the arguments of the command, this one is not
+          * converted to a vcomp object pointer already, so we do it now.
+          */
          cl_platform_id *guest_handle = (cl_platform_id *)next;
-         struct vcomp_platform *platform = vcomp_platform_from_handle(*guest_handle);
+         platform = vcomp_context_get_object(vctx, (vcomp_object_id)*guest_handle);
          if (!platform || !vcomp_context_contains_platform(vctx, platform))
          {
             args->ret = CL_INVALID_PLATFORM;
             return;
          }
 
+         /*
+          * Substitute the guest handle in the properties array with the host
+          * handle, so that it will work when calling clCreateContext()
+          */
          *guest_handle = platform->base.handle.platform;
          break;
       }

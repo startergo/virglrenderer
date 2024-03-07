@@ -78,6 +78,14 @@ vcomp_context_remove_object(struct vcomp_context *vctx, struct vcomp_object *obj
    }
 }
 
+static inline void *
+vcomp_context_get_object(struct vcomp_context *vctx, vcomp_object_id obj_id)
+{
+   const struct hash_entry *entry = _mesa_hash_table_search(vctx->object_table, &obj_id);
+   void *obj = likely(entry) ? entry->data : NULL;
+   return obj;
+}
+
 inline static bool
 vcomp_context_contains_platform(struct vcomp_context *vctx, struct vcomp_platform *platform)
 {
