@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1118410
+  MESA_PIPELINE_ID: 1124531
   MESA_PROJECT_PATH: mesa/mesa
   STORAGE_HOST: s3.freedesktop.org
   CI_REGISTRY_IMAGE: "registry.freedesktop.org/${MESA_PROJECT_PATH}"
@@ -43,7 +43,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: 5a852bd24cc10e08e42703751e7d1ba384b76e31
+    ref: c7202751ad9c223f4fb4324141919e679b8d57de
     file:
       - '/.gitlab-ci/image-tags.yml'
 
@@ -433,7 +433,7 @@ deqp-gl-virt:
   variables:
     DEQP_SUITE: virgl-gl
     GPU_VERSION: virgl-gl
-    CROSVM_GPU_ARGS: &deqp-gl-crosvm-gpu-args "gles=false,backend=virglrenderer,egl=true,surfaceless=true,width=1024,height=768"
+    CROSVM_GPU_ARGS: &deqp-gl-crosvm-gpu-args "gles=false,backend=virglrenderer,egl=true,surfaceless=true,width=1024,height=768,fixed-blob-mapping=false"
 
 deqp-gles-virt:
   extends:
@@ -442,7 +442,7 @@ deqp-gles-virt:
     VIRGL_HOST_API: GLES
     DEQP_SUITE: virgl-gles
     GPU_VERSION: virgl-gles
-    CROSVM_GPU_ARGS: &deqp-gles-crosvm-gpu-args "gles=true,backend=virglrenderer,egl=true,surfaceless=true,width=1024,height=768"
+    CROSVM_GPU_ARGS: &deqp-gles-crosvm-gpu-args "gles=true,backend=virglrenderer,egl=true,surfaceless=true,width=1024,height=768,fixed-blob-mapping=false"
 
 piglit-gl-virt:
   extends:
@@ -490,4 +490,4 @@ venus-lavapipe:
     LP_NUM_THREADS: 2
     CROSVM_MEMORY: 12288
     CROSVM_CPU: $FDO_CI_CONCURRENT
-    CROSVM_GPU_ARGS: "vulkan=true,gles=false,backend=virglrenderer,egl=true,surfaceless=true"
+    CROSVM_GPU_ARGS: "vulkan=true,gles=false,backend=virglrenderer,egl=true,surfaceless=true,fixed-blob-mapping=false"
