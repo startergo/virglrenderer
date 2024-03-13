@@ -28,6 +28,7 @@ struct vcomp_object
       cl_event event;
       cl_program program;
       cl_sampler sampler;
+      cl_kernel kernel;
    } handle;
 };
 

@@ -202,6 +202,8 @@ vcl_sources = [
    'vcl/vcomp_sampler.h',
    'vcl/vcomp_platform.c',
    'vcl/vcomp_platform.h',
+   'vcl/vcomp_kernel.c',
+   'vcl/vcomp_kernel.h',
    'vcl/vcomp_queue.c',
    'vcl/vcomp_queue.h',
    'vcl/vcomp_transport.c',

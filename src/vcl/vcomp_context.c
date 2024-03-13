@@ -16,6 +16,7 @@
 #include "vcomp_transport.h"
 #include "vcomp_queue.h"
 #include "vcomp_program.h"
+#include "vcomp_kernel.h"
 
 #include "vcl-protocol/vcl_protocol_renderer_dispatches.h"
 
@@ -222,6 +223,7 @@ vcomp_context_init_dispatch(struct vcomp_context *vctx)
    vcomp_context_init_event_dispatch(vctx);
    vcomp_context_init_program_dispatch(vctx);
    vcomp_context_init_sampler_dispatch(vctx);
+   vcomp_context_init_kernel_dispatch(vctx);
 }
 
 static void
