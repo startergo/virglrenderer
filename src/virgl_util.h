@@ -139,7 +139,7 @@ trace_end(UNUSED void **scope)
    TRACE_EVENT_END(virgl);
 }
 
-#else
+#else /* ENABLE_TRACING == TRACE_WITH_PERCETTO */
 
 void *trace_begin(const char *scope);
 void trace_end(void **scope);
@@ -149,11 +149,15 @@ void trace_end(void **scope);
 #define TRACE_SCOPE(SCOPE) \
    void *trace_dummy __attribute__((cleanup (trace_end), unused)) = \
    trace_begin(SCOPE)
+#ifdef DEBUG
 #define TRACE_SCOPE_SLOW(SCOPE) TRACE_SCOPE(SCOPE)
+#else /* DEBUG */
+#define TRACE_SCOPE_SLOW(SCOPE)
+#endif /* DEBUG */
 #define TRACE_SCOPE_BEGIN(SCOPE) trace_begin(SCOPE)
 #define TRACE_SCOPE_END(SCOPE_OBJ)  trace_end(&SCOPE_OBJ)
 
-#else
+#else /* ENABLE_TRACING */
 #define TRACE_INIT()
 #define TRACE_FUNC()
 #define TRACE_SCOPE(SCOPE)
