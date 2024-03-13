@@ -204,6 +204,8 @@ vcl_sources = [
    'vcl/vcomp_queue.h',
    'vcl/vcomp_transport.c',
    'vcl/vcomp_transport.h',
+   'vcl/vcomp_program.c',
+   'vcl/vcomp_program.h'
 ]
 
 virgl_depends = [

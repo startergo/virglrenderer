@@ -26,6 +26,8 @@ struct vcomp_object
       cl_command_queue queue;
       cl_mem memory;
       cl_event event;
+      cl_program program;
+
    } handle;
 };
 
