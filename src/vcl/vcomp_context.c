@@ -217,6 +217,17 @@ vcomp_context_init_dispatch(struct vcomp_context *vctx)
 }
 
 static void
+vcomp_retire_fences(UNUSED struct virgl_context *ctx)
+{
+}
+
+static int
+vcomp_get_fencing_fd(UNUSED struct virgl_context *ctx)
+{
+   return 0;
+}
+
+static void
 vcomp_context_init_base(struct vcomp_context *vctx,
                         uint32_t ctx_id)
 {
@@ -228,6 +239,8 @@ vcomp_context_init_base(struct vcomp_context *vctx,
    ctx->detach_resource = vcomp_context_detach_resource;
    ctx->transfer_3d = vcomp_context_transfer_3d;
    ctx->submit_cmd = vcomp_context_submit_cmd;
+   ctx->retire_fences = vcomp_retire_fences;
+   ctx->get_fencing_fd = vcomp_get_fencing_fd;
 }
 
 static uint32_t
