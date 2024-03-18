@@ -152,11 +152,10 @@ vcomp_dispatch_clSetCommandQueueProperty(struct vcl_dispatch_context *dispatch,
 }
 
 static void
-vcomp_dispatch_clSetDefaultDeviceCommandQueue(struct vcl_dispatch_context *dispatch,
+vcomp_dispatch_clSetDefaultDeviceCommandQueue(UNUSED struct vcl_dispatch_context *dispatch,
                                               struct vcl_command_clSetDefaultDeviceCommandQueue *args)
 {
 #ifdef CL_API_SUFFIX__VERSION_2_1
-   struct vcomp_context *vctx = dispatch->data;
    args->ret = CL_SUCCESS;
 
    struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
