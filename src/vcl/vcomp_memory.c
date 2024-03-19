@@ -61,6 +61,22 @@ vcomp_dispatch_clReleaseMemObject(struct vcl_dispatch_context *dispatch, struct 
 }
 
 static void
+vcomp_dispatch_clGetMemObjectInfo(UNUSED struct vcl_dispatch_context *dispatch,
+                                  struct vcl_command_clGetMemObjectInfo *args)
+{
+   struct vcomp_memory *memory = vcomp_memory_from_handle(args->memobj);
+   if (!memory)
+   {
+      args->ret = CL_INVALID_MEM_OBJECT;
+      return;
+   }
+
+   args->ret = clGetMemObjectInfo(memory->base.handle.memory, args->param_name,
+                                  args->param_value_size, args->param_value,
+                                  args->param_value_size_ret);
+}
+
+static void
 vcomp_dispatch_clEnqueueReadBuffer(UNUSED struct vcl_dispatch_context *dispatch,
                                    struct vcl_command_clEnqueueReadBuffer *args)
 {
@@ -110,6 +126,7 @@ void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
 {
    vctx->dispatch.dispatch_clCreateBufferMESA = vcomp_dispatch_clCreateBufferMESA;
    vctx->dispatch.dispatch_clReleaseMemObject = vcomp_dispatch_clReleaseMemObject;
+   vctx->dispatch.dispatch_clGetMemObjectInfo = vcomp_dispatch_clGetMemObjectInfo;
    vctx->dispatch.dispatch_clEnqueueReadBuffer = vcomp_dispatch_clEnqueueReadBuffer;
    vctx->dispatch.dispatch_clEnqueueWriteBuffer = vcomp_dispatch_clEnqueueWriteBuffer;
 }
