@@ -290,6 +290,7 @@ libvirgl = static_library(
    virgl_sources,
    include_directories: [inc_gallium, inc_configuration, 'vcl', 'venus', 'drm', 'drm/drm-uapi'],
    dependencies : virgl_depends,
+   c_args: ['-Wno-deprecated-declarations'],
 )
 
 libvirgl_inc = [
