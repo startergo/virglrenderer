@@ -7,6 +7,7 @@
 #include "vcomp_cl_context.h"
 #include "vcomp_context.h"
 #include "vcomp_queue.h"
+#include "vcomp_event.h"
 
 static void
 vcomp_dispatch_clCreateBufferMESA(struct vcl_dispatch_context *ctx,
@@ -77,9 +78,10 @@ vcomp_dispatch_clGetMemObjectInfo(UNUSED struct vcl_dispatch_context *dispatch,
 }
 
 static void
-vcomp_dispatch_clEnqueueReadBuffer(UNUSED struct vcl_dispatch_context *dispatch,
+vcomp_dispatch_clEnqueueReadBuffer(struct vcl_dispatch_context *dispatch,
                                    struct vcl_command_clEnqueueReadBuffer *args)
 {
+   struct vcomp_context *vctx = dispatch->data;
    struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
    if (!queue)
    {
@@ -93,16 +95,28 @@ vcomp_dispatch_clEnqueueReadBuffer(UNUSED struct vcl_dispatch_context *dispatch,
       return;
    }
 
-   args->ret = clEnqueueReadBuffer(queue->base.handle.queue,
-                                   mem->base.handle.memory,
-                                   args->blocking_read, args->offset,
-                                   args->size, args->ptr, 0, NULL, NULL);
+   cl_event host_event;
+   args->ret = clEnqueueReadBuffer(queue->base.handle.queue, mem->base.handle.memory,
+                                   args->blocking_read, args->offset, args->size,
+                                   args->ptr, 0, NULL, args->event ? &host_event : NULL);
+
+   if (args->ret != CL_SUCCESS)
+   {
+      return;
+   }
+
+   /* Need to create a new vcomp event */
+   if (args->event)
+   {
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+   }
 }
 
 static void
-vcomp_dispatch_clEnqueueWriteBuffer(UNUSED struct vcl_dispatch_context *dispatch,
+vcomp_dispatch_clEnqueueWriteBuffer(struct vcl_dispatch_context *dispatch,
                                     struct vcl_command_clEnqueueWriteBuffer *args)
 {
+   struct vcomp_context *vctx = dispatch->data;
    struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
    if (!queue)
    {
@@ -116,10 +130,21 @@ vcomp_dispatch_clEnqueueWriteBuffer(UNUSED struct vcl_dispatch_context *dispatch
       return;
    }
 
-   args->ret = clEnqueueWriteBuffer(queue->base.handle.queue,
-                                    mem->base.handle.memory,
-                                    args->blocking_write, args->offset,
-                                    args->size, args->ptr, 0, NULL, NULL);
+   cl_event host_event;
+   args->ret = clEnqueueWriteBuffer(queue->base.handle.queue, mem->base.handle.memory,
+                                    args->blocking_write, args->offset, args->size,
+                                    args->ptr, 0, NULL, args->event ? &host_event : NULL);
+
+   if (args->ret != CL_SUCCESS)
+   {
+      return;
+   }
+
+   /* Need to create a new vcomp event */
+   if (args->event)
+   {
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+   }
 }
 
 void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
