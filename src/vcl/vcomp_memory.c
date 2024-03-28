@@ -185,6 +185,43 @@ vcomp_dispatch_clCreateImage2DMESA(struct vcl_dispatch_context *ctx,
    vcomp_context_add_object(vctx, &memory->base);
 }
 
+static void
+vcomp_dispatch_clCreateImage3DMESA(struct vcl_dispatch_context *ctx,
+                                   struct vcl_command_clCreateImage3DMESA *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+
+   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
+   if (!context)
+   {
+      args->ret = CL_INVALID_CONTEXT;
+      return;
+   }
+
+   cl_mem mem = clCreateImage3D(context->base.handle.cl_context, args->flags, args->image_format, args->image_width,
+                                args->image_height, args->image_depth, args->image_row_pitch, args->image_slice_pitch,
+                                (void *)args->host_ptr, &args->ret);
+   if (!mem)
+      return;
+
+   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->image);
+   if (!vcomp_context_validate_object_id(vctx, id))
+   {
+      args->ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
+   struct vcomp_memory *memory = vcomp_object_alloc(sizeof(*memory), id);
+   if (!memory)
+   {
+      args->ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
+   memory->base.handle.memory = mem;
+   vcomp_context_add_object(vctx, &memory->base);
+}
+
 void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
 {
    vctx->dispatch.dispatch_clCreateBufferMESA = vcomp_dispatch_clCreateBufferMESA;
@@ -193,6 +230,7 @@ void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
    vctx->dispatch.dispatch_clEnqueueReadBuffer = vcomp_dispatch_clEnqueueReadBuffer;
    vctx->dispatch.dispatch_clEnqueueWriteBuffer = vcomp_dispatch_clEnqueueWriteBuffer;
    vctx->dispatch.dispatch_clCreateImage2DMESA = vcomp_dispatch_clCreateImage2DMESA;
+   vctx->dispatch.dispatch_clCreateImage3DMESA = vcomp_dispatch_clCreateImage3DMESA;
 }
 
 cl_int vcomp_memory_destroy(struct vcomp_context *vctx, struct vcomp_memory *memory)
