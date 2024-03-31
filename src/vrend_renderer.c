@@ -9127,6 +9127,19 @@ static void vrend_swizzle_data_bgra(uint64_t size, void *data) {
    }
 }
 
+static void vrend_swizzle_data_bgrx(uint64_t size, void *data) {
+   const size_t in_bpp = 4;
+   const size_t out_bpp = 3;
+   const size_t num_pixels = size / in_bpp;
+   for (size_t i = 0; i < num_pixels; ++i) {
+      uint32_t in_pixel = *(((uint32_t *)data) + i);
+      unsigned char *out_pixel = ((unsigned char*)data) + i * out_bpp;
+      out_pixel[2] =  (in_pixel & 0xff0000) >> 16;
+      out_pixel[1] =  (in_pixel & 0xff00) >> 8;
+      out_pixel[0] =  in_pixel & 0xff;
+   }
+}
+
 static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
                                              struct vrend_resource *res,
                                              const struct iovec *iov, int num_iovs,
@@ -9310,7 +9323,13 @@ static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
           * internal format. So we fallback to performing a CPU swizzle before uploading. */
          if (vrend_state.use_gles && vrend_format_is_bgra(res->base.format)) {
             VREND_DEBUG(dbg_bgra, ctx, "manually swizzling bgra->rgba on upload since gles+bgra\n");
-            vrend_swizzle_data_bgra(send_size, data);
+            if (res->base.format == VIRGL_FORMAT_B8G8R8X8_UNORM ||
+                res->base.format == VIRGL_FORMAT_B8G8R8X8_SRGB) {
+               glformat = GL_RGB8;
+               vrend_swizzle_data_bgrx(send_size, data);
+            } else {
+               vrend_swizzle_data_bgra(send_size, data);
+            }
          }
 
          /* mipmaps are usually passed in one iov, and we need to keep the offset
