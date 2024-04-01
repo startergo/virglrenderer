@@ -192,7 +192,8 @@ vkr_cs_encoder_write(struct vkr_cs_encoder *enc,
    }
 
    /* we should not rely on the compiler to optimize away memcpy... */
-   memcpy(enc->cur, val, val_size);
+   if (enc->cur != val)
+      memcpy(enc->cur, val, val_size);
    enc->cur += size;
 }
 
@@ -276,7 +277,8 @@ vkr_cs_decoder_peek_internal(const struct vkr_cs_decoder *dec,
    }
 
    /* we should not rely on the compiler to optimize away memcpy... */
-   memcpy(val, dec->cur, val_size);
+   if (dec->cur != val)
+      memcpy(val, dec->cur, val_size);
    return true;
 }
 
@@ -367,6 +369,20 @@ vkr_cs_decoder_alloc_temp_array(struct vkr_cs_decoder *dec, size_t size, size_t 
    }
 
    return vkr_cs_decoder_alloc_temp(dec, alloc_size);
+}
+
+static inline void *
+vkr_cs_decoder_get_blob_storage(struct vkr_cs_decoder *dec, size_t size)
+{
+   return unlikely(size > (size_t)(dec->end - dec->cur)) ? NULL : (void *)dec->cur;
+}
+
+static inline void *
+vkr_cs_encoder_get_blob_storage(struct vkr_cs_encoder *enc, size_t offset, size_t size)
+{
+   return unlikely(offset + size > (size_t)(enc->end - enc->cur))
+             ? NULL
+             : (void *)(enc->cur + offset);
 }
 
 static inline bool
