@@ -222,6 +222,23 @@ vcomp_dispatch_clCreateImage3DMESA(struct vcl_dispatch_context *ctx,
    vcomp_context_add_object(vctx, &memory->base);
 }
 
+static void
+vcomp_dispatch_clGetSupportedImageFormats(
+    UNUSED struct vcl_dispatch_context *ctx,
+    struct vcl_command_clGetSupportedImageFormats *args)
+{
+   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
+   if (!context)
+   {
+      args->ret = CL_INVALID_CONTEXT;
+      return;
+   }
+
+   args->ret = clGetSupportedImageFormats(context->base.handle.cl_context, args->flags,
+                                          args->image_type, args->num_entries,
+                                          args->image_formats, args->num_image_formats);
+}
+
 void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
 {
    vctx->dispatch.dispatch_clCreateBufferMESA = vcomp_dispatch_clCreateBufferMESA;
@@ -231,6 +248,8 @@ void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
    vctx->dispatch.dispatch_clEnqueueWriteBuffer = vcomp_dispatch_clEnqueueWriteBuffer;
    vctx->dispatch.dispatch_clCreateImage2DMESA = vcomp_dispatch_clCreateImage2DMESA;
    vctx->dispatch.dispatch_clCreateImage3DMESA = vcomp_dispatch_clCreateImage3DMESA;
+   vctx->dispatch.dispatch_clGetSupportedImageFormats =
+       vcomp_dispatch_clGetSupportedImageFormats;
 }
 
 cl_int vcomp_memory_destroy(struct vcomp_context *vctx, struct vcomp_memory *memory)
