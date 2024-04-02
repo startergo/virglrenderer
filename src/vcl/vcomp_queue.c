@@ -184,6 +184,34 @@ vcomp_dispatch_clSetDefaultDeviceCommandQueue(UNUSED struct vcl_dispatch_context
 #endif /* CL_API_SUFFIX__VERSION_2_1 */
 }
 
+static void
+vcomp_dispatch_clFlush(UNUSED struct vcl_dispatch_context *dispatch,
+                       struct vcl_command_clFlush *args)
+{
+   struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
+   if (!queue)
+   {
+      args->ret = CL_INVALID_COMMAND_QUEUE;
+      return;
+   }
+
+   args->ret = clFlush(queue->base.handle.queue);
+}
+
+static void
+vcomp_dispatch_clFinish(UNUSED struct vcl_dispatch_context *dispatch,
+                        struct vcl_command_clFinish *args)
+{
+   struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
+   if (!queue)
+   {
+      args->ret = CL_INVALID_COMMAND_QUEUE;
+      return;
+   }
+
+   args->ret = clFinish(queue->base.handle.queue);
+}
+
 void vcomp_context_init_queue_dispatch(struct vcomp_context *vctx)
 {
    struct vcl_dispatch_context *dispatch = &vctx->dispatch;
@@ -194,6 +222,8 @@ void vcomp_context_init_queue_dispatch(struct vcomp_context *vctx)
    dispatch->dispatch_clReleaseCommandQueue = vcomp_dispatch_clReleaseCommandQueue;
    dispatch->dispatch_clSetCommandQueueProperty = vcomp_dispatch_clSetCommandQueueProperty;
    dispatch->dispatch_clSetDefaultDeviceCommandQueue = vcomp_dispatch_clSetDefaultDeviceCommandQueue;
+   dispatch->dispatch_clFlush = vcomp_dispatch_clFlush;
+   dispatch->dispatch_clFinish = vcomp_dispatch_clFinish;
 }
 
 cl_int vcomp_queue_destroy(struct vcomp_context *vctx, struct vcomp_queue *queue)
