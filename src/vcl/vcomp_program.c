@@ -174,6 +174,46 @@ vcomp_dispatch_clReleaseProgram(struct vcl_dispatch_context *dispatch,
    vcomp_context_remove_object(vctx, &program->base);
 }
 
+/* The param_value parameter is expected to be a contiguous array of arrays */
+static cl_int
+vcomp_program_get_binaries(struct vcomp_program *program, uint8_t *param_value,
+                           size_t *param_value_size_ret)
+{
+   /* Query the size of this array */
+   size_t binary_count = 0;
+   cl_int ret = clGetProgramInfo(program->base.handle.program, CL_PROGRAM_BINARY_SIZES, 0,
+                                 NULL, &binary_count);
+   if (ret != CL_SUCCESS)
+   {
+      return ret;
+   }
+   /* The returned value is in bytes, so adjust it */
+   assert(binary_count % sizeof(size_t) == 0);
+   binary_count = binary_count / sizeof(size_t);
+
+   /* Query the size of each binary */
+   size_t *binary_sizes = calloc(binary_count, sizeof(binary_sizes[0]));
+   ret = clGetProgramInfo(program->base.handle.program, CL_PROGRAM_BINARY_SIZES,
+                          binary_count * sizeof(binary_sizes[0]), binary_sizes, NULL);
+   if (ret != CL_SUCCESS)
+   {
+      return ret;
+   }
+
+   /* Create a new array of pointers to binaries memory in args */
+   uint8_t **binaries = calloc(binary_count, sizeof(binaries[0]));
+   for (size_t i = 0, offset = 0; i < binary_count; i++)
+   {
+      binaries[i] = param_value + offset;
+      offset += binary_sizes[i];
+   }
+
+   /* Copy the binaries directly the args->param_value */
+   return clGetProgramInfo(program->base.handle.program, CL_PROGRAM_BINARIES,
+                           binary_count * sizeof(binaries[0]), binaries,
+                           param_value_size_ret);
+}
+
 static void
 vcomp_dispatch_clGetProgramInfo(UNUSED struct vcl_dispatch_context *dispatch,
                                 struct vcl_command_clGetProgramInfo *args)
@@ -185,12 +225,21 @@ vcomp_dispatch_clGetProgramInfo(UNUSED struct vcl_dispatch_context *dispatch,
       return;
    }
 
-   args->ret = clGetProgramInfo(
-       program->base.handle.program,
-       args->param_name,
-       args->param_value_size,
-       args->param_value,
-       args->param_value_size_ret);
+   /* Special handling is required for this */
+   if (args->param_name == CL_PROGRAM_BINARIES && args->param_value != NULL)
+   {
+      args->ret = vcomp_program_get_binaries(program, args->param_value,
+                                             args->param_value_size_ret);
+   }
+   else
+   {
+      args->ret = clGetProgramInfo(
+          program->base.handle.program,
+          args->param_name,
+          args->param_value_size,
+          args->param_value,
+          args->param_value_size_ret);
+   }
 }
 
 static void
