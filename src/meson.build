@@ -198,6 +198,8 @@ vcl_sources = [
    'vcl/vcomp_memory.h',
    'vcl/vcomp_renderer.c',
    'vcl/vcomp_renderer.h',
+   'vcl/vcomp_sampler.c',
+   'vcl/vcomp_sampler.h',
    'vcl/vcomp_platform.c',
    'vcl/vcomp_platform.h',
    'vcl/vcomp_queue.c',

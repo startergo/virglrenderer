@@ -27,7 +27,7 @@ struct vcomp_object
       cl_mem memory;
       cl_event event;
       cl_program program;
-
+      cl_sampler sampler;
    } handle;
 };
 
