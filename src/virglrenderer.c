@@ -87,7 +87,7 @@ static int virgl_renderer_resource_create_internal(struct virgl_renderer_resourc
    struct vrend_renderer_resource_create_args vrend_args =  { 0 };
    uint32_t map_info;
 
-   if (!state.vrend_initialized)
+   if (!state.vrend_initialized && !state.drm_initialized)
       return EINVAL;
 
    /* do not accept handle 0 */
