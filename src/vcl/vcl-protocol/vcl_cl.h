@@ -22,4 +22,18 @@ typedef cl_properties cl_mem_properties;
 #include <CL/cl.h>
 #endif
 
+typedef struct cl_image_desc_MESA
+{
+   cl_mem_object_type image_type;
+   size_t image_width;
+   size_t image_height;
+   size_t image_depth;
+   size_t image_array_size;
+   size_t image_row_pitch;
+   size_t image_slice_pitch;
+   cl_uint num_mip_levels;
+   cl_uint num_samples;
+   cl_mem mem_object;
+} cl_image_desc_MESA;
+
 #endif /* VCL_CL_H */
