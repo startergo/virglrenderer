@@ -989,10 +989,16 @@ bool vrend_format_is_bgra(enum virgl_formats format) {
 
 static bool vrend_resource_has_24bpp_internal_format(const struct vrend_resource *res)
 {
-   /* Some shared resources imported to guest mesa as EGL images occupy 24bpp instead of more common 32bpp. */
+   /* Some shared resources imported to guest mesa as EGL images occupy 24bpp instead of more common 32bpp.
+    *
+    * TODO: perhaps this can be generalized to all alpha-less formats?
+    */
+   const enum virgl_formats format = res->base.format;
    return (has_bit(res->storage_bits, VREND_STORAGE_EGL_IMAGE) &&
-           (res->base.format == VIRGL_FORMAT_B8G8R8X8_UNORM ||
-            res->base.format == VIRGL_FORMAT_R8G8B8X8_UNORM));
+           (format == VIRGL_FORMAT_B8G8R8X8_UNORM ||
+            format == VIRGL_FORMAT_B8G8R8X8_SRGB ||
+            format == VIRGL_FORMAT_R8G8B8X8_UNORM ||
+            format == VIRGL_FORMAT_R8G8B8X8_SRGB));
 }
 
 static bool vrend_resource_supports_view(const struct vrend_resource *res,
@@ -9127,16 +9133,29 @@ static void vrend_swizzle_data_bgra(uint64_t size, void *data) {
    }
 }
 
-static void vrend_swizzle_data_bgrx(uint64_t size, void *data) {
+static void vrend_swizzle_and_collapse_data_bgrx(uint64_t size, void *data) {
    const size_t in_bpp = 4;
    const size_t out_bpp = 3;
+
+   uint8_t *in_pixel, *out_pixel;
+   in_pixel = out_pixel = data;
+
+   // in-place modification, so output cursor must not lead
+   assert(in_bpp >= out_bpp);
+
+   uint8_t r, g, b;
    const size_t num_pixels = size / in_bpp;
    for (size_t i = 0; i < num_pixels; ++i) {
-      uint32_t in_pixel = *(((uint32_t *)data) + i);
-      unsigned char *out_pixel = ((unsigned char*)data) + i * out_bpp;
-      out_pixel[2] =  (in_pixel & 0xff0000) >> 16;
-      out_pixel[1] =  (in_pixel & 0xff00) >> 8;
-      out_pixel[0] =  in_pixel & 0xff;
+      b = *(in_pixel + 0);
+      g = *(in_pixel + 1);
+      r = *(in_pixel + 2);
+
+      *(out_pixel + 0) = r;
+      *(out_pixel + 1) = g;
+      *(out_pixel + 2) = b;
+
+      in_pixel += in_bpp;
+      out_pixel += out_bpp;
    }
 }
 
@@ -9322,12 +9341,21 @@ static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
          /* GLES doesn't allow format conversions, which we need for BGRA resources with RGBA
           * internal format. So we fallback to performing a CPU swizzle before uploading. */
          if (vrend_state.use_gles && vrend_format_is_bgra(res->base.format)) {
-            VREND_DEBUG(dbg_bgra, ctx, "manually swizzling bgra->rgba on upload since gles+bgra\n");
-            if (res->base.format == VIRGL_FORMAT_B8G8R8X8_UNORM ||
-                res->base.format == VIRGL_FORMAT_B8G8R8X8_SRGB) {
-               glformat = GL_RGB8;
-               vrend_swizzle_data_bgrx(send_size, data);
+            if (vrend_resource_has_24bpp_internal_format(res)) {
+               /* to make matters worse, if the resource is actually backed by a 24bpp memory
+                * layout, but the sent data is 32bpp (with ignored alpha), then we must:
+                *   - swizzle r/b channels
+                *   - collapse to 24bpp
+                * To do so, we reconfigure the unpack params and perform in-place modification of
+                * the sent data (and perform the inverse on the readback path).
+                */
+               VREND_DEBUG(dbg_bgra, ctx, "manually swizzling+collapsing bgrx(32bpp)->rgb(24bpp) on upload since gles+bgrx\n");
+               glformat = GL_RGB;
+               glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+               glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+               vrend_swizzle_and_collapse_data_bgrx(send_size, data);
             } else {
+               VREND_DEBUG(dbg_bgra, ctx, "manually swizzling bgra->rgba on upload since gles+bgra\n");
                vrend_swizzle_data_bgra(send_size, data);
             }
          }
@@ -9684,8 +9712,12 @@ static int vrend_transfer_send_readpixels(struct vrend_context *ctx,
     * The notable exception is externally-stored (GBM/EGL) BGR* resources, for which BGR*
     * byte-ordering is used instead to match external access patterns. */
    if (vrend_state.use_gles && vrend_format_is_bgra(res->base.format)) {
-      VREND_DEBUG(dbg_bgra, ctx, "manually swizzling rgba->bgra on readback since gles+bgra\n");
-      vrend_swizzle_data_bgra(send_size, data);
+      if (vrend_resource_has_24bpp_internal_format(res)) {
+         VREND_DEBUG(dbg_bgra, ctx, "TODO: manually swizzling+expanding rgb(24bpp)->bgrx(32bpp) on readback since gles+bgrx\n");
+      } else {
+         VREND_DEBUG(dbg_bgra, ctx, "manually swizzling rgba->bgra on readback since gles+bgra\n");
+         vrend_swizzle_data_bgra(send_size, data);
+      }
    }
 
    if (res->base.format == VIRGL_FORMAT_Z24X8_UNORM) {
