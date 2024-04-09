@@ -137,6 +137,7 @@ vcomp_dispatch_clSetKernelArg(struct vcl_dispatch_context *dispatch,
                               struct vcl_command_clSetKernelArg *args)
 {
    struct vcomp_context *vctx = dispatch->data;
+   struct vcomp_object *obj = NULL;
 
    struct vcomp_kernel *kernel = vcomp_kernel_from_handle(args->kernel);
    if (!kernel)
@@ -145,14 +146,14 @@ vcomp_dispatch_clSetKernelArg(struct vcl_dispatch_context *dispatch,
       return;
    }
 
+   /* In case this is an OpenCL handle, we need to replace it with the host handle */
    const void *arg_value = args->arg_value;
-   if (arg_value) {
+   if (arg_value && args->arg_size == sizeof(vcomp_handle))
+   {
       const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->arg_value);
-      if (!id || _mesa_hash_table_search(vctx->object_table, &id))
-      {
-         struct vcomp_object *obj = (struct vcomp_object *)args->arg_value;
-         arg_value = (const void *)obj->handle.u64;
-      }
+      obj = (struct vcomp_object *)_mesa_hash_table_search(vctx->object_table, &id);
+      if (obj)
+         arg_value = &obj->handle.u64;
    }
 
    args->ret = clSetKernelArg(kernel->base.handle.kernel, args->arg_index,

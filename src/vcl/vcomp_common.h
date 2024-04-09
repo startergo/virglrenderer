@@ -13,23 +13,24 @@
 
 typedef uint64_t vcomp_object_id;
 
+typedef union
+{
+   uint64_t u64;
+   cl_platform_id platform;
+   cl_device_id device;
+   cl_context cl_context;
+   cl_command_queue queue;
+   cl_mem memory;
+   cl_event event;
+   cl_program program;
+   cl_sampler sampler;
+   cl_kernel kernel;
+} vcomp_handle;
+
 struct vcomp_object
 {
    vcomp_object_id id;
-
-   union
-   {
-      uint64_t u64;
-      cl_platform_id platform;
-      cl_device_id device;
-      cl_context cl_context;
-      cl_command_queue queue;
-      cl_mem memory;
-      cl_event event;
-      cl_program program;
-      cl_sampler sampler;
-      cl_kernel kernel;
-   } handle;
+   vcomp_handle handle;
 };
 
 /* define a type-safe cast function */
