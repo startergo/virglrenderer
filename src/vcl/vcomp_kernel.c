@@ -4,6 +4,8 @@
  */
 
 #include "vcomp_kernel.h"
+#include "vcomp_queue.h"
+#include "vcomp_event.h"
 #include "vcomp_context.h"
 #include "vcomp_cl_context.h"
 #include "vcomp_device.h"
@@ -201,6 +203,43 @@ vcomp_dispatch_clGetKernelWorkGroupInfo(UNUSED struct vcl_dispatch_context *disp
 }
 
 static void
+vcomp_dispatch_clEnqueueNDRangeKernel(struct vcl_dispatch_context *dispatch,
+                                      struct vcl_command_clEnqueueNDRangeKernel *args)
+{
+   struct vcomp_context *vctx = dispatch->data;
+   struct vcomp_kernel *kernel = vcomp_kernel_from_handle(args->kernel);
+   struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
+   cl_event host_event = NULL;
+
+   if (!queue)
+   {
+      args->ret = CL_INVALID_COMMAND_QUEUE;
+      return;
+   }
+
+   if (!kernel)
+   {
+      args->ret = CL_INVALID_KERNEL;
+      return;
+   }
+
+   args->ret = clEnqueueNDRangeKernel(queue->base.handle.queue,
+                                      kernel->base.handle.kernel,
+                                      args->work_dim,
+                                      args->global_work_offset,
+                                      args->global_work_size,
+                                      args->local_work_size,
+                                      args->num_events_in_wait_list,
+                                      args->event_wait_list,
+                                      args->event ? &host_event : NULL);
+
+   if (args->event)
+   {
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+   }
+}
+
+static void
 vcomp_dispatch_clGetKernelArgInfo(UNUSED struct vcl_dispatch_context *dispatch,
                                   struct vcl_command_clGetKernelArgInfo *args)
 {
@@ -337,6 +376,7 @@ void vcomp_context_init_kernel_dispatch(struct vcomp_context *vctx)
    dispatch->dispatch_clSetKernelArg = vcomp_dispatch_clSetKernelArg;
    dispatch->dispatch_clGetKernelInfo = vcomp_dispatch_clGetKernelInfo;
    dispatch->dispatch_clGetKernelWorkGroupInfo = vcomp_dispatch_clGetKernelWorkGroupInfo;
+   dispatch->dispatch_clEnqueueNDRangeKernel = vcomp_dispatch_clEnqueueNDRangeKernel;
    dispatch->dispatch_clGetKernelArgInfo = vcomp_dispatch_clGetKernelArgInfo;
    dispatch->dispatch_clSetKernelArgSVMPointer = vcomp_dispatch_clSetKernelArgSVMPointer;
    dispatch->dispatch_clSetKernelExecInfo = vcomp_dispatch_clSetKernelExecInfo;
