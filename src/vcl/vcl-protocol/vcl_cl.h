@@ -8,20 +8,20 @@
 
 #define CL_USE_DEPRECATED_OPENCL_1_1_APIS
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
-
-#ifdef __APPLE__
-#include <opencl.h>
-
 #define CL_API_SUFFIX__VERSION_1_1_DEPRECATED
 #define CL_API_SUFFIX__VERSION_1_2_DEPRECATED
 
-typedef cl_ulong cl_properties;
-typedef cl_properties cl_queue_properties;
-typedef cl_properties cl_mem_properties;
-
+#ifdef __APPLE__
+#include <opencl.h>
 #else
 #define CL_TARGET_OPENCL_VERSION 300
 #include <CL/cl.h>
+#endif
+
+#ifndef CL_VERSION_3_0
+typedef cl_ulong cl_properties;
+typedef cl_properties cl_queue_properties;
+typedef cl_properties cl_mem_properties;
 #endif
 
 typedef struct cl_image_desc_MESA
