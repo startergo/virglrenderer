@@ -151,9 +151,11 @@ vcomp_dispatch_clSetKernelArg(struct vcl_dispatch_context *dispatch,
    if (arg_value && args->arg_size == sizeof(vcomp_handle))
    {
       const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->arg_value);
-      obj = (struct vcomp_object *)_mesa_hash_table_search(vctx->object_table, &id);
-      if (obj)
+      obj = vcomp_context_get_object(vctx, id);
+      if (obj) {
+         /* clSetKernelArg expects a pointer to the handle */
          arg_value = &obj->handle.u64;
+      }
    }
 
    args->ret = clSetKernelArg(kernel->base.handle.kernel, args->arg_index,
