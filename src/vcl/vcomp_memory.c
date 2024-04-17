@@ -297,6 +297,250 @@ vcomp_dispatch_clGetImageInfo(UNUSED struct vcl_dispatch_context *ctx,
                               args->param_value_size_ret);
 }
 
+static void
+vcomp_dispatch_clCreateImageMESA(struct vcl_dispatch_context *ctx,
+                                 struct vcl_command_clCreateImageMESA *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
+   cl_image_desc image_desc;
+   image_desc.image_type = args->image_desc->image_type;
+   image_desc.image_width = args->image_desc->image_width;
+   image_desc.image_height = args->image_desc->image_height;
+   image_desc.image_depth = args->image_desc->image_depth;
+   image_desc.image_array_size = args->image_desc->image_array_size;
+   image_desc.image_row_pitch = args->image_desc->image_row_pitch;
+   image_desc.image_slice_pitch = args->image_desc->image_slice_pitch;
+   image_desc.num_mip_levels = args->image_desc->num_mip_levels;
+   image_desc.num_samples = args->image_desc->num_samples;
+   image_desc.buffer = args->image_desc->mem_object;
+
+   if (!context)
+   {
+      args->ret = CL_INVALID_CONTEXT;
+      return;
+   }
+
+   cl_mem mem = clCreateImage(context->base.handle.cl_context, args->flags, args->image_format, &image_desc, (void *)args->host_ptr, &args->ret);
+
+   if (!mem)
+   {
+      return;
+   }
+
+   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->image);
+   if (!vcomp_context_validate_object_id(vctx, id))
+   {
+      args->ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
+   struct vcomp_memory *memory = vcomp_object_alloc(sizeof(*memory), id);
+   if (!memory)
+   {
+      args->ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
+   memory->base.handle.memory = mem;
+   vcomp_context_add_object(vctx, &memory->base);
+}
+
+static void
+vcomp_dispatch_clCreateImageWithPropertiesMESA(struct vcl_dispatch_context *ctx,
+                                               struct vcl_command_clCreateImageWithPropertiesMESA *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
+
+   cl_image_desc image_desc;
+   image_desc.image_type = args->image_desc->image_type;
+   image_desc.image_width = args->image_desc->image_width;
+   image_desc.image_height = args->image_desc->image_height;
+   image_desc.image_depth = args->image_desc->image_depth;
+   image_desc.image_array_size = args->image_desc->image_array_size;
+   image_desc.image_row_pitch = args->image_desc->image_row_pitch;
+   image_desc.image_slice_pitch = args->image_desc->image_slice_pitch;
+   image_desc.num_mip_levels = args->image_desc->num_mip_levels;
+   image_desc.num_samples = args->image_desc->num_samples;
+   image_desc.buffer = args->image_desc->mem_object;
+
+   if (!context)
+   {
+      args->ret = CL_INVALID_CONTEXT;
+      return;
+   }
+
+   cl_mem mem = clCreateImageWithProperties(context->base.handle.cl_context, args->properties, args->flags, args->image_format, &image_desc, (void *)args->host_ptr, &args->ret);
+
+   if (!mem)
+   {
+      return;
+   }
+
+   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->image);
+   if (!vcomp_context_validate_object_id(vctx, id))
+   {
+      args->ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
+   struct vcomp_memory *memory = vcomp_object_alloc(sizeof(*memory), id);
+   if (!memory)
+   {
+      args->ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
+   memory->base.handle.memory = mem;
+   vcomp_context_add_object(vctx, &memory->base);
+}
+
+static void
+vcomp_dispatch_clEnqueueReadImageMESA(struct vcl_dispatch_context *ctx,
+                                      struct vcl_command_clEnqueueReadImageMESA *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+
+   vcl_replace_clEnqueueReadImageMESA_args_handle(args);   
+
+   cl_event host_event;
+   
+   args->ret = clEnqueueReadImage(args->command_queue,
+                                  args->image,
+                                  args->blocking_read,
+                                  args->origin, args->region,
+                                  args->row_pitch,
+                                  args->slice_pitch,
+                                  args->ptr,
+                                  args->num_events_in_wait_list,
+                                  args->event_wait_list,
+                                  args->event? &host_event : NULL);
+
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
+static void
+vcomp_dispatch_clEnqueueWriteImageMESA(struct vcl_dispatch_context *ctx,
+                                       struct vcl_command_clEnqueueWriteImageMESA *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+
+   vcl_replace_clEnqueueWriteImageMESA_args_handle(args);
+
+   cl_event host_event;
+
+   args->ret = clEnqueueWriteImage(args->command_queue,
+                                   args->image,
+                                   args->blocking_write,
+                                   args->origin, args->region,
+                                   args->input_row_pitch,
+                                   args->input_slice_pitch,
+                                   args->ptr,
+                                   args->num_events_in_wait_list,
+                                   args->event_wait_list,
+                                   args->event? &host_event : NULL);
+
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
+static void
+vcomp_dispatch_clEnqueueCopyImage(struct vcl_dispatch_context *ctx,
+                                  struct vcl_command_clEnqueueCopyImage *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+
+   vcl_replace_clEnqueueCopyImage_args_handle(args);
+
+   cl_event host_event;
+
+   args->ret = clEnqueueCopyImage(args->command_queue,
+                                  args->src_image,
+                                  args->dst_image,
+                                  args->src_origin,
+                                  args->dst_origin,
+                                  args->region,
+                                  args->num_events_in_wait_list,
+                                  args->event_wait_list,
+                                  args->event? &host_event : NULL);
+   
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
+static void
+vcomp_dispatch_clEnqueueCopyImageToBuffer(struct vcl_dispatch_context *ctx,
+                                          struct vcl_command_clEnqueueCopyImageToBuffer *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+
+   vcl_replace_clEnqueueCopyImageToBuffer_args_handle(args);
+
+   cl_event host_event;
+
+   args->ret = clEnqueueCopyImageToBuffer(args->command_queue,
+                                          args->src_image,
+                                          args->dst_buffer,
+                                          args->src_origin,
+                                          args->region,
+                                          args->dst_offset,
+                                          args->num_events_in_wait_list,
+                                          args->event_wait_list,
+                                          args->event? &host_event : NULL);
+
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
+static void
+vcomp_dispatch_clEnqueueCopyBufferToImage(struct vcl_dispatch_context *ctx,
+                                          struct vcl_command_clEnqueueCopyBufferToImage *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+
+   vcl_replace_clEnqueueCopyBufferToImage_args_handle(args);
+
+   cl_event host_event;
+
+   args->ret = clEnqueueCopyBufferToImage(args->command_queue,
+                                          args->src_buffer,
+                                          args->dst_image,
+                                          args->src_offset,
+                                          args->dst_origin,
+                                          args->region,
+                                          args->num_events_in_wait_list,
+                                          args->event_wait_list,
+                                          args->event? &host_event : NULL);
+   
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
+static void
+vcomp_dispatch_clEnqueueFillImageMESA(struct vcl_dispatch_context *ctx,
+                                      struct vcl_command_clEnqueueFillImageMESA *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+
+   vcl_replace_clEnqueueFillImageMESA_args_handle(args);
+
+   cl_event host_event;
+
+   args->ret = clEnqueueFillImage(args->command_queue,
+                                  args->image,
+                                  args->fill_color,
+                                  args->origin,
+                                  args->region,
+                                  args->num_events_in_wait_list,
+                                  args->event_wait_list,
+                                  args->event? &host_event : NULL);
+   
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
 void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
 {
    vctx->dispatch.dispatch_clCreateBufferMESA = vcomp_dispatch_clCreateBufferMESA;
@@ -310,10 +554,17 @@ void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
    vctx->dispatch.dispatch_clEnqueueMigrateMemObjects = vcomp_dispatch_clEnqueueMigrateMemObjects;
    vctx->dispatch.dispatch_clCreateImage2DMESA = vcomp_dispatch_clCreateImage2DMESA;
    vctx->dispatch.dispatch_clCreateImage3DMESA = vcomp_dispatch_clCreateImage3DMESA;
-   vctx->dispatch.dispatch_clGetSupportedImageFormats =
-       vcomp_dispatch_clGetSupportedImageFormats;
+   vctx->dispatch.dispatch_clGetSupportedImageFormats = vcomp_dispatch_clGetSupportedImageFormats;
    vctx->dispatch.dispatch_clGetImageInfo = vcomp_dispatch_clGetImageInfo;
    vctx->dispatch.dispatch_clCreateSubBufferMESA = vcomp_dispatch_clCreateSubBufferMESA;
+   vctx->dispatch.dispatch_clCreateImageMESA = vcomp_dispatch_clCreateImageMESA;
+   vctx->dispatch.dispatch_clCreateImageWithPropertiesMESA = vcomp_dispatch_clCreateImageWithPropertiesMESA;
+   vctx->dispatch.dispatch_clEnqueueReadImageMESA = vcomp_dispatch_clEnqueueReadImageMESA;
+   vctx->dispatch.dispatch_clEnqueueWriteImageMESA = vcomp_dispatch_clEnqueueWriteImageMESA;
+   vctx->dispatch.dispatch_clEnqueueCopyImage = vcomp_dispatch_clEnqueueCopyImage;
+   vctx->dispatch.dispatch_clEnqueueCopyImageToBuffer = vcomp_dispatch_clEnqueueCopyImageToBuffer;
+   vctx->dispatch.dispatch_clEnqueueCopyBufferToImage = vcomp_dispatch_clEnqueueCopyBufferToImage;
+   vctx->dispatch.dispatch_clEnqueueFillImageMESA = vcomp_dispatch_clEnqueueFillImageMESA;
 }
 
 cl_int vcomp_memory_destroy(struct vcomp_context *vctx, struct vcomp_memory *memory)
