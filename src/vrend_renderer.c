@@ -7601,6 +7601,12 @@ int vrend_renderer_init(const struct vrend_if_cbs *cbs, uint32_t flags)
          break;
    }
 
+   if (!gl_context) {
+      virgl_error("Unable to create %s context >= 3.0\n",
+                  flags & VREND_USE_GLES ? "GLES" : "OpenGL");
+      return EINVAL;
+   }
+
    vrend_clicbs->make_current(gl_context);
    gl_ver = epoxy_gl_version();
 

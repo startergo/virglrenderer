@@ -189,6 +189,7 @@ struct vrend_if_cbs {
 #define VREND_USE_VIDEO          (1 << 3)
 #define VREND_D3D11_SHARE_TEXTURE (1 << 4)
 #define VREND_USE_COMPAT_CONTEXT (1 << 5)
+#define VREND_USE_GLES (1 << 6)
 
 bool vrend_check_no_error(struct vrend_context *ctx);
 
