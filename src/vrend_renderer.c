@@ -9664,6 +9664,26 @@ static int vrend_transfer_send_readpixels(struct vrend_context *ctx,
    enum virgl_formats fmt = res->base.format;
 
    format = tex_conv_table[fmt].glformat;
+   if (vrend_state.use_gles &&
+       res->gbm_bo) {
+      switch (fmt) {
+      case VIRGL_FORMAT_B8G8R8X8_UNORM:
+         format = tex_conv_table[VIRGL_FORMAT_B8G8R8A8_UNORM].glformat;
+         break;
+      case VIRGL_FORMAT_B8G8R8X8_SRGB:
+         format = tex_conv_table[VIRGL_FORMAT_B8G8R8A8_SRGB].glformat;
+         break;
+      case VIRGL_FORMAT_R8G8B8X8_UNORM:
+         format = tex_conv_table[VIRGL_FORMAT_R8G8B8A8_UNORM].glformat;
+         break;
+      case VIRGL_FORMAT_R8G8B8X8_SRGB:
+         format = tex_conv_table[VIRGL_FORMAT_R8G8B8A8_SRGB].glformat;
+         break;
+      default:
+         break;
+      }
+   }
+
    type = tex_conv_table[fmt].gltype;
    /* if we are asked to invert and reading from a front then don't */
 
@@ -9754,12 +9774,8 @@ static int vrend_transfer_send_readpixels(struct vrend_context *ctx,
     * The notable exception is externally-stored (GBM/EGL) BGR* resources, for which BGR*
     * byte-ordering is used instead to match external access patterns. */
    if (vrend_state.use_gles && vrend_format_is_bgra(res->base.format)) {
-      if (vrend_resource_has_24bpp_internal_format(res)) {
-         VREND_DEBUG(dbg_bgra, ctx, "TODO: manually swizzling+expanding rgb(24bpp)->bgrx(32bpp) on readback since gles+bgrx\n");
-      } else {
-         VREND_DEBUG(dbg_bgra, ctx, "manually swizzling rgba->bgra on readback since gles+bgra\n");
-         vrend_swizzle_data_bgra(send_size, data);
-      }
+      VREND_DEBUG(dbg_bgra, ctx, "manually swizzling rgba->bgra on readback since gles+bgra\n");
+      vrend_swizzle_data_bgra(send_size, data);
    }
 
    if (res->base.format == VIRGL_FORMAT_Z24X8_UNORM) {
