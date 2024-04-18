@@ -12,43 +12,59 @@
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
 
 static void
+vcomp_context_add_queue(struct vcomp_context *vctx, cl_command_queue queue,
+                        cl_command_queue *args_queue, cl_int *ret)
+{
+   if (!queue)
+   {
+      return;
+   }
+
+   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args_queue);
+   if (!vcomp_context_validate_object_id(vctx, id))
+   {
+      *ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
+   struct vcomp_queue *v_queue = vcomp_object_alloc(sizeof(*v_queue), id);
+   if (!v_queue)
+   {
+      *ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
+   v_queue->base.handle.queue = queue;
+
+   vcomp_context_add_object(vctx, &v_queue->base);
+}
+
+static void
 vcomp_dispatch_clCreateCommandQueueMESA(struct vcl_dispatch_context *dispatch,
                                         struct vcl_command_clCreateCommandQueueMESA *args)
 {
 #ifdef CL_USE_DEPRECATED_OPENCL_1_2_APIS
    struct vcomp_context *vctx = dispatch->data;
-   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
-   struct vcomp_device *device = vcomp_device_from_handle(args->device);
 
+   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
    if (!context)
    {
       args->ret = CL_INVALID_CONTEXT;
       return;
    }
+
+   struct vcomp_device *device = vcomp_device_from_handle(args->device);
    if (!device)
    {
       args->ret = CL_INVALID_DEVICE;
       return;
    }
 
-   cl_command_queue comm_queue = clCreateCommandQueue(context->base.handle.cl_context, device->base.handle.device, args->properties, &args->ret);
+   cl_command_queue queue = clCreateCommandQueue(context->base.handle.cl_context,
+                                                 device->base.handle.device,
+                                                 args->properties, &args->ret);
 
-   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->queue);
-   if (!vcomp_context_validate_object_id(vctx, id))
-   {
-      args->ret = CL_INVALID_VALUE;
-      return;
-   }
-
-   struct vcomp_queue *queue = vcomp_object_alloc(sizeof(*queue), id);
-   if (!queue)
-   {
-      args->ret = CL_OUT_OF_HOST_MEMORY;
-      return;
-   }
-
-   queue->base.handle.queue = comm_queue;
-   vcomp_context_add_object(vctx, &queue->base);
+   vcomp_context_add_queue(vctx, queue, args->queue, &args->ret);
 #else
    (void)dispatch;
    (void)args;
@@ -61,38 +77,27 @@ vcomp_dispatch_clCreateCommandQueueWithPropertiesMESA(struct vcl_dispatch_contex
 {
 #ifdef CL_API_SUFFIX__VERSION_2_0
    struct vcomp_context *vctx = dispatch->data;
-   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
-   struct vcomp_device *device = vcomp_device_from_handle(args->device);
 
+   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
    if (!context)
    {
       args->ret = CL_INVALID_CONTEXT;
       return;
    }
+
+   struct vcomp_device *device = vcomp_device_from_handle(args->device);
    if (!device)
    {
       args->ret = CL_INVALID_DEVICE;
       return;
    }
 
-   cl_command_queue comm_queue = clCreateCommandQueueWithProperties(context->base.handle.cl_context, device->base.handle.device, args->properties, &args->ret);
+   cl_command_queue queue =
+      clCreateCommandQueueWithProperties(context->base.handle.cl_context,
+                                         device->base.handle.device, args->properties,
+                                         &args->ret);
 
-   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->queue);
-   if (!vcomp_context_validate_object_id(vctx, id))
-   {
-      args->ret = CL_INVALID_VALUE;
-      return;
-   }
-
-   struct vcomp_queue *queue = vcomp_object_alloc(sizeof(*queue), id);
-   if (!queue)
-   {
-      args->ret = CL_OUT_OF_HOST_MEMORY;
-      return;
-   }
-
-   queue->base.handle.queue = comm_queue;
-   vcomp_context_add_object(vctx, &queue->base);
+   vcomp_context_add_queue(vctx, queue, args->queue, &args->ret);
 #else
    (void)dispatch;
    (void)args;
