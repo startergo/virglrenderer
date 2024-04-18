@@ -7604,7 +7604,7 @@ int vrend_renderer_init(const struct vrend_if_cbs *cbs, uint32_t flags)
    if (!gl_context) {
       virgl_error("Unable to create %s context >= 3.0\n",
                   flags & VREND_USE_GLES ? "GLES" : "OpenGL");
-      return EINVAL;
+      goto fail;
    }
 
    vrend_clicbs->make_current(gl_context);
@@ -7706,6 +7706,11 @@ int vrend_renderer_init(const struct vrend_if_cbs *cbs, uint32_t flags)
 
    /* create 0 context */
    vrend_state.ctx0 = vrend_create_context(0, strlen("HOST"), "HOST");
+   if (!vrend_state.ctx0) {
+      virgl_error("Unable to create %s vrend context\n",
+                  flags & VREND_USE_GLES ? "GLES" : "OpenGL");
+      goto fail;
+   }
 
    vrend_state.eventfd = -1;
    if (flags & VREND_USE_THREAD_SYNC) {
@@ -7720,9 +7725,14 @@ int vrend_renderer_init(const struct vrend_if_cbs *cbs, uint32_t flags)
    vrend_state.use_egl_fence = virgl_egl_supports_fences(egl);
 #endif
 
-   if (!vrend_check_no_error(vrend_state.ctx0) || !has_feature(feat_ubo)) {
-      vrend_renderer_fini();
-      return EINVAL;
+   if (!vrend_check_no_error(vrend_state.ctx0)) {
+      virgl_error("vrend context creation resulted in errors\n");
+      goto cleanup_and_fail;
+   }
+
+   if (!has_feature(feat_ubo)) {
+      virgl_error("Host context missing support for required extension ARB_uniform_buffer_object\n");
+      goto cleanup_and_fail;
    }
 
 #ifdef ENABLE_VIDEO
@@ -7737,6 +7747,10 @@ int vrend_renderer_init(const struct vrend_if_cbs *cbs, uint32_t flags)
    vrend_state.d3d_share_texture = flags & VREND_D3D11_SHARE_TEXTURE;
 
    return 0;
+cleanup_and_fail:
+   vrend_renderer_fini();
+fail:
+   return EINVAL;
 }
 
 void
