@@ -118,7 +118,8 @@ vcomp_context_transfer_send_iov(UNUSED struct vcomp_context *vctx,
                                 int iov_count,
                                 const struct vrend_transfer_info *info)
 {
-   return vrend_write_to_iovec(iov, iov_count, info->offset, vres->ptr, info->box->width);
+   vrend_write_to_iovec(iov, iov_count, info->offset, vres->ptr, info->box->width);
+   return 0;
 }
 
 static int
