@@ -17,9 +17,8 @@ struct vcomp_event
 };
 VCOMP_DEFINE_OBJECT_CAST(event, cl_event)
 
-void
-vcomp_context_add_event(struct vcomp_context *vctx, cl_event event,
-                        cl_event *args_event, cl_int *args_ret)
+void vcomp_context_add_event(struct vcomp_context *vctx, cl_event event,
+                             cl_event *args_event, cl_int *args_ret)
 {
    const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args_event);
    if (!vcomp_context_validate_object_id(vctx, id))
@@ -166,13 +165,13 @@ vcomp_dispatch_clEnqueueMarkerWithWaitList(struct vcl_dispatch_context *dispatch
       handles[i] = event->base.handle.event;
    }
 
+   cl_event host_event;
    args->ret = clEnqueueMarkerWithWaitList(queue->base.handle.queue,
                                            args->num_events_in_wait_list,
-                                           handles, args->event);
+                                           handles, args->event ? &host_event : NULL);
 
-   if (args->event) {
-      vcomp_context_add_event(vctx, *args->event, args->event, &args->ret);
-   }
+   if (args->event)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
 
 free_handles:
    free(handles);
@@ -202,13 +201,13 @@ vcomp_dispatch_clEnqueueBarrierWithWaitList(struct vcl_dispatch_context *dispatc
       handles[i] = event->base.handle.event;
    }
 
+   cl_event host_event;
    args->ret = clEnqueueBarrierWithWaitList(queue->base.handle.queue,
                                             args->num_events_in_wait_list,
-                                            handles, args->event);
+                                            handles, args->event ? &host_event : NULL);
 
-   if (args->event) {
-      vcomp_context_add_event(vctx, *args->event, args->event, &args->ret);
-   }
+   if (args->event)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
 
 free_handles:
    free(handles);
@@ -232,8 +231,7 @@ vcomp_dispatch_clGetEventProfilingInfo(UNUSED struct vcl_dispatch_context *dispa
                                        args->param_value_size_ret);
 }
 
-void
-vcomp_context_init_event_dispatch(struct vcomp_context *vctx)
+void vcomp_context_init_event_dispatch(struct vcomp_context *vctx)
 {
    struct vcl_dispatch_context *dispatch = &vctx->dispatch;
 
