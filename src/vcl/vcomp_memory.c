@@ -10,6 +10,29 @@
 #include "vcomp_event.h"
 
 static void
+vcomp_context_add_memory(struct vcomp_context *vctx, cl_mem memory, cl_mem *args_memory,
+                         cl_int *args_ret)
+{
+   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args_memory);
+   if (!vcomp_context_validate_object_id(vctx, id))
+   {
+      *args_ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
+   struct vcomp_memory *v_memory = vcomp_object_alloc(sizeof(*v_memory), id);
+   if (!v_memory)
+   {
+      *args_ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
+   v_memory->base.handle.memory = memory;
+
+   vcomp_context_add_object(vctx, &v_memory->base);
+}
+
+static void
 vcomp_dispatch_clCreateBufferMESA(struct vcl_dispatch_context *ctx,
                                   struct vcl_command_clCreateBufferMESA *args)
 {
@@ -24,26 +47,9 @@ vcomp_dispatch_clCreateBufferMESA(struct vcl_dispatch_context *ctx,
 
    cl_mem mem = clCreateBuffer(context->base.handle.cl_context, args->flags, args->size, (void *)args->host_ptr, &args->ret);
    if (!mem)
-   {
       return;
-   }
 
-   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->buffer);
-   if (!vcomp_context_validate_object_id(vctx, id))
-   {
-      args->ret = CL_OUT_OF_HOST_MEMORY;
-      return;
-   }
-
-   struct vcomp_memory *memory = vcomp_object_alloc(sizeof(*memory), id);
-   if (!memory)
-   {
-      args->ret = CL_OUT_OF_HOST_MEMORY;
-      return;
-   }
-
-   memory->base.handle.memory = mem;
-   vcomp_context_add_object(vctx, &memory->base);
+   vcomp_context_add_memory(vctx, mem, args->buffer, &args->ret);
 }
 
 static void
@@ -167,22 +173,7 @@ vcomp_dispatch_clCreateImage2DMESA(struct vcl_dispatch_context *ctx,
    if (!mem)
       return;
 
-   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->image);
-   if (!vcomp_context_validate_object_id(vctx, id))
-   {
-      args->ret = CL_OUT_OF_HOST_MEMORY;
-      return;
-   }
-
-   struct vcomp_memory *memory = vcomp_object_alloc(sizeof(*memory), id);
-   if (!memory)
-   {
-      args->ret = CL_OUT_OF_HOST_MEMORY;
-      return;
-   }
-
-   memory->base.handle.memory = mem;
-   vcomp_context_add_object(vctx, &memory->base);
+   vcomp_context_add_memory(vctx, mem, args->image, &args->ret);
 }
 
 static void
@@ -204,22 +195,7 @@ vcomp_dispatch_clCreateImage3DMESA(struct vcl_dispatch_context *ctx,
    if (!mem)
       return;
 
-   const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->image);
-   if (!vcomp_context_validate_object_id(vctx, id))
-   {
-      args->ret = CL_OUT_OF_HOST_MEMORY;
-      return;
-   }
-
-   struct vcomp_memory *memory = vcomp_object_alloc(sizeof(*memory), id);
-   if (!memory)
-   {
-      args->ret = CL_OUT_OF_HOST_MEMORY;
-      return;
-   }
-
-   memory->base.handle.memory = mem;
-   vcomp_context_add_object(vctx, &memory->base);
+   vcomp_context_add_memory(vctx, mem, args->image, &args->ret);
 }
 
 static void

@@ -4,18 +4,11 @@
  */
 
 #include "vcomp_cl_context.h"
-#include "vcomp_common.h"
 #include "vcomp_context.h"
 #include "vcomp_event.h"
 #include "vcomp_queue.h"
 
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
-
-struct vcomp_event
-{
-   struct vcomp_object base;
-};
-VCOMP_DEFINE_OBJECT_CAST(event, cl_event)
 
 void vcomp_context_add_event(struct vcomp_context *vctx, cl_event event,
                              cl_event *args_event, cl_int *args_ret)

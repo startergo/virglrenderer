@@ -6,8 +6,15 @@
 #ifndef VCOMP_EVENT_H
 #define VCOMP_EVENT_H
 
+#include "vcomp_common.h"
+
+struct vcomp_event
+{
+   struct vcomp_object base;
+};
+VCOMP_DEFINE_OBJECT_CAST(event, cl_event)
+
 struct vcomp_context;
-struct vcomp_event;
 
 void vcomp_context_init_event_dispatch(struct vcomp_context *vctx);
 void vcomp_context_add_event(struct vcomp_context *vctx, cl_event event,

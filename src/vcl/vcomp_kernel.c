@@ -154,7 +154,8 @@ vcomp_dispatch_clSetKernelArg(struct vcl_dispatch_context *dispatch,
    {
       const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->arg_value);
       obj = vcomp_context_get_object(vctx, id);
-      if (obj) {
+      if (obj)
+      {
          /* clSetKernelArg expects a pointer to the handle */
          arg_value = &obj->handle.u64;
       }
@@ -223,6 +224,19 @@ vcomp_dispatch_clEnqueueNDRangeKernel(struct vcl_dispatch_context *dispatch,
       return;
    }
 
+   cl_event *event_handles = calloc(args->num_events_in_wait_list, sizeof(*event_handles));
+   for (size_t i = 0; i < args->num_events_in_wait_list; i++)
+   {
+      struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
+      if (!event)
+      {
+         args->ret = CL_INVALID_EVENT;
+         free(event_handles);
+         return;
+      }
+      event_handles[i] = event->base.handle.event;
+   }
+
    args->ret = clEnqueueNDRangeKernel(queue->base.handle.queue,
                                       kernel->base.handle.kernel,
                                       args->work_dim,
@@ -230,13 +244,15 @@ vcomp_dispatch_clEnqueueNDRangeKernel(struct vcl_dispatch_context *dispatch,
                                       args->global_work_size,
                                       args->local_work_size,
                                       args->num_events_in_wait_list,
-                                      args->event_wait_list,
+                                      event_handles,
                                       args->event ? &host_event : NULL);
 
    if (args->event)
    {
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
    }
+
+   free(event_handles);
 }
 
 static void
