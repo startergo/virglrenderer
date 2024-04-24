@@ -101,21 +101,36 @@ vcomp_dispatch_clEnqueueReadBuffer(struct vcl_dispatch_context *dispatch,
       return;
    }
 
+   cl_event *handles = NULL;
+   if (args->num_events_in_wait_list > 0 && args->event_wait_list != NULL) {
+      handles = calloc(args->num_events_in_wait_list, sizeof(*handles));
+
+      for (uint32_t i = 0; i < args->num_events_in_wait_list; ++i)
+      {
+         struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
+         if (!event)
+         {
+            args->ret = CL_INVALID_EVENT;
+            goto free_handles;
+         }
+         handles[i] = event->base.handle.event;
+      }
+   }
+
    cl_event host_event;
    args->ret = clEnqueueReadBuffer(queue->base.handle.queue, mem->base.handle.memory,
                                    args->blocking_read, args->offset, args->size,
-                                   args->ptr, 0, NULL, args->event ? &host_event : NULL);
+                                   args->ptr, args->num_events_in_wait_list, handles,
+                                   args->event ? &host_event : NULL);
 
-   if (args->ret != CL_SUCCESS)
-   {
-      return;
-   }
 
    /* Need to create a new vcomp event */
-   if (args->event)
-   {
+   if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
-   }
+
+free_handles:
+   if (handles)
+      free(handles);
 }
 
 static void
@@ -136,21 +151,35 @@ vcomp_dispatch_clEnqueueWriteBuffer(struct vcl_dispatch_context *dispatch,
       return;
    }
 
+   cl_event *handles = NULL;
+   if (args->num_events_in_wait_list > 0 && args->event_wait_list != NULL) {
+      handles = calloc(args->num_events_in_wait_list, sizeof(*handles));
+
+      for (uint32_t i = 0; i < args->num_events_in_wait_list; ++i)
+      {
+         struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
+         if (!event)
+         {
+            args->ret = CL_INVALID_EVENT;
+            goto free_handles;
+         }
+         handles[i] = event->base.handle.event;
+      }
+   }
+
    cl_event host_event;
    args->ret = clEnqueueWriteBuffer(queue->base.handle.queue, mem->base.handle.memory,
                                     args->blocking_write, args->offset, args->size,
-                                    args->ptr, 0, NULL, args->event ? &host_event : NULL);
-
-   if (args->ret != CL_SUCCESS)
-   {
-      return;
-   }
+                                    args->ptr, args->num_events_in_wait_list, handles,
+                                    args->event ? &host_event : NULL);
 
    /* Need to create a new vcomp event */
-   if (args->event)
-   {
+   if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
-   }
+
+free_handles:
+   if (handles)
+      free(handles);
 }
 
 static void
