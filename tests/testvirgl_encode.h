@@ -242,7 +242,7 @@ int virgl_encoder_set_uniform_buffer(struct virgl_context *ctx,
                                      struct virgl_resource *res);
 
 struct vrend_image_view {
-   uint id;
+   uint32_t id;
    int access;
    int format;
    uint32_t vformat;
@@ -258,7 +258,7 @@ struct vrend_image_view {
       } buf;
    } u;
    struct vrend_resource *texture;
-   uint view_id;
+   uint32_t view_id;
 };
 
 
@@ -307,7 +307,7 @@ int virgl_encode_blit(struct virgl_context *ctx,
 
 int virgl_encoder_create_query(struct virgl_context *ctx,
                               uint32_t handle,
-                              uint query_type,
+                              uint32_t query_type,
                               struct virgl_resource *res,
                               uint32_t offset);
 
@@ -324,7 +324,7 @@ int virgl_encoder_get_query_result_qbo(struct virgl_context *ctx,
 
 int virgl_encoder_render_condition(struct virgl_context *ctx,
                                   uint32_t handle, boolean condition,
-                                  uint mode);
+                                  uint32_t mode);
 
 int virgl_encoder_set_sub_ctx(struct virgl_context *ctx, uint32_t sub_ctx_id);
 int virgl_encoder_create_sub_ctx(struct virgl_context *ctx, uint32_t sub_ctx_id);
