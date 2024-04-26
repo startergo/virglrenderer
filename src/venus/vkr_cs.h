@@ -25,6 +25,7 @@ struct vkr_cs_encoder {
       const struct vkr_resource *resource;
       size_t offset;
       size_t size;
+      bool busy;
    } stream;
 
    uint8_t *cur;
@@ -131,11 +132,15 @@ vkr_cs_encoder_seek_stream(struct vkr_cs_encoder *enc, size_t pos)
    mtx_unlock(&enc->mutex);
 }
 
-static inline void
+static inline bool
 vkr_cs_encoder_check_stream(struct vkr_cs_encoder *enc, const struct vkr_resource *res)
 {
    mtx_lock(&enc->mutex);
    if (enc->stream.resource && enc->stream.resource == res) {
+      if (enc->stream.busy) {
+         mtx_unlock(&enc->mutex);
+         return false;
+      }
       /* TODO vkSetReplyCommandStreamMESA should support res_id 0 to unset. Until then,
        * and until we can ignore older guests, treat this as non-fatal. This can happen
        * when the driver side reply shmem has lost its last ref for being used as reply
@@ -144,6 +149,31 @@ vkr_cs_encoder_check_stream(struct vkr_cs_encoder *enc, const struct vkr_resourc
        */
       vkr_cs_encoder_set_stream_locked(enc, NULL, 0, 0);
    }
+   mtx_unlock(&enc->mutex);
+
+   return true;
+}
+
+static inline bool
+vkr_cs_encoder_acquire(struct vkr_cs_encoder *enc)
+{
+   mtx_lock(&enc->mutex);
+   if (unlikely(!enc->stream.resource)) {
+      vkr_cs_encoder_set_fatal(enc);
+      mtx_unlock(&enc->mutex);
+      return false;
+   }
+   enc->stream.busy = true;
+   mtx_unlock(&enc->mutex);
+   return true;
+}
+
+static inline void
+vkr_cs_encoder_release(struct vkr_cs_encoder *enc)
+{
+   mtx_lock(&enc->mutex);
+   assert(enc->stream.resource);
+   enc->stream.busy = false;
    mtx_unlock(&enc->mutex);
 }
 
@@ -155,9 +185,7 @@ vkr_cs_encoder_write(struct vkr_cs_encoder *enc,
 {
    assert(val_size <= size);
 
-   mtx_lock(&enc->mutex);
    if (unlikely(size > (size_t)(enc->end - enc->cur))) {
-      mtx_unlock(&enc->mutex);
       vkr_log("failed to write the reply stream");
       vkr_cs_encoder_set_fatal(enc);
       return;
@@ -166,7 +194,6 @@ vkr_cs_encoder_write(struct vkr_cs_encoder *enc,
    /* we should not rely on the compiler to optimize away memcpy... */
    memcpy(enc->cur, val, val_size);
    enc->cur += size;
-   mtx_unlock(&enc->mutex);
 }
 
 int

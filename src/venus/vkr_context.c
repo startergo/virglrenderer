@@ -374,22 +374,22 @@ vkr_context_destroy_resource(struct vkr_context *ctx, uint32_t res_id)
    if (!res)
       return;
 
-   vkr_cs_encoder_check_stream(&ctx->encoder, res);
+   if (!vkr_cs_encoder_check_stream(&ctx->encoder, res))
+      vkr_context_set_fatal(ctx);
 
    mtx_lock(&ctx->ring_mutex);
    list_for_each_entry_safe (struct vkr_ring, ring, &ctx->rings, head) {
-      vkr_cs_encoder_check_stream(&ring->encoder, res);
+      if (ring->resource == res ||
+          !vkr_cs_decoder_check_stream(&ring->decoder, res) ||
+          !vkr_cs_encoder_check_stream(&ring->encoder, res)) {
+         vkr_context_set_fatal(ctx);
 
-      if (ring->resource != res && vkr_cs_decoder_check_stream(&ring->decoder, res))
-         continue;
+         mtx_unlock(&ctx->ring_mutex);
+         vkr_ring_stop(ring);
+         mtx_lock(&ctx->ring_mutex);
 
-      vkr_context_set_fatal(ctx);
-
-      mtx_unlock(&ctx->ring_mutex);
-      vkr_ring_stop(ring);
-      mtx_lock(&ctx->ring_mutex);
-
-      vkr_ring_destroy(ring);
+         vkr_ring_destroy(ring);
+      }
    }
    mtx_unlock(&ctx->ring_mutex);
 
