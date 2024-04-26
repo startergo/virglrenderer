@@ -1539,8 +1539,12 @@ static inline void vn_dispatch_vkGetImageMemoryRequirements(struct vn_dispatch_c
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkGetImageMemoryRequirements(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkGetImageMemoryRequirements_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetImageMemoryRequirements_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1568,8 +1572,12 @@ static inline void vn_dispatch_vkBindImageMemory(struct vn_dispatch_context *ctx
         vn_dispatch_debug_log(ctx, "vkBindImageMemory returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkBindImageMemory_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkBindImageMemory_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1592,8 +1600,12 @@ static inline void vn_dispatch_vkGetImageSparseMemoryRequirements(struct vn_disp
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkGetImageSparseMemoryRequirements(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkGetImageSparseMemoryRequirements_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetImageSparseMemoryRequirements_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1621,8 +1633,12 @@ static inline void vn_dispatch_vkCreateImage(struct vn_dispatch_context *ctx, Vk
         vn_dispatch_debug_log(ctx, "vkCreateImage returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkCreateImage_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCreateImage_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1645,8 +1661,12 @@ static inline void vn_dispatch_vkDestroyImage(struct vn_dispatch_context *ctx, V
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkDestroyImage(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkDestroyImage_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkDestroyImage_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1669,8 +1689,12 @@ static inline void vn_dispatch_vkGetImageSubresourceLayout(struct vn_dispatch_co
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkGetImageSubresourceLayout(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkGetImageSubresourceLayout_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetImageSubresourceLayout_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1698,8 +1722,12 @@ static inline void vn_dispatch_vkBindImageMemory2(struct vn_dispatch_context *ct
         vn_dispatch_debug_log(ctx, "vkBindImageMemory2 returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkBindImageMemory2_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkBindImageMemory2_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1722,8 +1750,12 @@ static inline void vn_dispatch_vkGetImageMemoryRequirements2(struct vn_dispatch_
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkGetImageMemoryRequirements2(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkGetImageMemoryRequirements2_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetImageMemoryRequirements2_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1746,8 +1778,12 @@ static inline void vn_dispatch_vkGetImageSparseMemoryRequirements2(struct vn_dis
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkGetImageSparseMemoryRequirements2(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkGetImageSparseMemoryRequirements2_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetImageSparseMemoryRequirements2_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1770,8 +1806,12 @@ static inline void vn_dispatch_vkGetDeviceImageMemoryRequirements(struct vn_disp
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkGetDeviceImageMemoryRequirements(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkGetDeviceImageMemoryRequirements_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetDeviceImageMemoryRequirements_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1794,8 +1834,12 @@ static inline void vn_dispatch_vkGetDeviceImageSparseMemoryRequirements(struct v
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkGetDeviceImageSparseMemoryRequirements(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkGetDeviceImageSparseMemoryRequirements_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetDeviceImageSparseMemoryRequirements_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -1823,8 +1867,12 @@ static inline void vn_dispatch_vkGetImageDrmFormatModifierPropertiesEXT(struct v
         vn_dispatch_debug_log(ctx, "vkGetImageDrmFormatModifierPropertiesEXT returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkGetImageDrmFormatModifierPropertiesEXT_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetImageDrmFormatModifierPropertiesEXT_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }

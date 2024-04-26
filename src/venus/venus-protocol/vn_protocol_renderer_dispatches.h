@@ -8,8 +8,6 @@
 #ifndef VN_PROTOCOL_RENDERER_DISPATCHES_H
 #define VN_PROTOCOL_RENDERER_DISPATCHES_H
 
-#include "virgl_util.h"
-
 #include "vn_protocol_renderer_structs.h"
 #include "vn_protocol_renderer_transport.h"
 #include "vn_protocol_renderer_instance.h"
@@ -604,9 +602,6 @@ static inline void vn_dispatch_command(struct vn_dispatch_context *ctx)
     vn_decode_VkFlags(ctx->decoder, &cmd_flags);
 
     {
-#ifdef DEBUG
-        TRACE_SCOPE_SLOW(vn_dispatch_command_name(cmd_type));
-#endif
         if (cmd_type < 279 && vn_dispatch_table[cmd_type])
             vn_dispatch_table[cmd_type](ctx, cmd_flags);
         else

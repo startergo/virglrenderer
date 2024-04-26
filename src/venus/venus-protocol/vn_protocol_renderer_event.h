@@ -234,8 +234,12 @@ static inline void vn_dispatch_vkCreateEvent(struct vn_dispatch_context *ctx, Vk
         vn_dispatch_debug_log(ctx, "vkCreateEvent returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkCreateEvent_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCreateEvent_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -258,8 +262,12 @@ static inline void vn_dispatch_vkDestroyEvent(struct vn_dispatch_context *ctx, V
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkDestroyEvent(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkDestroyEvent_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkDestroyEvent_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -288,8 +296,12 @@ static inline void vn_dispatch_vkGetEventStatus(struct vn_dispatch_context *ctx,
 #endif
 
     if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
-        if (!vn_cs_decoder_get_fatal(ctx->decoder))
-            vn_encode_vkGetEventStatus_reply(ctx->encoder, &args);
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkGetEventStatus_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
     } else if (args.ret == VK_ERROR_DEVICE_LOST) {
         vn_cs_decoder_set_fatal(ctx->decoder);
     }
@@ -320,8 +332,12 @@ static inline void vn_dispatch_vkSetEvent(struct vn_dispatch_context *ctx, VkCom
         vn_dispatch_debug_log(ctx, "vkSetEvent returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkSetEvent_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkSetEvent_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -349,8 +365,12 @@ static inline void vn_dispatch_vkResetEvent(struct vn_dispatch_context *ctx, VkC
         vn_dispatch_debug_log(ctx, "vkResetEvent returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkResetEvent_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkResetEvent_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }

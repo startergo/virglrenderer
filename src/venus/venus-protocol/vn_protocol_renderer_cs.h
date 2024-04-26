@@ -41,6 +41,20 @@ typedef vkr_object_id vn_object_id;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+static inline bool
+vn_cs_encoder_acquire(struct vn_cs_encoder *enc)
+{
+   struct vkr_cs_encoder *e = (struct vkr_cs_encoder *)enc;
+   return vkr_cs_encoder_acquire(e);
+}
+
+static inline void
+vn_cs_encoder_release(struct vn_cs_encoder *enc)
+{
+   struct vkr_cs_encoder *e = (struct vkr_cs_encoder *)enc;
+   vkr_cs_encoder_release(e);
+}
+
 static inline void
 vn_cs_encoder_write(struct vn_cs_encoder *enc, size_t size, const void *val, size_t val_size)
 {

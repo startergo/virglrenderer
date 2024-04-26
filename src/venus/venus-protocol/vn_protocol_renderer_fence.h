@@ -377,8 +377,12 @@ static inline void vn_dispatch_vkCreateFence(struct vn_dispatch_context *ctx, Vk
         vn_dispatch_debug_log(ctx, "vkCreateFence returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkCreateFence_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCreateFence_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -401,8 +405,12 @@ static inline void vn_dispatch_vkDestroyFence(struct vn_dispatch_context *ctx, V
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkDestroyFence(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkDestroyFence_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkDestroyFence_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -430,8 +438,12 @@ static inline void vn_dispatch_vkResetFences(struct vn_dispatch_context *ctx, Vk
         vn_dispatch_debug_log(ctx, "vkResetFences returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkResetFences_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkResetFences_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -460,8 +472,12 @@ static inline void vn_dispatch_vkGetFenceStatus(struct vn_dispatch_context *ctx,
 #endif
 
     if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
-        if (!vn_cs_decoder_get_fatal(ctx->decoder))
-            vn_encode_vkGetFenceStatus_reply(ctx->encoder, &args);
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkGetFenceStatus_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
     } else if (args.ret == VK_ERROR_DEVICE_LOST) {
         vn_cs_decoder_set_fatal(ctx->decoder);
     }
@@ -493,8 +509,12 @@ static inline void vn_dispatch_vkWaitForFences(struct vn_dispatch_context *ctx, 
 #endif
 
     if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
-        if (!vn_cs_decoder_get_fatal(ctx->decoder))
-            vn_encode_vkWaitForFences_reply(ctx->encoder, &args);
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkWaitForFences_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
     } else if (args.ret == VK_ERROR_DEVICE_LOST) {
         vn_cs_decoder_set_fatal(ctx->decoder);
     }
@@ -520,8 +540,12 @@ static inline void vn_dispatch_vkResetFenceResourceMESA(struct vn_dispatch_conte
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkResetFenceResourceMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkResetFenceResourceMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkResetFenceResourceMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }

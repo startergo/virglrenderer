@@ -610,8 +610,12 @@ static inline void vn_dispatch_vkCreateSemaphore(struct vn_dispatch_context *ctx
         vn_dispatch_debug_log(ctx, "vkCreateSemaphore returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkCreateSemaphore_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCreateSemaphore_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -634,8 +638,12 @@ static inline void vn_dispatch_vkDestroySemaphore(struct vn_dispatch_context *ct
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkDestroySemaphore(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkDestroySemaphore_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkDestroySemaphore_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -664,8 +672,12 @@ static inline void vn_dispatch_vkGetSemaphoreCounterValue(struct vn_dispatch_con
 #endif
 
     if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
-        if (!vn_cs_decoder_get_fatal(ctx->decoder))
-            vn_encode_vkGetSemaphoreCounterValue_reply(ctx->encoder, &args);
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkGetSemaphoreCounterValue_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
     } else if (args.ret == VK_ERROR_DEVICE_LOST) {
         vn_cs_decoder_set_fatal(ctx->decoder);
     }
@@ -697,8 +709,12 @@ static inline void vn_dispatch_vkWaitSemaphores(struct vn_dispatch_context *ctx,
 #endif
 
     if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
-        if (!vn_cs_decoder_get_fatal(ctx->decoder))
-            vn_encode_vkWaitSemaphores_reply(ctx->encoder, &args);
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkWaitSemaphores_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
     } else if (args.ret == VK_ERROR_DEVICE_LOST) {
         vn_cs_decoder_set_fatal(ctx->decoder);
     }
@@ -729,8 +745,12 @@ static inline void vn_dispatch_vkSignalSemaphore(struct vn_dispatch_context *ctx
         vn_dispatch_debug_log(ctx, "vkSignalSemaphore returned %d", args.ret);
 #endif
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkSignalSemaphore_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkSignalSemaphore_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -753,8 +773,12 @@ static inline void vn_dispatch_vkWaitSemaphoreResourceMESA(struct vn_dispatch_co
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkWaitSemaphoreResourceMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkWaitSemaphoreResourceMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkWaitSemaphoreResourceMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -777,8 +801,12 @@ static inline void vn_dispatch_vkImportSemaphoreResourceMESA(struct vn_dispatch_
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkImportSemaphoreResourceMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkImportSemaphoreResourceMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkImportSemaphoreResourceMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }

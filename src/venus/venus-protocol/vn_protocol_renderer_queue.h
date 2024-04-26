@@ -1153,8 +1153,12 @@ static inline void vn_dispatch_vkQueueSubmit(struct vn_dispatch_context *ctx, Vk
 #endif
 
     if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
-        if (!vn_cs_decoder_get_fatal(ctx->decoder))
-            vn_encode_vkQueueSubmit_reply(ctx->encoder, &args);
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkQueueSubmit_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
     } else if (args.ret == VK_ERROR_DEVICE_LOST) {
         vn_cs_decoder_set_fatal(ctx->decoder);
     }
@@ -1186,8 +1190,12 @@ static inline void vn_dispatch_vkQueueWaitIdle(struct vn_dispatch_context *ctx, 
 #endif
 
     if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
-        if (!vn_cs_decoder_get_fatal(ctx->decoder))
-            vn_encode_vkQueueWaitIdle_reply(ctx->encoder, &args);
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkQueueWaitIdle_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
     } else if (args.ret == VK_ERROR_DEVICE_LOST) {
         vn_cs_decoder_set_fatal(ctx->decoder);
     }
@@ -1219,8 +1227,12 @@ static inline void vn_dispatch_vkQueueBindSparse(struct vn_dispatch_context *ctx
 #endif
 
     if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
-        if (!vn_cs_decoder_get_fatal(ctx->decoder))
-            vn_encode_vkQueueBindSparse_reply(ctx->encoder, &args);
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkQueueBindSparse_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
     } else if (args.ret == VK_ERROR_DEVICE_LOST) {
         vn_cs_decoder_set_fatal(ctx->decoder);
     }
@@ -1252,8 +1264,12 @@ static inline void vn_dispatch_vkQueueSubmit2(struct vn_dispatch_context *ctx, V
 #endif
 
     if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
-        if (!vn_cs_decoder_get_fatal(ctx->decoder))
-            vn_encode_vkQueueSubmit2_reply(ctx->encoder, &args);
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkQueueSubmit2_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
     } else if (args.ret == VK_ERROR_DEVICE_LOST) {
         vn_cs_decoder_set_fatal(ctx->decoder);
     }

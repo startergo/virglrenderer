@@ -478,8 +478,12 @@ static inline void vn_dispatch_vkSetReplyCommandStreamMESA(struct vn_dispatch_co
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkSetReplyCommandStreamMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkSetReplyCommandStreamMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkSetReplyCommandStreamMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -498,8 +502,12 @@ static inline void vn_dispatch_vkSeekReplyCommandStreamMESA(struct vn_dispatch_c
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkSeekReplyCommandStreamMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkSeekReplyCommandStreamMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkSeekReplyCommandStreamMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -518,8 +526,12 @@ static inline void vn_dispatch_vkExecuteCommandStreamsMESA(struct vn_dispatch_co
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkExecuteCommandStreamsMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkExecuteCommandStreamsMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkExecuteCommandStreamsMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -538,8 +550,12 @@ static inline void vn_dispatch_vkCreateRingMESA(struct vn_dispatch_context *ctx,
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkCreateRingMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkCreateRingMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCreateRingMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -558,8 +574,12 @@ static inline void vn_dispatch_vkDestroyRingMESA(struct vn_dispatch_context *ctx
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkDestroyRingMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkDestroyRingMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkDestroyRingMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -578,8 +598,12 @@ static inline void vn_dispatch_vkNotifyRingMESA(struct vn_dispatch_context *ctx,
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkNotifyRingMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkNotifyRingMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkNotifyRingMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -598,8 +622,12 @@ static inline void vn_dispatch_vkWriteRingExtraMESA(struct vn_dispatch_context *
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkWriteRingExtraMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkWriteRingExtraMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkWriteRingExtraMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -618,8 +646,12 @@ static inline void vn_dispatch_vkSubmitVirtqueueSeqnoMESA(struct vn_dispatch_con
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkSubmitVirtqueueSeqnoMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkSubmitVirtqueueSeqnoMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkSubmitVirtqueueSeqnoMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -638,8 +670,12 @@ static inline void vn_dispatch_vkWaitVirtqueueSeqnoMESA(struct vn_dispatch_conte
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkWaitVirtqueueSeqnoMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkWaitVirtqueueSeqnoMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkWaitVirtqueueSeqnoMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
@@ -658,8 +694,12 @@ static inline void vn_dispatch_vkWaitRingSeqnoMESA(struct vn_dispatch_context *c
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
         ctx->dispatch_vkWaitRingSeqnoMESA(ctx, &args);
 
-    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder))
-        vn_encode_vkWaitRingSeqnoMESA_reply(ctx->encoder, &args);
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkWaitRingSeqnoMESA_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
