@@ -8,6 +8,7 @@
 #include "vcomp_event.h"
 #include "vcomp_queue.h"
 
+#include "vcl-protocol/vcl_protocol_renderer_event.h"
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
 
 void vcomp_context_add_event(struct vcomp_context *vctx, cl_event event,
@@ -73,22 +74,8 @@ static void
 vcomp_dispatch_clWaitForEvents(UNUSED struct vcl_dispatch_context *dispatch,
                                struct vcl_command_clWaitForEvents *args)
 {
-   cl_event *handles = calloc(args->num_events, sizeof(*handles));
-   for (uint32_t i = 0; i < args->num_events; ++i)
-   {
-      struct vcomp_event *event = vcomp_event_from_handle(args->event_list[i]);
-      if (!event)
-      {
-         args->ret = CL_INVALID_EVENT;
-         goto free_handles;
-      }
-      handles[i] = event->base.handle.event;
-   }
-
-   args->ret = clWaitForEvents(args->num_events, handles);
-
-free_handles:
-   free(handles);
+   vcl_replace_clWaitForEvents_args_handle(args);
+   args->ret = clWaitForEvents(args->num_events, args->event_list);
 }
 
 static void

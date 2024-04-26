@@ -8,6 +8,8 @@
 #include "vcomp_context.h"
 #include "vcomp_device.h"
 #include "vcomp_platform.h"
+
+#include "vcl-protocol/vcl_protocol_renderer_program.h"
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
 
 static void
@@ -303,37 +305,20 @@ vcomp_dispatch_clBuildProgram(struct vcl_dispatch_context *dispatch,
 }
 
 static void
-vcomp_dispatch_clCompileProgram(struct vcl_dispatch_context *dispatch,
+vcomp_dispatch_clCompileProgram(UNUSED struct vcl_dispatch_context *dispatch,
                                 struct vcl_command_clCompileProgram *args)
 {
-   struct vcomp_program *program = vcomp_program_from_handle(args->program);
-   struct vcomp_context *vctx = dispatch->data;
-
-   cl_device_id *handles = calloc(args->num_devices, sizeof(*handles));
-   for (uint32_t i = 0; i < args->num_devices; ++i)
-   {
-      struct vcomp_device *device = vcomp_device_from_handle(args->device_list[i]);
-      if (!device || !vcomp_context_contains_platform(vctx, device->platform))
-      {
-         args->ret = CL_INVALID_DEVICE;
-         free(handles);
-         return;
-      }
-      handles[i] = device->base.handle.device;
-   }
-
+   vcl_replace_clCompileProgram_args_handle(args);
    args->ret = clCompileProgram(
-       program->base.handle.program,
+       args->program,
        args->num_devices,
-       handles,
+       args->device_list,
        args->options,
        args->num_input_headers,
        args->input_headers,
        args->header_include_names,
        NULL,
        NULL);
-
-   free(handles);
 }
 
 static void
