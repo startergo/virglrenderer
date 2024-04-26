@@ -2955,9 +2955,10 @@ void debug_texture(ASSERTED const char *f, const struct vrend_resource *gt)
                default:
                   virgl_debug("UNKNOWN");
                }
-               virgl_debug(" id:%d pipe_type:%d ms:%d format:%s size: %dx%dx%d mip:%d\n",
+               virgl_debug(" id:%d pipe_type:%d ms:%d format:%s size: %dx%dx%d mip:%d %s\n",
                            gt->gl_id, pr->target, pr->nr_samples, util_format_name(pr->format),
-                           pr->width0, pr->height0, pr->depth0, pr->last_level);
+                           pr->width0, pr->height0, pr->depth0, pr->last_level,
+                           gt->gbm_bo ? "GBM" : "GL");
                );
 #undef PRINT_TARGET
 }
