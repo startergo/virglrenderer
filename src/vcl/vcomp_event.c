@@ -48,12 +48,10 @@ vcomp_dispatch_clCreateUserEventMESA(struct vcl_dispatch_context *dispatch,
    cl_event event = clCreateUserEvent(context->base.handle.cl_context,
                                       &args->ret);
    if (!event)
-   {
-      args->ret = CL_OUT_OF_HOST_MEMORY;
       return;
-   }
 
-   vcomp_context_add_event(vctx, event, args->event, &args->ret);
+   if (args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, event, args->event, &args->ret);
 }
 
 static void
@@ -146,16 +144,20 @@ vcomp_dispatch_clEnqueueMarkerWithWaitList(struct vcl_dispatch_context *dispatch
       return;
    }
 
-   cl_event *handles = calloc(args->num_events_in_wait_list, sizeof(*handles));
-   for (uint32_t i = 0; i < args->num_events_in_wait_list; ++i)
+   cl_event *handles = NULL;
+   if (args->num_events_in_wait_list > 0 && args->event_wait_list)
    {
-      struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
-      if (!event)
+      handles = calloc(args->num_events_in_wait_list, sizeof(*handles));
+      for (uint32_t i = 0; i < args->num_events_in_wait_list; ++i)
       {
-         args->ret = CL_INVALID_EVENT_WAIT_LIST;
-         goto free_handles;
+         struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
+         if (!event)
+         {
+            args->ret = CL_INVALID_EVENT_WAIT_LIST;
+            goto free_handles;
+         }
+         handles[i] = event->base.handle.event;
       }
-      handles[i] = event->base.handle.event;
    }
 
    cl_event host_event;
@@ -163,11 +165,12 @@ vcomp_dispatch_clEnqueueMarkerWithWaitList(struct vcl_dispatch_context *dispatch
                                            args->num_events_in_wait_list,
                                            handles, args->event ? &host_event : NULL);
 
-   if (args->event)
+   if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
 
 free_handles:
-   free(handles);
+   if (handles)
+      free(handles);
 }
 
 static void
@@ -182,16 +185,20 @@ vcomp_dispatch_clEnqueueBarrierWithWaitList(struct vcl_dispatch_context *dispatc
       args->ret = CL_INVALID_COMMAND_QUEUE;
    }
 
-   cl_event *handles = calloc(args->num_events_in_wait_list, sizeof(*handles));
-   for (uint32_t i = 0; i < args->num_events_in_wait_list; ++i)
+   cl_event *handles = NULL;
+   if (args->num_events_in_wait_list > 0 && args->event_wait_list)
    {
-      struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
-      if (!event)
+      handles = calloc(args->num_events_in_wait_list, sizeof(*handles));
+      for (uint32_t i = 0; i < args->num_events_in_wait_list; ++i)
       {
-         args->ret = CL_INVALID_EVENT_WAIT_LIST;
-         goto free_handles;
+         struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
+         if (!event)
+         {
+            args->ret = CL_INVALID_EVENT_WAIT_LIST;
+            goto free_handles;
+         }
+         handles[i] = event->base.handle.event;
       }
-      handles[i] = event->base.handle.event;
    }
 
    cl_event host_event;
@@ -199,11 +206,12 @@ vcomp_dispatch_clEnqueueBarrierWithWaitList(struct vcl_dispatch_context *dispatc
                                             args->num_events_in_wait_list,
                                             handles, args->event ? &host_event : NULL);
 
-   if (args->event)
+   if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
 
 free_handles:
-   free(handles);
+   if (handles)
+      free(handles);
 }
 
 static void

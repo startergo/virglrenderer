@@ -224,17 +224,21 @@ vcomp_dispatch_clEnqueueNDRangeKernel(struct vcl_dispatch_context *dispatch,
       return;
    }
 
-   cl_event *event_handles = calloc(args->num_events_in_wait_list, sizeof(*event_handles));
-   for (size_t i = 0; i < args->num_events_in_wait_list; i++)
+   cl_event *event_handles = NULL;
+   if (args->num_events_in_wait_list > 0 && args->event_wait_list)
    {
-      struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
-      if (!event)
+      event_handles = calloc(args->num_events_in_wait_list, sizeof(*event_handles));
+      for (size_t i = 0; i < args->num_events_in_wait_list; i++)
       {
-         args->ret = CL_INVALID_EVENT;
-         free(event_handles);
-         return;
+         struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
+         if (!event)
+         {
+            args->ret = CL_INVALID_EVENT;
+            free(event_handles);
+            return;
+         }
+         event_handles[i] = event->base.handle.event;
       }
-      event_handles[i] = event->base.handle.event;
    }
 
    args->ret = clEnqueueNDRangeKernel(queue->base.handle.queue,
@@ -247,12 +251,11 @@ vcomp_dispatch_clEnqueueNDRangeKernel(struct vcl_dispatch_context *dispatch,
                                       event_handles,
                                       args->event ? &host_event : NULL);
 
-   if (args->event)
-   {
+   if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
-   }
 
-   free(event_handles);
+   if (event_handles)
+      free(event_handles);
 }
 
 static void
