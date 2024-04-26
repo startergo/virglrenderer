@@ -114,13 +114,13 @@ void testvirgl_reset_fence(void)
    testvirgl_last_fence = 0;
 }
 
-int testvirgl_init_single_ctx(void)
+int testvirgl_init_single_ctx(uint32_t flags)
 {
     int ret;
 
     test_cbs.version = 1;
     test_cbs.write_fence = testvirgl_write_fence;
-    ret = virgl_renderer_init(&mystruct, context_flags, &test_cbs);
+    ret = virgl_renderer_init(&mystruct, flags, &test_cbs);
     if (ret)
         return ret;
     return virgl_renderer_context_create(1, strlen("test1"), "test1");
@@ -128,7 +128,7 @@ int testvirgl_init_single_ctx(void)
 
 void testvirgl_init_single_ctx_nr(void)
 {
-    int ret = testvirgl_init_single_ctx();
+    int ret = testvirgl_init_single_ctx(context_flags);
     ck_assert_int_eq(ret, 0);
 }
 
@@ -144,10 +144,10 @@ static void testvirgl_flush(struct virgl_context *ctx)
     ctx->cbuf->cdw = 0;
 }
 
-int testvirgl_init_ctx_cmdbuf(struct virgl_context *ctx)
+int testvirgl_init_ctx_cmdbuf(struct virgl_context *ctx, uint32_t flags)
 {
     int ret;
-    ret = testvirgl_init_single_ctx();
+    ret = testvirgl_init_single_ctx(flags);
     if (ret)
         return ret;
 

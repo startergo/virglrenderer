@@ -45,7 +45,7 @@ START_TEST(virgl_fence_create)
    ret = virgl_renderer_create_fence(1, 0);
    ck_assert_int_eq(ret, EINVAL);
 
-   ret = testvirgl_init_single_ctx();
+   ret = testvirgl_init_single_ctx(context_flags);
    ck_assert_int_eq(ret, 0);
 
    testvirgl_reset_fence();
@@ -60,7 +60,7 @@ START_TEST(virgl_fence_poll)
 {
    const int target_seqno = 50;
    int ret;
-   ret = testvirgl_init_single_ctx();
+   ret = testvirgl_init_single_ctx(context_flags);
    ck_assert_int_eq(ret, 0);
 
    testvirgl_reset_fence();
@@ -92,7 +92,7 @@ START_TEST(virgl_fence_poll_many)
    int ret;
    int i;
 
-   ret = testvirgl_init_single_ctx();
+   ret = testvirgl_init_single_ctx(context_flags);
    ck_assert_int_eq(ret, 0);
 
    testvirgl_reset_fence();
@@ -151,7 +151,7 @@ START_TEST(virgl_fence_export)
    int fd;
    int ret;
 
-   ret = testvirgl_init_single_ctx();
+   ret = testvirgl_init_single_ctx(context_flags);
    ck_assert_int_eq(ret, 0);
 
    testvirgl_reset_fence();
@@ -181,7 +181,7 @@ START_TEST(virgl_fence_export_signaled)
    int ret;
    int i;
 
-   ret = testvirgl_init_single_ctx();
+   ret = testvirgl_init_single_ctx(context_flags);
    ck_assert_int_eq(ret, 0);
 
    /* when there is no active fence, a signaled fd is always returned */
@@ -223,7 +223,7 @@ START_TEST(virgl_fence_export_invalid)
    int fd;
    int ret;
 
-   ret = testvirgl_init_single_ctx();
+   ret = testvirgl_init_single_ctx(context_flags);
    ck_assert_int_eq(ret, 0);
 
    ret = virgl_renderer_create_fence(target_seqno, 0);

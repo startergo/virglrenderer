@@ -688,7 +688,7 @@ static void virgl_test_transfer_inline(enum pipe_texture_target target,
   int elsize = target == 0 ? 1 : 4;
   void *data;
   unsigned size;
-  ret = testvirgl_init_ctx_cmdbuf(&ctx);
+  ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
   ck_assert_int_eq(ret, 0);
 
   get_resource_args(target, invalid, &args, &box, 0, large_flags);
@@ -743,7 +743,7 @@ START_TEST(virgl_test_transfer_to_staging_without_iov_fails)
   struct pipe_box box = {.width = bufsize, .height = 1, .depth = 1};
   int ret;
 
-  ret = testvirgl_init_ctx_cmdbuf(&ctx);
+  ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
   ck_assert_int_eq(ret, 0);
 
   ret = testvirgl_create_unbacked_simple_buffer(&res, 1, bufsize, VIRGL_BIND_STAGING);
@@ -770,7 +770,7 @@ START_TEST(virgl_test_transfer_to_staging_with_iov_succeeds)
   struct pipe_box box = {.width = bufsize, .height = 1, .depth = 1};
   int ret;
 
-  ret = testvirgl_init_ctx_cmdbuf(&ctx);
+  ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
   ck_assert_int_eq(ret, 0);
 
   ret = testvirgl_create_backed_simple_buffer(&res, 1, bufsize, VIRGL_BIND_STAGING);
@@ -799,7 +799,7 @@ START_TEST(virgl_test_copy_transfer_from_staging_without_iov_fails)
   struct pipe_box box = {.width = bufsize, .height = 1, .depth = 1};
   int ret;
 
-  ret = testvirgl_init_ctx_cmdbuf(&ctx);
+  ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
   ck_assert_int_eq(ret, 0);
 
   ret = testvirgl_create_unbacked_simple_buffer(&src_res, 1, bufsize, VIRGL_BIND_STAGING);
@@ -834,7 +834,7 @@ START_TEST(virgl_test_copy_transfer_from_staging_with_iov_succeeds)
   struct pipe_box box = {.width = bufsize, .height = 1, .depth = 1};
   int ret;
 
-  ret = testvirgl_init_ctx_cmdbuf(&ctx);
+  ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
   ck_assert_int_eq(ret, 0);
 
   ret = testvirgl_create_backed_simple_buffer(&src_res, 1, bufsize, VIRGL_BIND_STAGING);
@@ -874,7 +874,7 @@ START_TEST(virgl_test_copy_transfer_to_staging_without_iov_fails)
   struct pipe_box box = {.width = bufsize, .height = 1, .depth = 1};
   int ret;
 
-  ret = testvirgl_init_ctx_cmdbuf(&ctx);
+  ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
   ck_assert_int_eq(ret, 0);
 
   ret = testvirgl_create_backed_simple_buffer(&src_res, 1, bufsize, VIRGL_BIND_STAGING);
@@ -908,7 +908,7 @@ START_TEST(virgl_test_copy_transfer_to_staging_with_iov_succeeds)
   struct pipe_box box = {.width = bufsize, .height = 1, .depth = 1};
   int ret;
 
-  ret = testvirgl_init_ctx_cmdbuf(&ctx);
+  ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
   ck_assert_int_eq(ret, 0);
 
   ret = testvirgl_create_backed_simple_buffer(&src_res, 1, bufsize, VIRGL_BIND_STAGING);
@@ -942,7 +942,7 @@ START_TEST(virgl_test_transfer_near_res_bounds_with_stride_succeeds)
   struct pipe_box box = {.x = 2, .y = 1, .z = 0, .width = 2, .height = 2, .depth = 1};
   int ret;
 
-  ret = testvirgl_init_ctx_cmdbuf(&ctx);
+  ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
   ck_assert_int_eq(ret, 0);
 
   ret = testvirgl_create_backed_simple_2d_res(&res, 1, res_width, res_height);
@@ -968,7 +968,7 @@ START_TEST(test_vrend_host_backed_memory_no_data_leak)
 
    struct virgl_context ctx = {0};
 
-   int ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   int ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
 
    struct virgl_renderer_resource_create_args res;
    res.handle = 0x400;

@@ -40,7 +40,7 @@ START_TEST(virgl_test_overlap_obj_id)
     int ret;
     struct virgl_context ctx;
     int ctx_handle = 1;
-    ret = testvirgl_init_ctx_cmdbuf(&ctx);
+    ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
     ck_assert_int_eq(ret, 0);
 
     /* set blend state */
@@ -85,7 +85,7 @@ START_TEST(virgl_test_clear)
     int ret;
     int i;
 
-    ret = testvirgl_init_ctx_cmdbuf(&ctx);
+    ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
     ck_assert_int_eq(ret, 0);
 
     /* init and create simple 2D resource */
@@ -157,7 +157,7 @@ START_TEST(virgl_test_blit_simple)
     int ret;
     int i;
 
-    ret = testvirgl_init_ctx_cmdbuf(&ctx);
+    ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
     ck_assert_int_eq(ret, 0);
 
     /* init and create simple 2D resource */
@@ -274,7 +274,7 @@ START_TEST(virgl_test_render_simple)
     int ret;
     int tw = 300, th = 300;
 
-    ret = testvirgl_init_ctx_cmdbuf(&ctx);
+    ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
     ck_assert_int_eq(ret, 0);
 
     /* init and create simple 2D resource */
@@ -500,7 +500,7 @@ static void virgl_test_bind_images_shader(int first_layer, int last_layer, int e
     int ret;
     int tw = 300, th = 300;
 
-    ret = testvirgl_init_ctx_cmdbuf(&ctx);
+    ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
     ck_assert_int_eq(ret, 0);
 
     /* init and create simple 2D resource */
@@ -564,7 +564,7 @@ START_TEST(virgl_test_render_geom_simple)
     int ret;
     int tw = 300, th = 300;
 
-    ret = testvirgl_init_ctx_cmdbuf(&ctx);
+    ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
     ck_assert_int_eq(ret, 0);
 
     /* Geometry shader are only available since GLSL 150 */
@@ -833,7 +833,7 @@ START_TEST(virgl_test_render_xfb)
     int ret;
     int tw = 300, th = 300;
 
-    ret = testvirgl_init_ctx_cmdbuf(&ctx);
+    ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
     ck_assert_int_eq(ret, 0);
 
     /* init and create simple 2D resource */
@@ -1064,7 +1064,7 @@ START_TEST(virgl_test_large_shader)
    struct virgl_context ctx;
    int ctx_handle = 1;
    int fs_handle;
-   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    /* create large fragment shader */
@@ -1087,7 +1087,7 @@ END_TEST
 START_TEST(virgl_test_set_viewport_state)
 {
    struct virgl_context ctx;
-   int ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   int ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    struct pipe_viewport_state vp[PIPE_MAX_VIEWPORTS];
@@ -1150,7 +1150,7 @@ START_TEST(virgl_test_set_viewport_state)
 START_TEST(virgl_decode_set_scissor_state)
 {
    struct virgl_context ctx;
-   int ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   int ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    struct pipe_scissor_state ss[PIPE_MAX_VIEWPORTS + 1] = {0};
@@ -1198,7 +1198,7 @@ END_TEST
 START_TEST(virgl_decode_set_constant_buffer)
 {
    struct virgl_context ctx;
-   int ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   int ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    uint8_t constant_buffer[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -1229,7 +1229,7 @@ END_TEST
 START_TEST(virgl_decode_bind_sampler_states)
 {
    struct virgl_context ctx;
-   int ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   int ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    uint32_t handles[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -1253,7 +1253,7 @@ END_TEST
 START_TEST(virgl_test_encode_sampler_view)
 {
    struct virgl_context ctx;
-   int ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   int ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    struct pipe_sampler_view state = {
@@ -1319,7 +1319,7 @@ END_TEST
 START_TEST(virgl_test_encode_sampler_view_fail_layers)
 {
    struct virgl_context ctx;
-   int ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   int ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    struct pipe_sampler_view state1, state2;
@@ -1375,7 +1375,7 @@ END_TEST
 START_TEST(virgl_test_encode_sampler_view_texture_buffer)
 {
    struct virgl_context ctx;
-   int ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   int ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    struct pipe_sampler_view state1;
@@ -1415,7 +1415,7 @@ static void test_create_surface(enum pipe_format format, int expected_error)
    struct virgl_surface surf;
    int ret;
 
-   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    /* init and create simple 2D resource */
@@ -1473,7 +1473,7 @@ START_TEST(virgl_test_create_surface_fail_layers)
    struct virgl_surface surf;
    int ret;
 
-   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    /* init and create simple 2D resource */
@@ -1514,7 +1514,7 @@ START_TEST(virgl_test_query)
    struct virgl_resource qbo = {0};
    int ret;
 
-   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    /* init and create simple 2D resource */
@@ -1585,7 +1585,7 @@ static void test_vertex_elements(int ve_num, int expected_error)
 
    int ret;
 
-   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    /* create vertex elements */
@@ -1622,7 +1622,7 @@ static void test_create_shader(enum pipe_shader_type type, int expected_error)
 
    int ret;
 
-   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    struct pipe_shader_state vs;
@@ -1669,7 +1669,7 @@ START_TEST(virgl_test_clear_texture)
    struct virgl_box box;
    int ret;
 
-   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    /* init and create simple 2D resource */
@@ -1732,7 +1732,7 @@ static void test_draw_vbo_unified(uint32_t indirect_handle, uint32_t indirect_dr
    struct pipe_framebuffer_state fb_state;
    struct virgl_box box;
 
-   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    /* init and create simple 2D resource */
@@ -1923,7 +1923,7 @@ START_TEST(virgl_test_draw_vbo_fail_not_recoverable)
    int ret;
    int tw = 300, th = 300;
 
-   ret = testvirgl_init_ctx_cmdbuf(&ctx);
+   ret = testvirgl_init_ctx_cmdbuf(&ctx, context_flags);
    ck_assert_int_eq(ret, 0);
 
    /* init and create simple 2D resource */

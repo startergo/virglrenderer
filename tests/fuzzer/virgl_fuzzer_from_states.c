@@ -1080,7 +1080,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* raw_data, size_t raw_size)
    if (raw_size < 1024u)
       return 0;
 
-   testvirgl_init_ctx_cmdbuf(&ctx);
+   testvirgl_init_ctx_cmdbuf(&ctx, VIRGL_RENDERER_USE_EGL);
    if (*raw_data & 1)
       create_initial_gfx_state();
    else

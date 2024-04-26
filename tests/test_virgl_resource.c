@@ -257,7 +257,7 @@ static struct res_test cubemaparray_testlist[] = {
 START_TEST(virgl_res_tests)
 {
   int ret;
-  ret = testvirgl_init_single_ctx();
+  ret = testvirgl_init_single_ctx(context_flags);
   ck_assert_int_eq(ret, 0);
 
   /* Do not test if multisample is not available */
@@ -277,7 +277,7 @@ END_TEST
 START_TEST(cubemaparray_res_tests)
 {
   int ret;
-  ret = testvirgl_init_single_ctx();
+  ret = testvirgl_init_single_ctx(context_flags);
   ck_assert_int_eq(ret, 0);
 
   ret = virgl_renderer_resource_create(&cubemaparray_testlist[_i].args, NULL, 0);
@@ -290,7 +290,7 @@ END_TEST
 START_TEST(private_ptr)
 {
   int ret;
-  ret = testvirgl_init_single_ctx();
+  ret = testvirgl_init_single_ctx(context_flags);
   ck_assert_int_eq(ret, 0);
   struct virgl_renderer_resource_create_args args = { 1, PIPE_BUFFER, PIPE_FORMAT_R8_UNORM, 0, 50, 1, 1, 1, 0, 0, 0 };
   ret = virgl_renderer_resource_create(&args, NULL, 0);

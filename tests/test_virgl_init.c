@@ -176,7 +176,7 @@ END_TEST
 
 START_TEST(virgl_init_egl_create_ctx_leak)
 {
-  int ret = testvirgl_init_single_ctx();
+  int ret = testvirgl_init_single_ctx(context_flags);
   ck_assert_int_eq(ret, 0);
 
   /* don't destroy the context - leak it make sure cleanup catches it */
@@ -295,7 +295,7 @@ START_TEST(virgl_init_egl_create_ctx_reset)
 {
   int ret;
 
-  ret = testvirgl_init_single_ctx();
+  ret = testvirgl_init_single_ctx(context_flags);
   ck_assert_int_eq(ret, 0);
 
   virgl_renderer_reset();
@@ -624,8 +624,8 @@ int main(void)
 
   if (getenv("VRENDTEST_USE_EGL_SURFACELESS"))
      context_flags |= VIRGL_RENDERER_USE_SURFACELESS;
-   if (getenv("VRENDTEST_USE_EGL_GLES"))
-      context_flags |= VIRGL_RENDERER_USE_GLES;
+  if (getenv("VRENDTEST_USE_EGL_GLES"))
+     context_flags |= VIRGL_RENDERER_USE_GLES;
 
   s = virgl_init_suite();
   sr = srunner_create(s);
