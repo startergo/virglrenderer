@@ -9,8 +9,8 @@
 #include "vcomp_device.h"
 #include "vcomp_platform.h"
 
-#include "vcl-protocol/vcl_protocol_renderer_program.h"
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
+#include "vcl-protocol/vcl_protocol_renderer_program.h"
 
 static void
 vcomp_dispatch_clCreateProgramWithSourceMESA(

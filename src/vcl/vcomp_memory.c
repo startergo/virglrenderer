@@ -9,6 +9,8 @@
 #include "vcomp_queue.h"
 #include "vcomp_event.h"
 
+#include "vcl-protocol/vcl_protocol_renderer_memory.h"
+
 static void
 vcomp_context_add_memory(struct vcomp_context *vctx, cl_mem memory, cl_mem *args_memory,
                          cl_int *args_ret)
@@ -88,49 +90,20 @@ vcomp_dispatch_clEnqueueReadBuffer(struct vcl_dispatch_context *dispatch,
                                    struct vcl_command_clEnqueueReadBuffer *args)
 {
    struct vcomp_context *vctx = dispatch->data;
-   struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
-   if (!queue)
-   {
-      args->ret = CL_INVALID_COMMAND_QUEUE;
-      return;
-   }
-   struct vcomp_memory *mem = vcomp_memory_from_handle(args->buffer);
-   if (!mem)
-   {
-      args->ret = CL_INVALID_MEM_OBJECT;
-      return;
-   }
 
-   cl_event *handles = NULL;
-   if (args->num_events_in_wait_list > 0 && args->event_wait_list != NULL) {
-      handles = calloc(args->num_events_in_wait_list, sizeof(*handles));
-
-      for (uint32_t i = 0; i < args->num_events_in_wait_list; ++i)
-      {
-         struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
-         if (!event)
-         {
-            args->ret = CL_INVALID_EVENT_WAIT_LIST;
-            goto free_handles;
-         }
-         handles[i] = event->base.handle.event;
-      }
-   }
+   vcl_replace_clEnqueueReadBuffer_args_handle(args);
 
    cl_event host_event;
-   args->ret = clEnqueueReadBuffer(queue->base.handle.queue, mem->base.handle.memory,
+   args->ret = clEnqueueReadBuffer(args->command_queue, args->buffer,
                                    args->blocking_read, args->offset, args->size,
-                                   args->ptr, args->num_events_in_wait_list, handles,
+                                   args->ptr, args->num_events_in_wait_list,
+                                   args->event_wait_list,
                                    args->event ? &host_event : NULL);
 
 
    /* Need to create a new vcomp event */
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
-
-free_handles:
-   if (handles)
-      free(handles);
 }
 
 static void
@@ -138,48 +111,19 @@ vcomp_dispatch_clEnqueueWriteBuffer(struct vcl_dispatch_context *dispatch,
                                     struct vcl_command_clEnqueueWriteBuffer *args)
 {
    struct vcomp_context *vctx = dispatch->data;
-   struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
-   if (!queue)
-   {
-      args->ret = CL_INVALID_COMMAND_QUEUE;
-      return;
-   }
-   struct vcomp_memory *mem = vcomp_memory_from_handle(args->buffer);
-   if (!mem)
-   {
-      args->ret = CL_INVALID_MEM_OBJECT;
-      return;
-   }
 
-   cl_event *handles = NULL;
-   if (args->num_events_in_wait_list > 0 && args->event_wait_list != NULL) {
-      handles = calloc(args->num_events_in_wait_list, sizeof(*handles));
-
-      for (uint32_t i = 0; i < args->num_events_in_wait_list; ++i)
-      {
-         struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
-         if (!event)
-         {
-            args->ret = CL_INVALID_EVENT_WAIT_LIST;
-            goto free_handles;
-         }
-         handles[i] = event->base.handle.event;
-      }
-   }
+   vcl_replace_clEnqueueWriteBuffer_args_handle(args);
 
    cl_event host_event;
-   args->ret = clEnqueueWriteBuffer(queue->base.handle.queue, mem->base.handle.memory,
+   args->ret = clEnqueueWriteBuffer(args->command_queue, args->buffer,
                                     args->blocking_write, args->offset, args->size,
-                                    args->ptr, args->num_events_in_wait_list, handles,
+                                    args->ptr, args->num_events_in_wait_list,
+                                    args->event_wait_list,
                                     args->event ? &host_event : NULL);
 
    /* Need to create a new vcomp event */
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
-
-free_handles:
-   if (handles)
-      free(handles);
 }
 
 static void

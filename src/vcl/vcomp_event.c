@@ -8,8 +8,8 @@
 #include "vcomp_event.h"
 #include "vcomp_queue.h"
 
-#include "vcl-protocol/vcl_protocol_renderer_event.h"
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
+#include "vcl-protocol/vcl_protocol_renderer_event.h"
 
 void vcomp_context_add_event(struct vcomp_context *vctx, cl_event event,
                              cl_event *args_event, cl_int *args_ret)
@@ -124,40 +124,16 @@ vcomp_dispatch_clEnqueueMarkerWithWaitList(struct vcl_dispatch_context *dispatch
 {
    struct vcomp_context *vctx = dispatch->data;
 
-   struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
-   if (!queue)
-   {
-      args->ret = CL_INVALID_COMMAND_QUEUE;
-      return;
-   }
-
-   cl_event *handles = NULL;
-   if (args->num_events_in_wait_list > 0 && args->event_wait_list)
-   {
-      handles = calloc(args->num_events_in_wait_list, sizeof(*handles));
-      for (uint32_t i = 0; i < args->num_events_in_wait_list; ++i)
-      {
-         struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
-         if (!event)
-         {
-            args->ret = CL_INVALID_EVENT_WAIT_LIST;
-            goto free_handles;
-         }
-         handles[i] = event->base.handle.event;
-      }
-   }
+   vcl_replace_clEnqueueMarkerWithWaitList_args_handle(args);
 
    cl_event host_event;
-   args->ret = clEnqueueMarkerWithWaitList(queue->base.handle.queue,
+   args->ret = clEnqueueMarkerWithWaitList(args->command_queue,
                                            args->num_events_in_wait_list,
-                                           handles, args->event ? &host_event : NULL);
+                                           args->event_wait_list,
+                                           args->event ? &host_event : NULL);
 
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
-
-free_handles:
-   if (handles)
-      free(handles);
 }
 
 static void
@@ -166,39 +142,16 @@ vcomp_dispatch_clEnqueueBarrierWithWaitList(struct vcl_dispatch_context *dispatc
 {
    struct vcomp_context *vctx = dispatch->data;
 
-   struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
-   if (!queue)
-   {
-      args->ret = CL_INVALID_COMMAND_QUEUE;
-   }
-
-   cl_event *handles = NULL;
-   if (args->num_events_in_wait_list > 0 && args->event_wait_list)
-   {
-      handles = calloc(args->num_events_in_wait_list, sizeof(*handles));
-      for (uint32_t i = 0; i < args->num_events_in_wait_list; ++i)
-      {
-         struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
-         if (!event)
-         {
-            args->ret = CL_INVALID_EVENT_WAIT_LIST;
-            goto free_handles;
-         }
-         handles[i] = event->base.handle.event;
-      }
-   }
+   vcl_replace_clEnqueueBarrierWithWaitList_args_handle(args);
 
    cl_event host_event;
-   args->ret = clEnqueueBarrierWithWaitList(queue->base.handle.queue,
+   args->ret = clEnqueueBarrierWithWaitList(args->command_queue,
                                             args->num_events_in_wait_list,
-                                            handles, args->event ? &host_event : NULL);
+                                            args->event_wait_list,
+                                            args->event ? &host_event : NULL);
 
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
-
-free_handles:
-   if (handles)
-      free(handles);
 }
 
 static void

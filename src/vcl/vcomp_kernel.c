@@ -13,6 +13,7 @@
 #include "vcomp_program.h"
 
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
+#include "vcl-protocol/vcl_protocol_renderer_kernel.h"
 
 static void
 vcomp_dispatch_clCreateKernelMESA(struct vcl_dispatch_context *dispatch,
@@ -208,54 +209,22 @@ vcomp_dispatch_clEnqueueNDRangeKernel(struct vcl_dispatch_context *dispatch,
                                       struct vcl_command_clEnqueueNDRangeKernel *args)
 {
    struct vcomp_context *vctx = dispatch->data;
-   struct vcomp_kernel *kernel = vcomp_kernel_from_handle(args->kernel);
-   struct vcomp_queue *queue = vcomp_queue_from_handle(args->command_queue);
+
+   vcl_replace_clEnqueueNDRangeKernel_args_handle(args);
+
    cl_event host_event = NULL;
-
-   if (!queue)
-   {
-      args->ret = CL_INVALID_COMMAND_QUEUE;
-      return;
-   }
-
-   if (!kernel)
-   {
-      args->ret = CL_INVALID_KERNEL;
-      return;
-   }
-
-   cl_event *event_handles = NULL;
-   if (args->num_events_in_wait_list > 0 && args->event_wait_list)
-   {
-      event_handles = calloc(args->num_events_in_wait_list, sizeof(*event_handles));
-      for (size_t i = 0; i < args->num_events_in_wait_list; i++)
-      {
-         struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
-         if (!event)
-         {
-            args->ret = CL_INVALID_EVENT_WAIT_LIST;
-            free(event_handles);
-            return;
-         }
-         event_handles[i] = event->base.handle.event;
-      }
-   }
-
-   args->ret = clEnqueueNDRangeKernel(queue->base.handle.queue,
-                                      kernel->base.handle.kernel,
+   args->ret = clEnqueueNDRangeKernel(args->command_queue,
+                                      args->kernel,
                                       args->work_dim,
                                       args->global_work_offset,
                                       args->global_work_size,
                                       args->local_work_size,
                                       args->num_events_in_wait_list,
-                                      event_handles,
+                                      args->event_wait_list,
                                       args->event ? &host_event : NULL);
 
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
-
-   if (event_handles)
-      free(event_handles);
 }
 
 static void
