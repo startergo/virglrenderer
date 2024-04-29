@@ -110,7 +110,7 @@ vcomp_dispatch_clEnqueueReadBuffer(struct vcl_dispatch_context *dispatch,
          struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
          if (!event)
          {
-            args->ret = CL_INVALID_EVENT;
+            args->ret = CL_INVALID_EVENT_WAIT_LIST;
             goto free_handles;
          }
          handles[i] = event->base.handle.event;
@@ -160,7 +160,7 @@ vcomp_dispatch_clEnqueueWriteBuffer(struct vcl_dispatch_context *dispatch,
          struct vcomp_event *event = vcomp_event_from_handle(args->event_wait_list[i]);
          if (!event)
          {
-            args->ret = CL_INVALID_EVENT;
+            args->ret = CL_INVALID_EVENT_WAIT_LIST;
             goto free_handles;
          }
          handles[i] = event->base.handle.event;
