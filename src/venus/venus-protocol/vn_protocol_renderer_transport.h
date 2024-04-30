@@ -108,6 +108,63 @@ vn_replace_VkRingMonitorInfoMESA_handle(VkRingMonitorInfoMESA *val)
     } while (pnext);
 }
 
+/* struct VkRingPriorityInfoMESA chain */
+
+static inline void *
+vn_decode_VkRingPriorityInfoMESA_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkRingPriorityInfoMESA_self_temp(struct vn_cs_decoder *dec, VkRingPriorityInfoMESA *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_int32_t(dec, &val->priority);
+}
+
+static inline void
+vn_decode_VkRingPriorityInfoMESA_temp(struct vn_cs_decoder *dec, VkRingPriorityInfoMESA *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_RING_PRIORITY_INFO_MESA)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkRingPriorityInfoMESA_pnext_temp(dec);
+    vn_decode_VkRingPriorityInfoMESA_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkRingPriorityInfoMESA_handle_self(VkRingPriorityInfoMESA *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->priority */
+}
+
+static inline void
+vn_replace_VkRingPriorityInfoMESA_handle(VkRingPriorityInfoMESA *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_RING_PRIORITY_INFO_MESA:
+            vn_replace_VkRingPriorityInfoMESA_handle_self((VkRingPriorityInfoMESA *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkRingCreateInfoMESA chain */
 
 static inline void *
@@ -127,6 +184,14 @@ vn_decode_VkRingCreateInfoMESA_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkRingCreateInfoMESA_pnext_temp(dec);
             vn_decode_VkRingMonitorInfoMESA_self_temp(dec, (VkRingMonitorInfoMESA *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_RING_PRIORITY_INFO_MESA:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkRingPriorityInfoMESA));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkRingCreateInfoMESA_pnext_temp(dec);
+            vn_decode_VkRingPriorityInfoMESA_self_temp(dec, (VkRingPriorityInfoMESA *)pnext);
         }
         break;
     default:
@@ -201,6 +266,9 @@ vn_replace_VkRingCreateInfoMESA_handle(VkRingCreateInfoMESA *val)
             break;
         case VK_STRUCTURE_TYPE_RING_MONITOR_INFO_MESA:
             vn_replace_VkRingMonitorInfoMESA_handle_self((VkRingMonitorInfoMESA *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_RING_PRIORITY_INFO_MESA:
+            vn_replace_VkRingPriorityInfoMESA_handle_self((VkRingPriorityInfoMESA *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
