@@ -253,6 +253,12 @@ vkr_dispatch_vkCreateRingMESA(struct vn_dispatch_context *dispatch,
       ring->monitor = true;
    }
 
+   const VkRingPriorityInfoMESA *priority_info =
+      vkr_find_struct(info->pNext, VK_STRUCTURE_TYPE_RING_PRIORITY_INFO_MESA);
+   if (priority_info) {
+      ring->prio = priority_info->priority;
+   }
+
    vkr_ring_start(ring);
 }
 
