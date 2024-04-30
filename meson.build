@@ -141,6 +141,7 @@ if cc.has_header('dlfcn.h')
 endif
 
 with_host_windows = host_machine.system() == 'windows'
+with_host_darwin = host_machine.system() == 'darwin'
 
 if thread_dep.found() and not with_host_windows
   conf_data.set('HAVE_PTHREAD', 1)
@@ -243,7 +244,7 @@ endif
 
 if with_egl
    if cc.has_header('epoxy/egl.h', dependencies: epoxy_dep) and epoxy_dep.get_variable(pkgconfig: 'epoxy_has_egl') == '1'
-      if with_host_windows
+      if with_host_windows or with_host_darwin
          have_egl = true
       else
          if libdrm_dep.found()
