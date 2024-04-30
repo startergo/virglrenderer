@@ -98,6 +98,20 @@ vn_cs_decoder_alloc_temp(struct vn_cs_decoder *dec, size_t size)
 }
 
 static inline void *
+vn_cs_decoder_get_blob_storage(struct vn_cs_decoder *dec, size_t size)
+{
+   struct vkr_cs_decoder *d = (struct vkr_cs_decoder *)dec;
+   return vkr_cs_decoder_get_blob_storage(d, size);
+}
+
+static inline void *
+vn_cs_encoder_get_blob_storage(struct vn_cs_encoder *enc, size_t offset, size_t size)
+{
+   struct vkr_cs_encoder *e = (struct vkr_cs_encoder *)enc;
+   return vkr_cs_encoder_get_blob_storage(e, offset, size);
+}
+
+static inline void *
 vn_cs_decoder_alloc_temp_array(struct vn_cs_decoder *dec, size_t size, size_t count)
 {
    struct vkr_cs_decoder *d = (struct vkr_cs_decoder *)dec;

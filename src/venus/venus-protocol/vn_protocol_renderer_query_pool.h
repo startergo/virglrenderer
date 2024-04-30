@@ -154,17 +154,24 @@ static inline void vn_encode_vkDestroyQueryPool_reply(struct vn_cs_encoder *enc,
     /* skip args->pAllocator */
 }
 
-static inline void vn_decode_vkGetQueryPoolResults_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkGetQueryPoolResults *args)
+static inline void vn_decode_vkGetQueryPoolResults_args_temp(struct vn_cs_decoder *dec, struct vn_cs_encoder *enc, struct vn_command_vkGetQueryPoolResults *args)
 {
+    const VkCommandTypeEXT cmd_type = VK_COMMAND_TYPE_vkGetQueryPoolResults_EXT;
+    size_t offset = vn_sizeof_VkCommandTypeEXT(&cmd_type);
+
+    VkResult ret;
+    offset += vn_sizeof_VkResult(&ret);
     vn_decode_VkDevice_lookup(dec, &args->device);
     vn_decode_VkQueryPool_lookup(dec, &args->queryPool);
     vn_decode_uint32_t(dec, &args->firstQuery);
     vn_decode_uint32_t(dec, &args->queryCount);
     vn_decode_size_t(dec, &args->dataSize);
     if (vn_peek_array_size(dec)) {
+        offset += vn_sizeof_array_size(args->dataSize);
         const size_t array_size = vn_decode_array_size(dec, args->dataSize);
-        args->pData = vn_cs_decoder_alloc_temp(dec, array_size);
+        args->pData = vn_cs_encoder_get_blob_storage(enc, offset, array_size);
         if (!args->pData) return;
+        offset += vn_sizeof_blob_array(args->pData, array_size);
     } else {
         vn_decode_array_size(dec, args->dataSize);
         args->pData = NULL;
@@ -301,7 +308,12 @@ static inline void vn_dispatch_vkGetQueryPoolResults(struct vn_dispatch_context 
         return;
     }
 
-    vn_decode_vkGetQueryPoolResults_args_temp(ctx->decoder, &args);
+    if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
+        if (!vn_cs_encoder_acquire(ctx->encoder))
+           return;
+    }
+
+    vn_decode_vkGetQueryPoolResults_args_temp(ctx->decoder, ctx->encoder, &args);
     if (!args.device) {
         vn_cs_decoder_set_fatal(ctx->decoder);
         return;
@@ -317,10 +329,8 @@ static inline void vn_dispatch_vkGetQueryPoolResults(struct vn_dispatch_context 
 
     if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
         if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
-            if (vn_cs_encoder_acquire(ctx->encoder)) {
-                vn_encode_vkGetQueryPoolResults_reply(ctx->encoder, &args);
-                vn_cs_encoder_release(ctx->encoder);
-            }
+            vn_encode_vkGetQueryPoolResults_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
         }
     } else if (args.ret == VK_ERROR_DEVICE_LOST) {
         vn_cs_decoder_set_fatal(ctx->decoder);

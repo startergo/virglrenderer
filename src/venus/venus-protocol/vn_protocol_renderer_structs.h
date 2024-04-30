@@ -849,7 +849,7 @@ vn_decode_VkWriteDescriptorSetInlineUniformBlock_self_temp(struct vn_cs_decoder 
     vn_decode_uint32_t(dec, &val->dataSize);
     if (vn_peek_array_size(dec)) {
         const size_t array_size = vn_decode_array_size(dec, val->dataSize);
-        val->pData = vn_cs_decoder_alloc_temp(dec, array_size);
+        val->pData = vn_cs_decoder_get_blob_storage(dec, array_size);
         if (!val->pData) return;
         vn_decode_blob_array(dec, (void *)val->pData, array_size);
     } else {

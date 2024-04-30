@@ -36,7 +36,7 @@ vn_decode_VkPipelineCacheCreateInfo_self_temp(struct vn_cs_decoder *dec, VkPipel
     vn_decode_size_t(dec, &val->initialDataSize);
     if (vn_peek_array_size(dec)) {
         const size_t array_size = vn_decode_array_size(dec, val->initialDataSize);
-        val->pInitialData = vn_cs_decoder_alloc_temp(dec, array_size);
+        val->pInitialData = vn_cs_decoder_get_blob_storage(dec, array_size);
         if (!val->pInitialData) return;
         vn_decode_blob_array(dec, (void *)val->pInitialData, array_size);
     } else {
@@ -160,22 +160,31 @@ static inline void vn_encode_vkDestroyPipelineCache_reply(struct vn_cs_encoder *
     /* skip args->pAllocator */
 }
 
-static inline void vn_decode_vkGetPipelineCacheData_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkGetPipelineCacheData *args)
+static inline void vn_decode_vkGetPipelineCacheData_args_temp(struct vn_cs_decoder *dec, struct vn_cs_encoder *enc, struct vn_command_vkGetPipelineCacheData *args)
 {
+    const VkCommandTypeEXT cmd_type = VK_COMMAND_TYPE_vkGetPipelineCacheData_EXT;
+    size_t offset = vn_sizeof_VkCommandTypeEXT(&cmd_type);
+
+    VkResult ret;
+    offset += vn_sizeof_VkResult(&ret);
     vn_decode_VkDevice_lookup(dec, &args->device);
     vn_decode_VkPipelineCache_lookup(dec, &args->pipelineCache);
     if (vn_decode_simple_pointer(dec)) {
+        offset += vn_sizeof_simple_pointer(args->pDataSize);
         args->pDataSize = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pDataSize));
         if (!args->pDataSize) return;
         vn_decode_size_t(dec, args->pDataSize);
+        offset += vn_sizeof_size_t(args->pDataSize);
     } else {
         args->pDataSize = NULL;
         vn_cs_decoder_set_fatal(dec);
     }
     if (vn_peek_array_size(dec)) {
+        offset += vn_sizeof_array_size((args->pDataSize ? *args->pDataSize : 0));
         const size_t array_size = vn_decode_array_size(dec, (args->pDataSize ? *args->pDataSize : 0));
-        args->pData = vn_cs_decoder_alloc_temp(dec, array_size);
+        args->pData = vn_cs_encoder_get_blob_storage(enc, offset, array_size);
         if (!args->pData) return;
+        offset += vn_sizeof_blob_array(args->pData, array_size);
     } else {
         vn_decode_array_size_unchecked(dec);
         args->pData = NULL;
@@ -316,7 +325,12 @@ static inline void vn_dispatch_vkGetPipelineCacheData(struct vn_dispatch_context
         return;
     }
 
-    vn_decode_vkGetPipelineCacheData_args_temp(ctx->decoder, &args);
+    if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
+        if (!vn_cs_encoder_acquire(ctx->encoder))
+           return;
+    }
+
+    vn_decode_vkGetPipelineCacheData_args_temp(ctx->decoder, ctx->encoder, &args);
     if (!args.device) {
         vn_cs_decoder_set_fatal(ctx->decoder);
         return;
@@ -331,10 +345,8 @@ static inline void vn_dispatch_vkGetPipelineCacheData(struct vn_dispatch_context
 #endif
 
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
-        if (vn_cs_encoder_acquire(ctx->encoder)) {
-            vn_encode_vkGetPipelineCacheData_reply(ctx->encoder, &args);
-            vn_cs_encoder_release(ctx->encoder);
-        }
+        vn_encode_vkGetPipelineCacheData_reply(ctx->encoder, &args);
+        vn_cs_encoder_release(ctx->encoder);
     }
 
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
