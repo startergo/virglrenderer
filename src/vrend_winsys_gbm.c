@@ -331,7 +331,7 @@ int virgl_gbm_convert_format(uint32_t *virgl_format, uint32_t *gbm_format)
 int virgl_gbm_transfer(struct gbm_bo *bo, uint32_t direction, const struct iovec *iovecs,
                        uint32_t num_iovecs, const struct vrend_transfer_info *info)
 {
-   void *map_data;
+   void *map_data = NULL;
    uint32_t guest_plane_offset, guest_stride0, host_map_stride0;
 
    uint32_t width = gbm_bo_get_width(bo);
