@@ -93,7 +93,7 @@ struct amdgpu_context {
    struct hash_table_u64 *id_to_ctx;
 
    struct {
-      struct cmd_stat s[8];
+      struct cmd_stat s[9];
       uint64_t last_print_ms;
    } statistics;
 
@@ -1109,18 +1109,6 @@ static const struct ccmd {
    HANDLER(SET_PSTATE, set_pstate),
 };
 
-const char * __cmd_names[] = {
-   "QUERY_INFO   ",
-   "GEM_NEW      ",
-   "BO_VA_OP     ",
-   "CS_SUBMIT    ",
-   "SET_METADATA ",
-   "BO_QUERY_INFO",
-   "CREATE_CTX   ",
-   "RESERVE_VMID ",
-   "SET_PSTATE   ",
-};
-
 static int
 submit_cmd_dispatch(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
 {
@@ -1140,7 +1128,7 @@ submit_cmd_dispatch(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
 
    struct cmd_stat * const stat = &ctx->statistics.s[hdr->cmd - 1];
    print(2, "command: %s (seqno: %u, size:%zu)",
-         __cmd_names[hdr->cmd - 1], hdr->seqno, ccmd->size);
+         ccmd->name, hdr->seqno, ccmd->size);
 
    uint64_t start = util_current_thread_get_time_nano();
 
@@ -1190,7 +1178,7 @@ submit_cmd_dispatch(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
          if (ctx->statistics.s[i].count) {
             int n = (int)roundf(100 * ctx->statistics.s[i].count / (float)total);
             printf("\t%s %3d%% (n: %*d, min: %.3f ms, max: %.3f ms, avg: %.3f ms)\n",
-                   __cmd_names[i],
+                   ccmd_dispatch[i + 1].name,
                    n,
                    align,
                    ctx->statistics.s[i].count,
