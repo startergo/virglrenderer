@@ -151,8 +151,9 @@ struct amdgpu_object {
    uint32_t flags;
    uint32_t size;
 
-   bool has_metadata : 1;
-   bool exported   : 1;
+   bool has_metadata    :1;
+   bool exported        :1;
+   bool enable_cache_wc :1;
 };
 
 static void free_amdgpu_object(struct amdgpu_context *ctx, struct amdgpu_object *obj);
@@ -565,7 +566,10 @@ amdgpu_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t b
       return -ENOENT;
    }
 
-   blob->map_info = VIRGL_RENDERER_MAP_CACHE_WC;
+   if (obj->enable_cache_wc)
+      blob->map_info = VIRGL_RENDERER_MAP_CACHE_WC;
+   else
+      blob->map_info = VIRGL_RENDERER_MAP_CACHE_CACHED;
 
    /* a memory can only be exported once; we don't want two resources to point
     * to the same storage.
@@ -695,6 +699,10 @@ amdgpu_ccmd_gem_new(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
       goto export_failed;
 
    obj->gem_handle = gem_handle;
+   /* Enable Write-Combine except for GTT buffers with WC disabled. */
+   obj->enable_cache_wc =
+      (req->r.preferred_heap != AMDGPU_GEM_DOMAIN_GTT) ||
+      (req->r.flags & AMDGPU_GEM_CREATE_CPU_GTT_USWC);
 
    amdgpu_object_set_blob_id(ctx, obj, req->blob_id);
 
