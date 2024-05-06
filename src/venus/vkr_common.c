@@ -97,6 +97,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .KHR_external_memory_fd = true,
    .KHR_external_semaphore_fd = true,
    .KHR_fragment_shading_rate = true,
+   .KHR_maintenance5 = true,
    .KHR_pipeline_library = true,
    .KHR_push_descriptor = true,
    .KHR_shader_clock = true,

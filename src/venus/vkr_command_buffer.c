@@ -653,6 +653,14 @@ vkr_dispatch_vkCmdBindVertexBuffers2(UNUSED struct vn_dispatch_context *dispatch
 }
 
 static void
+vkr_dispatch_vkCmdBindIndexBuffer2KHR(UNUSED struct vn_dispatch_context *dispatch,
+                                      struct vn_command_vkCmdBindIndexBuffer2KHR *args)
+{
+   VKR_CMD_CALL(CmdBindIndexBuffer2KHR, args, args->buffer, args->offset, args->size,
+                args->indexType);
+}
+
+static void
 vkr_dispatch_vkCmdSetCullMode(UNUSED struct vn_dispatch_context *dispatch,
                               struct vn_command_vkCmdSetCullMode *args)
 {
@@ -1165,6 +1173,8 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
    dispatch->dispatch_vkCmdSetStencilOp = vkr_dispatch_vkCmdSetStencilOp;
    dispatch->dispatch_vkCmdSetStencilTestEnable = vkr_dispatch_vkCmdSetStencilTestEnable;
    dispatch->dispatch_vkCmdSetViewportWithCount = vkr_dispatch_vkCmdSetViewportWithCount;
+
+   dispatch->dispatch_vkCmdBindIndexBuffer2KHR = vkr_dispatch_vkCmdBindIndexBuffer2KHR;
 
    /* VK_KHR_dynamic_rendering */
    dispatch->dispatch_vkCmdBeginRendering = vkr_dispatch_vkCmdBeginRendering;

@@ -59,6 +59,17 @@ vkr_dispatch_vkGetRenderAreaGranularity(UNUSED struct vn_dispatch_context *dispa
 }
 
 static void
+vkr_dispatch_vkGetRenderingAreaGranularityKHR(UNUSED struct vn_dispatch_context *dispatch,
+                                              struct vn_command_vkGetRenderingAreaGranularityKHR *args)
+{
+   struct vkr_device *dev = vkr_device_from_handle(args->device);
+   struct vn_device_proc_table *vk = &dev->proc_table;
+
+   vn_replace_vkGetRenderingAreaGranularityKHR_args_handle(args);
+   vk->GetRenderingAreaGranularityKHR(args->device, args->pRenderingAreaInfo, args->pGranularity);
+}
+
+static void
 vkr_dispatch_vkCreateFramebuffer(struct vn_dispatch_context *dispatch,
                                  struct vn_command_vkCreateFramebuffer *args)
 {
@@ -82,6 +93,8 @@ vkr_context_init_render_pass_dispatch(struct vkr_context *ctx)
    dispatch->dispatch_vkDestroyRenderPass = vkr_dispatch_vkDestroyRenderPass;
    dispatch->dispatch_vkGetRenderAreaGranularity =
       vkr_dispatch_vkGetRenderAreaGranularity;
+   dispatch->dispatch_vkGetRenderingAreaGranularityKHR =
+      vkr_dispatch_vkGetRenderingAreaGranularityKHR;
 }
 
 void
