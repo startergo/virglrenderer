@@ -73,14 +73,9 @@ static void
 vcomp_dispatch_clGetMemObjectInfo(UNUSED struct vcl_dispatch_context *dispatch,
                                   struct vcl_command_clGetMemObjectInfo *args)
 {
-   struct vcomp_memory *memory = vcomp_memory_from_handle(args->memobj);
-   if (!memory)
-   {
-      args->ret = CL_INVALID_MEM_OBJECT;
-      return;
-   }
+   vcl_replace_clGetMemObjectInfo_args_handle(args);
 
-   args->ret = clGetMemObjectInfo(memory->base.handle.memory, args->param_name,
+   args->ret = clGetMemObjectInfo(args->memobj, args->param_name,
                                   args->param_value_size, args->param_value,
                                   args->param_value_size_ret);
 }
@@ -122,6 +117,91 @@ vcomp_dispatch_clEnqueueWriteBuffer(struct vcl_dispatch_context *dispatch,
                                     args->event ? &host_event : NULL);
 
    /* Need to create a new vcomp event */
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
+static void
+vcomp_dispatch_clEnqueueCopyBuffer(struct vcl_dispatch_context *dispatch,
+                                   struct vcl_command_clEnqueueCopyBuffer *args)
+{
+   struct vcomp_context *vctx = dispatch->data;
+
+   vcl_replace_clEnqueueCopyBuffer_args_handle(args);
+
+   cl_event host_event;
+   args->ret = clEnqueueCopyBuffer(args->command_queue, args->src_buffer,
+                                   args->dst_buffer, args->src_offset,
+                                   args->dst_offset, args->size,
+                                   args->num_events_in_wait_list,
+                                   args->event_wait_list,
+                                   args->event ? &host_event : NULL);
+
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
+static void
+vcomp_dispatch_clEnqueueCopyBufferRect(struct vcl_dispatch_context *dispatch,
+                                       struct vcl_command_clEnqueueCopyBufferRect *args)
+{
+   struct vcomp_context *vctx = dispatch->data;
+
+   vcl_replace_clEnqueueCopyBufferRect_args_handle(args);
+
+   cl_event host_event;
+   args->ret = clEnqueueCopyBufferRect(args->command_queue, args->src_buffer,
+                                       args->dst_buffer, args->src_origin,
+                                       args->dst_origin, args->region,
+                                       args->src_row_pitch,
+                                       args->src_slice_pitch,
+                                       args->dst_row_pitch,
+                                       args->dst_slice_pitch,
+                                       args->num_events_in_wait_list,
+                                       args->event_wait_list,
+                                       args->event ? &host_event : NULL);
+
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
+static void
+vcomp_dispatch_clEnqueueFillBuffer(struct vcl_dispatch_context *dispatch,
+                                   struct vcl_command_clEnqueueFillBuffer *args)
+{
+   struct vcomp_context *vctx = dispatch->data;
+
+   vcl_replace_clEnqueueFillBuffer_args_handle(args);
+
+   cl_event host_event;
+   args->ret = clEnqueueFillBuffer(args->command_queue, args->buffer,
+                                   args->pattern, args->pattern_size,
+                                   args->offset, args->size,
+                                   args->num_events_in_wait_list,
+                                   args->event_wait_list,
+                                   args->event ? &host_event : NULL);
+
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
+static void
+vcomp_dispatch_clEnqueueMigrateMemObjects(struct vcl_dispatch_context *dispatch,
+                                          struct vcl_command_clEnqueueMigrateMemObjects *args)
+{
+   struct vcomp_context *vctx = dispatch->data;
+
+   vcl_replace_clEnqueueMigrateMemObjects_args_handle(args);
+
+   cl_event host_event;
+   args->ret = clEnqueueMigrateMemObjects(args->command_queue,
+                                          args->num_mem_objects,
+                                          args->mem_objects,
+                                          args->flags,
+                                          args->num_events_in_wait_list,
+                                          args->event_wait_list,
+                                          args->event ? &host_event : NULL);
+
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
 }
@@ -211,6 +291,10 @@ void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
    vctx->dispatch.dispatch_clGetMemObjectInfo = vcomp_dispatch_clGetMemObjectInfo;
    vctx->dispatch.dispatch_clEnqueueReadBuffer = vcomp_dispatch_clEnqueueReadBuffer;
    vctx->dispatch.dispatch_clEnqueueWriteBuffer = vcomp_dispatch_clEnqueueWriteBuffer;
+   vctx->dispatch.dispatch_clEnqueueCopyBuffer = vcomp_dispatch_clEnqueueCopyBuffer;
+   vctx->dispatch.dispatch_clEnqueueCopyBufferRect = vcomp_dispatch_clEnqueueCopyBufferRect;
+   vctx->dispatch.dispatch_clEnqueueFillBuffer = vcomp_dispatch_clEnqueueFillBuffer;
+   vctx->dispatch.dispatch_clEnqueueMigrateMemObjects = vcomp_dispatch_clEnqueueMigrateMemObjects;
    vctx->dispatch.dispatch_clCreateImage2DMESA = vcomp_dispatch_clCreateImage2DMESA;
    vctx->dispatch.dispatch_clCreateImage3DMESA = vcomp_dispatch_clCreateImage3DMESA;
    vctx->dispatch.dispatch_clGetSupportedImageFormats =
