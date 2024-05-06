@@ -1038,6 +1038,192 @@ vn_decode_VkImageDrmFormatModifierPropertiesEXT_partial_temp(struct vn_cs_decode
     vn_decode_VkImageDrmFormatModifierPropertiesEXT_self_partial_temp(dec, val);
 }
 
+/* struct VkImageSubresource2KHR chain */
+
+static inline void *
+vn_decode_VkImageSubresource2KHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkImageSubresource2KHR_self_temp(struct vn_cs_decoder *dec, VkImageSubresource2KHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkImageSubresource_temp(dec, &val->imageSubresource);
+}
+
+static inline void
+vn_decode_VkImageSubresource2KHR_temp(struct vn_cs_decoder *dec, VkImageSubresource2KHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_IMAGE_SUBRESOURCE_2_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkImageSubresource2KHR_pnext_temp(dec);
+    vn_decode_VkImageSubresource2KHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkImageSubresource2KHR_handle_self(VkImageSubresource2KHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    vn_replace_VkImageSubresource_handle(&val->imageSubresource);
+}
+
+static inline void
+vn_replace_VkImageSubresource2KHR_handle(VkImageSubresource2KHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_IMAGE_SUBRESOURCE_2_KHR:
+            vn_replace_VkImageSubresource2KHR_handle_self((VkImageSubresource2KHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkSubresourceLayout2KHR chain */
+
+static inline void
+vn_encode_VkSubresourceLayout2KHR_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkSubresourceLayout2KHR_self(struct vn_cs_encoder *enc, const VkSubresourceLayout2KHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkSubresourceLayout(enc, &val->subresourceLayout);
+}
+
+static inline void
+vn_encode_VkSubresourceLayout2KHR(struct vn_cs_encoder *enc, const VkSubresourceLayout2KHR *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_SUBRESOURCE_LAYOUT_2_KHR);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_SUBRESOURCE_LAYOUT_2_KHR });
+    vn_encode_VkSubresourceLayout2KHR_pnext(enc, val->pNext);
+    vn_encode_VkSubresourceLayout2KHR_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkSubresourceLayout2KHR_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkSubresourceLayout2KHR_self_partial_temp(struct vn_cs_decoder *dec, VkSubresourceLayout2KHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkSubresourceLayout_partial_temp(dec, &val->subresourceLayout);
+}
+
+static inline void
+vn_decode_VkSubresourceLayout2KHR_partial_temp(struct vn_cs_decoder *dec, VkSubresourceLayout2KHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_SUBRESOURCE_LAYOUT_2_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkSubresourceLayout2KHR_pnext_partial_temp(dec);
+    vn_decode_VkSubresourceLayout2KHR_self_partial_temp(dec, val);
+}
+
+/* struct VkDeviceImageSubresourceInfoKHR chain */
+
+static inline void *
+vn_decode_VkDeviceImageSubresourceInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkDeviceImageSubresourceInfoKHR_self_temp(struct vn_cs_decoder *dec, VkDeviceImageSubresourceInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    if (vn_decode_simple_pointer(dec)) {
+        val->pCreateInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*val->pCreateInfo));
+        if (!val->pCreateInfo) return;
+        vn_decode_VkImageCreateInfo_temp(dec, (VkImageCreateInfo *)val->pCreateInfo);
+    } else {
+        val->pCreateInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+    if (vn_decode_simple_pointer(dec)) {
+        val->pSubresource = vn_cs_decoder_alloc_temp(dec, sizeof(*val->pSubresource));
+        if (!val->pSubresource) return;
+        vn_decode_VkImageSubresource2KHR_temp(dec, (VkImageSubresource2KHR *)val->pSubresource);
+    } else {
+        val->pSubresource = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void
+vn_decode_VkDeviceImageSubresourceInfoKHR_temp(struct vn_cs_decoder *dec, VkDeviceImageSubresourceInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_DEVICE_IMAGE_SUBRESOURCE_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkDeviceImageSubresourceInfoKHR_pnext_temp(dec);
+    vn_decode_VkDeviceImageSubresourceInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkDeviceImageSubresourceInfoKHR_handle_self(VkDeviceImageSubresourceInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    if (val->pCreateInfo)
+        vn_replace_VkImageCreateInfo_handle((VkImageCreateInfo *)val->pCreateInfo);
+    if (val->pSubresource)
+        vn_replace_VkImageSubresource2KHR_handle((VkImageSubresource2KHR *)val->pSubresource);
+}
+
+static inline void
+vn_replace_VkDeviceImageSubresourceInfoKHR_handle(VkDeviceImageSubresourceInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_DEVICE_IMAGE_SUBRESOURCE_INFO_KHR:
+            vn_replace_VkDeviceImageSubresourceInfoKHR_handle_self((VkDeviceImageSubresourceInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 static inline void vn_decode_vkGetImageMemoryRequirements_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkGetImageMemoryRequirements *args)
 {
     vn_decode_VkDevice_lookup(dec, &args->device);
@@ -1521,6 +1707,87 @@ static inline void vn_encode_vkGetImageDrmFormatModifierPropertiesEXT_reply(stru
         vn_encode_VkImageDrmFormatModifierPropertiesEXT(enc, args->pProperties);
 }
 
+static inline void vn_decode_vkGetImageSubresourceLayout2KHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkGetImageSubresourceLayout2KHR *args)
+{
+    vn_decode_VkDevice_lookup(dec, &args->device);
+    vn_decode_VkImage_lookup(dec, &args->image);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pSubresource = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pSubresource));
+        if (!args->pSubresource) return;
+        vn_decode_VkImageSubresource2KHR_temp(dec, (VkImageSubresource2KHR *)args->pSubresource);
+    } else {
+        args->pSubresource = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+    if (vn_decode_simple_pointer(dec)) {
+        args->pLayout = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pLayout));
+        if (!args->pLayout) return;
+        vn_decode_VkSubresourceLayout2KHR_partial_temp(dec, args->pLayout);
+    } else {
+        args->pLayout = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkGetImageSubresourceLayout2KHR_args_handle(struct vn_command_vkGetImageSubresourceLayout2KHR *args)
+{
+    vn_replace_VkDevice_handle(&args->device);
+    vn_replace_VkImage_handle(&args->image);
+    if (args->pSubresource)
+        vn_replace_VkImageSubresource2KHR_handle((VkImageSubresource2KHR *)args->pSubresource);
+    /* skip args->pLayout */
+}
+
+static inline void vn_encode_vkGetImageSubresourceLayout2KHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkGetImageSubresourceLayout2KHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkGetImageSubresourceLayout2KHR_EXT});
+
+    /* skip args->device */
+    /* skip args->image */
+    /* skip args->pSubresource */
+    if (vn_encode_simple_pointer(enc, args->pLayout))
+        vn_encode_VkSubresourceLayout2KHR(enc, args->pLayout);
+}
+
+static inline void vn_decode_vkGetDeviceImageSubresourceLayoutKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkGetDeviceImageSubresourceLayoutKHR *args)
+{
+    vn_decode_VkDevice_lookup(dec, &args->device);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pInfo));
+        if (!args->pInfo) return;
+        vn_decode_VkDeviceImageSubresourceInfoKHR_temp(dec, (VkDeviceImageSubresourceInfoKHR *)args->pInfo);
+    } else {
+        args->pInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+    if (vn_decode_simple_pointer(dec)) {
+        args->pLayout = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pLayout));
+        if (!args->pLayout) return;
+        vn_decode_VkSubresourceLayout2KHR_partial_temp(dec, args->pLayout);
+    } else {
+        args->pLayout = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkGetDeviceImageSubresourceLayoutKHR_args_handle(struct vn_command_vkGetDeviceImageSubresourceLayoutKHR *args)
+{
+    vn_replace_VkDevice_handle(&args->device);
+    if (args->pInfo)
+        vn_replace_VkDeviceImageSubresourceInfoKHR_handle((VkDeviceImageSubresourceInfoKHR *)args->pInfo);
+    /* skip args->pLayout */
+}
+
+static inline void vn_encode_vkGetDeviceImageSubresourceLayoutKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkGetDeviceImageSubresourceLayoutKHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkGetDeviceImageSubresourceLayoutKHR_EXT});
+
+    /* skip args->device */
+    /* skip args->pInfo */
+    if (vn_encode_simple_pointer(enc, args->pLayout))
+        vn_encode_VkSubresourceLayout2KHR(enc, args->pLayout);
+}
+
 static inline void vn_dispatch_vkGetImageMemoryRequirements(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
 {
     struct vn_command_vkGetImageMemoryRequirements args;
@@ -1870,6 +2137,62 @@ static inline void vn_dispatch_vkGetImageDrmFormatModifierPropertiesEXT(struct v
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
             vn_encode_vkGetImageDrmFormatModifierPropertiesEXT_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkGetImageSubresourceLayout2KHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkGetImageSubresourceLayout2KHR args;
+
+    if (!ctx->dispatch_vkGetImageSubresourceLayout2KHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkGetImageSubresourceLayout2KHR_args_temp(ctx->decoder, &args);
+    if (!args.device) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkGetImageSubresourceLayout2KHR(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetImageSubresourceLayout2KHR_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkGetDeviceImageSubresourceLayoutKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkGetDeviceImageSubresourceLayoutKHR args;
+
+    if (!ctx->dispatch_vkGetDeviceImageSubresourceLayoutKHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkGetDeviceImageSubresourceLayoutKHR_args_temp(ctx->decoder, &args);
+    if (!args.device) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkGetDeviceImageSubresourceLayoutKHR(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetDeviceImageSubresourceLayoutKHR_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }

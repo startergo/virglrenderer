@@ -35,6 +35,7 @@ struct vn_device_proc_table {
    PFN_vkCmdBeginTransformFeedbackEXT CmdBeginTransformFeedbackEXT;
    PFN_vkCmdBindDescriptorSets CmdBindDescriptorSets;
    PFN_vkCmdBindIndexBuffer CmdBindIndexBuffer;
+   PFN_vkCmdBindIndexBuffer2KHR CmdBindIndexBuffer2KHR;
    PFN_vkCmdBindPipeline CmdBindPipeline;
    PFN_vkCmdBindTransformFeedbackBuffersEXT CmdBindTransformFeedbackBuffersEXT;
    PFN_vkCmdBindVertexBuffers CmdBindVertexBuffers;
@@ -205,6 +206,7 @@ struct vn_device_proc_table {
    PFN_vkGetDeviceGroupPeerMemoryFeatures GetDeviceGroupPeerMemoryFeatures;
    PFN_vkGetDeviceImageMemoryRequirements GetDeviceImageMemoryRequirements;
    PFN_vkGetDeviceImageSparseMemoryRequirements GetDeviceImageSparseMemoryRequirements;
+   PFN_vkGetDeviceImageSubresourceLayoutKHR GetDeviceImageSubresourceLayoutKHR;
    PFN_vkGetDeviceMemoryCommitment GetDeviceMemoryCommitment;
    PFN_vkGetDeviceMemoryOpaqueCaptureAddress GetDeviceMemoryOpaqueCaptureAddress;
    PFN_vkGetDeviceProcAddr GetDeviceProcAddr;
@@ -219,12 +221,14 @@ struct vn_device_proc_table {
    PFN_vkGetImageSparseMemoryRequirements GetImageSparseMemoryRequirements;
    PFN_vkGetImageSparseMemoryRequirements2 GetImageSparseMemoryRequirements2;
    PFN_vkGetImageSubresourceLayout GetImageSubresourceLayout;
+   PFN_vkGetImageSubresourceLayout2KHR GetImageSubresourceLayout2KHR;
    PFN_vkGetMemoryFdKHR GetMemoryFdKHR;
    PFN_vkGetMemoryFdPropertiesKHR GetMemoryFdPropertiesKHR;
    PFN_vkGetPipelineCacheData GetPipelineCacheData;
    PFN_vkGetPrivateData GetPrivateData;
    PFN_vkGetQueryPoolResults GetQueryPoolResults;
    PFN_vkGetRenderAreaGranularity GetRenderAreaGranularity;
+   PFN_vkGetRenderingAreaGranularityKHR GetRenderingAreaGranularityKHR;
    PFN_vkGetSemaphoreCounterValue GetSemaphoreCounterValue;
    PFN_vkGetSemaphoreFdKHR GetSemaphoreFdKHR;
    PFN_vkImportFenceFdKHR ImportFenceFdKHR;
@@ -309,6 +313,9 @@ vn_util_init_device_proc_table(VkDevice dev,
       NULL;
    proc_table->CmdBindDescriptorSets = VN_GDPA(dev, vkCmdBindDescriptorSets);
    proc_table->CmdBindIndexBuffer = VN_GDPA(dev, vkCmdBindIndexBuffer);
+   proc_table->CmdBindIndexBuffer2KHR =
+      ext_table->KHR_maintenance5 ? VN_GDPA(dev, vkCmdBindIndexBuffer2KHR) :
+      NULL;
    proc_table->CmdBindPipeline = VN_GDPA(dev, vkCmdBindPipeline);
    proc_table->CmdBindTransformFeedbackBuffersEXT =
       ext_table->EXT_transform_feedback ? VN_GDPA(dev, vkCmdBindTransformFeedbackBuffersEXT) :
@@ -697,6 +704,9 @@ vn_util_init_device_proc_table(VkDevice dev,
       api_version >= VK_API_VERSION_1_3 ? VN_GDPA(dev, vkGetDeviceImageSparseMemoryRequirements) :
       ext_table->KHR_maintenance4 ? VN_GDPA(dev, vkGetDeviceImageSparseMemoryRequirementsKHR) :
       NULL;
+   proc_table->GetDeviceImageSubresourceLayoutKHR =
+      ext_table->KHR_maintenance5 ? VN_GDPA(dev, vkGetDeviceImageSubresourceLayoutKHR) :
+      NULL;
    proc_table->GetDeviceMemoryCommitment = VN_GDPA(dev, vkGetDeviceMemoryCommitment);
    proc_table->GetDeviceMemoryOpaqueCaptureAddress =
       api_version >= VK_API_VERSION_1_2 ? VN_GDPA(dev, vkGetDeviceMemoryOpaqueCaptureAddress) :
@@ -726,6 +736,9 @@ vn_util_init_device_proc_table(VkDevice dev,
       ext_table->KHR_get_memory_requirements2 ? VN_GDPA(dev, vkGetImageSparseMemoryRequirements2KHR) :
       NULL;
    proc_table->GetImageSubresourceLayout = VN_GDPA(dev, vkGetImageSubresourceLayout);
+   proc_table->GetImageSubresourceLayout2KHR =
+      ext_table->KHR_maintenance5 ? VN_GDPA(dev, vkGetImageSubresourceLayout2KHR) :
+      NULL;
    proc_table->GetMemoryFdKHR =
       ext_table->KHR_external_memory_fd ? VN_GDPA(dev, vkGetMemoryFdKHR) :
       NULL;
@@ -739,6 +752,9 @@ vn_util_init_device_proc_table(VkDevice dev,
       NULL;
    proc_table->GetQueryPoolResults = VN_GDPA(dev, vkGetQueryPoolResults);
    proc_table->GetRenderAreaGranularity = VN_GDPA(dev, vkGetRenderAreaGranularity);
+   proc_table->GetRenderingAreaGranularityKHR =
+      ext_table->KHR_maintenance5 ? VN_GDPA(dev, vkGetRenderingAreaGranularityKHR) :
+      NULL;
    proc_table->GetSemaphoreCounterValue =
       api_version >= VK_API_VERSION_1_2 ? VN_GDPA(dev, vkGetSemaphoreCounterValue) :
       ext_table->KHR_timeline_semaphore ? VN_GDPA(dev, vkGetSemaphoreCounterValueKHR) :

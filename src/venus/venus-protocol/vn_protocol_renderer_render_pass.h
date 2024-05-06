@@ -491,6 +491,79 @@ vn_replace_VkRenderPassCreateInfo_handle(VkRenderPassCreateInfo *val)
     } while (pnext);
 }
 
+/* struct VkRenderingAreaInfoKHR chain */
+
+static inline void *
+vn_decode_VkRenderingAreaInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkRenderingAreaInfoKHR_self_temp(struct vn_cs_decoder *dec, VkRenderingAreaInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_uint32_t(dec, &val->viewMask);
+    vn_decode_uint32_t(dec, &val->colorAttachmentCount);
+    if (vn_peek_array_size(dec)) {
+        const size_t array_size = vn_decode_array_size(dec, val->colorAttachmentCount);
+        val->pColorAttachmentFormats = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pColorAttachmentFormats), array_size);
+        if (!val->pColorAttachmentFormats) return;
+        vn_decode_VkFormat_array(dec, (VkFormat *)val->pColorAttachmentFormats, array_size);
+    } else {
+        vn_decode_array_size_unchecked(dec);
+        val->pColorAttachmentFormats = NULL;
+    }
+    vn_decode_VkFormat(dec, &val->depthAttachmentFormat);
+    vn_decode_VkFormat(dec, &val->stencilAttachmentFormat);
+}
+
+static inline void
+vn_decode_VkRenderingAreaInfoKHR_temp(struct vn_cs_decoder *dec, VkRenderingAreaInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_RENDERING_AREA_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkRenderingAreaInfoKHR_pnext_temp(dec);
+    vn_decode_VkRenderingAreaInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkRenderingAreaInfoKHR_handle_self(VkRenderingAreaInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->viewMask */
+    /* skip val->colorAttachmentCount */
+    /* skip val->pColorAttachmentFormats */
+    /* skip val->depthAttachmentFormat */
+    /* skip val->stencilAttachmentFormat */
+}
+
+static inline void
+vn_replace_VkRenderingAreaInfoKHR_handle(VkRenderingAreaInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_RENDERING_AREA_INFO_KHR:
+            vn_replace_VkRenderingAreaInfoKHR_handle_self((VkRenderingAreaInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkAttachmentDescriptionStencilLayout chain */
 
 static inline void *
@@ -1399,6 +1472,45 @@ static inline void vn_encode_vkGetRenderAreaGranularity_reply(struct vn_cs_encod
         vn_encode_VkExtent2D(enc, args->pGranularity);
 }
 
+static inline void vn_decode_vkGetRenderingAreaGranularityKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkGetRenderingAreaGranularityKHR *args)
+{
+    vn_decode_VkDevice_lookup(dec, &args->device);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pRenderingAreaInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pRenderingAreaInfo));
+        if (!args->pRenderingAreaInfo) return;
+        vn_decode_VkRenderingAreaInfoKHR_temp(dec, (VkRenderingAreaInfoKHR *)args->pRenderingAreaInfo);
+    } else {
+        args->pRenderingAreaInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+    if (vn_decode_simple_pointer(dec)) {
+        args->pGranularity = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pGranularity));
+        if (!args->pGranularity) return;
+        vn_decode_VkExtent2D_partial_temp(dec, args->pGranularity);
+    } else {
+        args->pGranularity = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkGetRenderingAreaGranularityKHR_args_handle(struct vn_command_vkGetRenderingAreaGranularityKHR *args)
+{
+    vn_replace_VkDevice_handle(&args->device);
+    if (args->pRenderingAreaInfo)
+        vn_replace_VkRenderingAreaInfoKHR_handle((VkRenderingAreaInfoKHR *)args->pRenderingAreaInfo);
+    /* skip args->pGranularity */
+}
+
+static inline void vn_encode_vkGetRenderingAreaGranularityKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkGetRenderingAreaGranularityKHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkGetRenderingAreaGranularityKHR_EXT});
+
+    /* skip args->device */
+    /* skip args->pRenderingAreaInfo */
+    if (vn_encode_simple_pointer(enc, args->pGranularity))
+        vn_encode_VkExtent2D(enc, args->pGranularity);
+}
+
 static inline void vn_decode_vkCreateRenderPass2_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCreateRenderPass2 *args)
 {
     vn_decode_VkDevice_lookup(dec, &args->device);
@@ -1528,6 +1640,34 @@ static inline void vn_dispatch_vkGetRenderAreaGranularity(struct vn_dispatch_con
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
             vn_encode_vkGetRenderAreaGranularity_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkGetRenderingAreaGranularityKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkGetRenderingAreaGranularityKHR args;
+
+    if (!ctx->dispatch_vkGetRenderingAreaGranularityKHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkGetRenderingAreaGranularityKHR_args_temp(ctx->decoder, &args);
+    if (!args.device) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkGetRenderingAreaGranularityKHR(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetRenderingAreaGranularityKHR_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }

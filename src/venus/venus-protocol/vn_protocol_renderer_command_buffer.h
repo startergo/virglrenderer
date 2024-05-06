@@ -5347,6 +5347,35 @@ static inline void vn_encode_vkCmdSetScissorWithCount_reply(struct vn_cs_encoder
     /* skip args->pScissors */
 }
 
+static inline void vn_decode_vkCmdBindIndexBuffer2KHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdBindIndexBuffer2KHR *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    vn_decode_VkBuffer_lookup(dec, &args->buffer);
+    vn_decode_VkDeviceSize(dec, &args->offset);
+    vn_decode_VkDeviceSize(dec, &args->size);
+    vn_decode_VkIndexType(dec, &args->indexType);
+}
+
+static inline void vn_replace_vkCmdBindIndexBuffer2KHR_args_handle(struct vn_command_vkCmdBindIndexBuffer2KHR *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    vn_replace_VkBuffer_handle(&args->buffer);
+    /* skip args->offset */
+    /* skip args->size */
+    /* skip args->indexType */
+}
+
+static inline void vn_encode_vkCmdBindIndexBuffer2KHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdBindIndexBuffer2KHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdBindIndexBuffer2KHR_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->buffer */
+    /* skip args->offset */
+    /* skip args->size */
+    /* skip args->indexType */
+}
+
 static inline void vn_decode_vkCmdBindVertexBuffers2_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdBindVertexBuffers2 *args)
 {
     vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
@@ -8692,6 +8721,34 @@ static inline void vn_dispatch_vkCmdSetScissorWithCount(struct vn_dispatch_conte
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
             vn_encode_vkCmdSetScissorWithCount_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdBindIndexBuffer2KHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdBindIndexBuffer2KHR args;
+
+    if (!ctx->dispatch_vkCmdBindIndexBuffer2KHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdBindIndexBuffer2KHR_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdBindIndexBuffer2KHR(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdBindIndexBuffer2KHR_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }

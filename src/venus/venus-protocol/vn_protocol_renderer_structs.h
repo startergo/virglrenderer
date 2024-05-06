@@ -244,6 +244,63 @@ vn_replace_VkSemaphoreTypeCreateInfo_handle(VkSemaphoreTypeCreateInfo *val)
     } while (pnext);
 }
 
+/* struct VkBufferUsageFlags2CreateInfoKHR chain */
+
+static inline void *
+vn_decode_VkBufferUsageFlags2CreateInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkBufferUsageFlags2CreateInfoKHR_self_temp(struct vn_cs_decoder *dec, VkBufferUsageFlags2CreateInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkFlags64(dec, &val->usage);
+}
+
+static inline void
+vn_decode_VkBufferUsageFlags2CreateInfoKHR_temp(struct vn_cs_decoder *dec, VkBufferUsageFlags2CreateInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkBufferUsageFlags2CreateInfoKHR_pnext_temp(dec);
+    vn_decode_VkBufferUsageFlags2CreateInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkBufferUsageFlags2CreateInfoKHR_handle_self(VkBufferUsageFlags2CreateInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->usage */
+}
+
+static inline void
+vn_replace_VkBufferUsageFlags2CreateInfoKHR_handle(VkBufferUsageFlags2CreateInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO_KHR:
+            vn_replace_VkBufferUsageFlags2CreateInfoKHR_handle_self((VkBufferUsageFlags2CreateInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkImageFormatListCreateInfo chain */
 
 static inline void *

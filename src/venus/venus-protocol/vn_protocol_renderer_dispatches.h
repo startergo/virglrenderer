@@ -125,6 +125,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkCreateRenderPass_EXT: return "vkCreateRenderPass";
     case VK_COMMAND_TYPE_vkDestroyRenderPass_EXT: return "vkDestroyRenderPass";
     case VK_COMMAND_TYPE_vkGetRenderAreaGranularity_EXT: return "vkGetRenderAreaGranularity";
+    case VK_COMMAND_TYPE_vkGetRenderingAreaGranularityKHR_EXT: return "vkGetRenderingAreaGranularityKHR";
     case VK_COMMAND_TYPE_vkCreateCommandPool_EXT: return "vkCreateCommandPool";
     case VK_COMMAND_TYPE_vkDestroyCommandPool_EXT: return "vkDestroyCommandPool";
     case VK_COMMAND_TYPE_vkResetCommandPool_EXT: return "vkResetCommandPool";
@@ -239,6 +240,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkCmdSetPrimitiveTopology_EXT: return "vkCmdSetPrimitiveTopology";
     case VK_COMMAND_TYPE_vkCmdSetViewportWithCount_EXT: return "vkCmdSetViewportWithCount";
     case VK_COMMAND_TYPE_vkCmdSetScissorWithCount_EXT: return "vkCmdSetScissorWithCount";
+    case VK_COMMAND_TYPE_vkCmdBindIndexBuffer2KHR_EXT: return "vkCmdBindIndexBuffer2KHR";
     case VK_COMMAND_TYPE_vkCmdBindVertexBuffers2_EXT: return "vkCmdBindVertexBuffers2";
     case VK_COMMAND_TYPE_vkCmdSetDepthTestEnable_EXT: return "vkCmdSetDepthTestEnable";
     case VK_COMMAND_TYPE_vkCmdSetDepthWriteEnable_EXT: return "vkCmdSetDepthWriteEnable";
@@ -294,6 +296,8 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkCmdWriteTimestamp2_EXT: return "vkCmdWriteTimestamp2";
     case VK_COMMAND_TYPE_vkCmdBeginRendering_EXT: return "vkCmdBeginRendering";
     case VK_COMMAND_TYPE_vkCmdEndRendering_EXT: return "vkCmdEndRendering";
+    case VK_COMMAND_TYPE_vkGetImageSubresourceLayout2KHR_EXT: return "vkGetImageSubresourceLayout2KHR";
+    case VK_COMMAND_TYPE_vkGetDeviceImageSubresourceLayoutKHR_EXT: return "vkGetDeviceImageSubresourceLayoutKHR";
     case VK_COMMAND_TYPE_vkSetReplyCommandStreamMESA_EXT: return "vkSetReplyCommandStreamMESA";
     case VK_COMMAND_TYPE_vkSeekReplyCommandStreamMESA_EXT: return "vkSeekReplyCommandStreamMESA";
     case VK_COMMAND_TYPE_vkExecuteCommandStreamsMESA_EXT: return "vkExecuteCommandStreamsMESA";
@@ -323,7 +327,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     }
 }
 
-static void (*const vn_dispatch_table[279])(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags) = {
+static void (*const vn_dispatch_table[283])(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags) = {
     [VK_COMMAND_TYPE_vkCreateInstance_EXT] = vn_dispatch_vkCreateInstance,
     [VK_COMMAND_TYPE_vkDestroyInstance_EXT] = vn_dispatch_vkDestroyInstance,
     [VK_COMMAND_TYPE_vkEnumeratePhysicalDevices_EXT] = vn_dispatch_vkEnumeratePhysicalDevices,
@@ -408,6 +412,7 @@ static void (*const vn_dispatch_table[279])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkCreateRenderPass_EXT] = vn_dispatch_vkCreateRenderPass,
     [VK_COMMAND_TYPE_vkDestroyRenderPass_EXT] = vn_dispatch_vkDestroyRenderPass,
     [VK_COMMAND_TYPE_vkGetRenderAreaGranularity_EXT] = vn_dispatch_vkGetRenderAreaGranularity,
+    [VK_COMMAND_TYPE_vkGetRenderingAreaGranularityKHR_EXT] = vn_dispatch_vkGetRenderingAreaGranularityKHR,
     [VK_COMMAND_TYPE_vkCreateCommandPool_EXT] = vn_dispatch_vkCreateCommandPool,
     [VK_COMMAND_TYPE_vkDestroyCommandPool_EXT] = vn_dispatch_vkDestroyCommandPool,
     [VK_COMMAND_TYPE_vkResetCommandPool_EXT] = vn_dispatch_vkResetCommandPool,
@@ -522,6 +527,7 @@ static void (*const vn_dispatch_table[279])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkCmdSetPrimitiveTopology_EXT] = vn_dispatch_vkCmdSetPrimitiveTopology,
     [VK_COMMAND_TYPE_vkCmdSetViewportWithCount_EXT] = vn_dispatch_vkCmdSetViewportWithCount,
     [VK_COMMAND_TYPE_vkCmdSetScissorWithCount_EXT] = vn_dispatch_vkCmdSetScissorWithCount,
+    [VK_COMMAND_TYPE_vkCmdBindIndexBuffer2KHR_EXT] = vn_dispatch_vkCmdBindIndexBuffer2KHR,
     [VK_COMMAND_TYPE_vkCmdBindVertexBuffers2_EXT] = vn_dispatch_vkCmdBindVertexBuffers2,
     [VK_COMMAND_TYPE_vkCmdSetDepthTestEnable_EXT] = vn_dispatch_vkCmdSetDepthTestEnable,
     [VK_COMMAND_TYPE_vkCmdSetDepthWriteEnable_EXT] = vn_dispatch_vkCmdSetDepthWriteEnable,
@@ -577,6 +583,8 @@ static void (*const vn_dispatch_table[279])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkCmdWriteTimestamp2_EXT] = vn_dispatch_vkCmdWriteTimestamp2,
     [VK_COMMAND_TYPE_vkCmdBeginRendering_EXT] = vn_dispatch_vkCmdBeginRendering,
     [VK_COMMAND_TYPE_vkCmdEndRendering_EXT] = vn_dispatch_vkCmdEndRendering,
+    [VK_COMMAND_TYPE_vkGetImageSubresourceLayout2KHR_EXT] = vn_dispatch_vkGetImageSubresourceLayout2KHR,
+    [VK_COMMAND_TYPE_vkGetDeviceImageSubresourceLayoutKHR_EXT] = vn_dispatch_vkGetDeviceImageSubresourceLayoutKHR,
     [VK_COMMAND_TYPE_vkSetReplyCommandStreamMESA_EXT] = vn_dispatch_vkSetReplyCommandStreamMESA,
     [VK_COMMAND_TYPE_vkSeekReplyCommandStreamMESA_EXT] = vn_dispatch_vkSeekReplyCommandStreamMESA,
     [VK_COMMAND_TYPE_vkExecuteCommandStreamsMESA_EXT] = vn_dispatch_vkExecuteCommandStreamsMESA,
@@ -602,7 +610,7 @@ static inline void vn_dispatch_command(struct vn_dispatch_context *ctx)
     vn_decode_VkFlags(ctx->decoder, &cmd_flags);
 
     {
-        if (cmd_type < 279 && vn_dispatch_table[cmd_type])
+        if (cmd_type < 283 && vn_dispatch_table[cmd_type])
             vn_dispatch_table[cmd_type](ctx, cmd_flags);
         else
             vn_cs_decoder_set_fatal(ctx->decoder);
