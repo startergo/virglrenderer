@@ -40,18 +40,31 @@ vcomp_dispatch_clCreateBufferMESA(struct vcl_dispatch_context *ctx,
 {
    struct vcomp_context *vctx = ctx->data;
 
-   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
-   if (!context)
-   {
-      args->ret = CL_INVALID_CONTEXT;
-      return;
-   }
+   vcl_replace_clCreateBufferMESA_args_handle(args);
 
-   cl_mem mem = clCreateBuffer(context->base.handle.cl_context, args->flags, args->size, (void *)args->host_ptr, &args->ret);
-   if (!mem)
+   cl_mem mem = clCreateBuffer(args->context, args->flags, args->size,
+                               (void *)args->host_ptr, &args->ret);
+   if (!mem || args->ret != CL_SUCCESS)
       return;
 
    vcomp_context_add_memory(vctx, mem, args->buffer, &args->ret);
+}
+
+static void
+vcomp_dispatch_clCreateSubBufferMESA(struct vcl_dispatch_context *ctx,
+                                     struct vcl_command_clCreateSubBufferMESA *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+
+   vcl_replace_clCreateSubBufferMESA_args_handle(args);
+
+   cl_mem mem = clCreateSubBuffer(args->buffer, args->flags,
+                                  args->buffer_create_type,
+                                  args->buffer_create_info, &args->ret);
+   if (!mem || args->ret != CL_SUCCESS)
+      return;
+
+   vcomp_context_add_memory(vctx, mem, args->sub_buffer, &args->ret);
 }
 
 static void
@@ -300,6 +313,7 @@ void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
    vctx->dispatch.dispatch_clGetSupportedImageFormats =
        vcomp_dispatch_clGetSupportedImageFormats;
    vctx->dispatch.dispatch_clGetImageInfo = vcomp_dispatch_clGetImageInfo;
+   vctx->dispatch.dispatch_clCreateSubBufferMESA = vcomp_dispatch_clCreateSubBufferMESA;
 }
 
 cl_int vcomp_memory_destroy(struct vcomp_context *vctx, struct vcomp_memory *memory)
