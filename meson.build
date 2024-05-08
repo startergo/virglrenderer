@@ -364,6 +364,11 @@ if with_video
   libvadrm_dep = dependency('libva-drm')
 endif
 
+with_tests = get_option('tests')
+if with_tests
+ conf_data.set('ENABLE_TESTS', 1)
+endif
+
 configure_file(input : 'config.h.meson',
                output : 'config.h',
                configuration : conf_data)
@@ -374,7 +379,6 @@ add_project_arguments('-DHAVE_CONFIG_H=1', language : 'c')
 inc_configuration = include_directories(['.', 'src'])
 
 with_fuzzer = get_option('fuzzer')
-with_tests = get_option('tests')
 with_valgrind = get_option('valgrind')
 
 with_unstable_apis = get_option('unstable-apis')

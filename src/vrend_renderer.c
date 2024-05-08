@@ -10037,7 +10037,7 @@ int vrend_renderer_copy_transfer3d(struct vrend_context *ctx,
    }
 
 #if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
-   if (dst_res->gbm_bo) {
+   if (dst_res->gbm_bo && !TRANSFER_NO_GBM_MAPPING(info)) {
       bool use_gbm = true;
 
       /* The guest uses copy transfers against busy resources to avoid
@@ -10094,7 +10094,7 @@ int vrend_renderer_copy_transfer3d_from_host(struct vrend_context *ctx,
    }
 
 #if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
-   if (src_res->gbm_bo) {
+   if (src_res->gbm_bo && !TRANSFER_NO_GBM_MAPPING(info)) {
       bool use_gbm = true;
 
       /* The guest uses copy transfers against busy resources to avoid

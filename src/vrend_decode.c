@@ -1540,6 +1540,10 @@ static int vrend_decode_copy_transfer3d(struct vrend_context *ctx, const uint32_
    info.synchronized = (flags & VIRGL_COPY_TRANSFER3D_FLAGS_SYNCHRONIZED) != 0;
    info.offset = get_buf_entry(buf, VIRGL_COPY_TRANSFER3D_SRC_RES_OFFSET);
 
+#ifdef ENABLE_TESTS
+   info.no_gbm_mapping = (flags & VIRGL_COPY_TRANSFER3D_FLAGS_DEBUG_TEST_NO_GBM_MAPPING) != 0;
+#endif
+
    if (unlikely(read_from_host)) {
       vrend_decode_transfer_common(buf, &src_handle, &info);
       dst_handle = get_buf_entry(buf, VIRGL_COPY_TRANSFER3D_SRC_RES_HANDLE);

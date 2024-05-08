@@ -43,6 +43,13 @@
 #include <d3d11.h>
 #endif
 
+#ifdef ENABLE_TESTS
+/* With this flag set, the transfer will not try to use GBM mappings.
+ * Intended to be used in unit tests only. */
+#define VIRGL_COPY_TRANSFER3D_FLAGS_DEBUG_TEST_NO_GBM_MAPPING (1 << 2)
+#endif
+
+
 typedef void *virgl_gl_context;
 typedef void *virgl_gl_drawable;
 

@@ -49,6 +49,7 @@
 #mesondefine HAVE_DLFCN_H
 #mesondefine ENABLE_VIDEO
 #mesondefine ENABLE_TRACING
+#mesondefine ENABLE_TESTS
 #mesondefine UTIL_ARCH_LITTLE_ENDIAN
 #mesondefine UTIL_ARCH_BIG_ENDIAN
 #mesondefine PIPE_ARCH_X86

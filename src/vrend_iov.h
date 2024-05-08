@@ -46,7 +46,16 @@ struct vrend_transfer_info {
    uint64_t offset;
    struct pipe_box *box;
    bool synchronized;
+#ifdef ENABLE_TESTS
+   bool no_gbm_mapping;
+#endif
 };
+
+#ifdef ENABLE_TESTS
+#define TRANSFER_NO_GBM_MAPPING(info) (info)->no_gbm_mapping
+#else
+#define TRANSFER_NO_GBM_MAPPING(info) false
+#endif
 
 typedef void (*iov_cb)(void *cookie, unsigned int doff, void *src, int len);
 
