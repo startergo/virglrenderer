@@ -9202,6 +9202,27 @@ static void vrend_swizzle_and_collapse_data_bgrx(uint64_t size, void *data) {
    }
 }
 
+static void vrend_collapse_data_rgbx(uint64_t size, void *data) {
+   const size_t in_bpp = 4;
+   const size_t out_bpp = 3;
+
+   uint8_t *in_pixel, *out_pixel;
+   in_pixel = out_pixel = data;
+
+   // in-place modification, so output cursor must not lead
+   assert(in_bpp >= out_bpp);
+
+   const size_t num_pixels = size / in_bpp;
+   for (size_t i = 0; i < num_pixels; ++i) {
+      *(out_pixel + 0) = *(in_pixel + 0);
+      *(out_pixel + 1) = *(in_pixel + 1);
+      *(out_pixel + 2) = *(in_pixel + 2);
+
+      in_pixel += in_bpp;
+      out_pixel += out_bpp;
+   }
+}
+
 static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
                                              struct vrend_resource *res,
                                              const struct iovec *iov, int num_iovs,
@@ -9383,21 +9404,28 @@ static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
 
          /* GLES doesn't allow format conversions, which we need for BGRA resources with RGBA
           * internal format. So we fallback to performing a CPU swizzle before uploading. */
-         if (vrend_state.use_gles && vrend_format_is_bgra(res->base.format)) {
+         if (vrend_state.use_gles) {
             if (vrend_resource_has_24bpp_internal_format(res)) {
-               /* to make matters worse, if the resource is actually backed by a 24bpp memory
-                * layout, but the sent data is 32bpp (with ignored alpha), then we must:
+               glformat = GL_RGB;
+               glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+               glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+               if (vrend_format_is_bgra(res->base.format)) {
+                  /* to make matters worse, if the resource is actually backed by a 24bpp memory
+                   * layout, but the sent data is 32bpp (with ignored alpha), then we must:
                 *   - swizzle r/b channels
                 *   - collapse to 24bpp
                 * To do so, we reconfigure the unpack params and perform in-place modification of
                 * the sent data (and perform the inverse on the readback path).
                 */
-               VREND_DEBUG(dbg_bgra, ctx, "manually swizzling+collapsing bgrx(32bpp)->rgb(24bpp) on upload since gles+bgrx\n");
-               glformat = GL_RGB;
-               glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-               glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-               vrend_swizzle_and_collapse_data_bgrx(send_size, data);
-            } else {
+                  VREND_DEBUG(dbg_bgra, ctx, "manually swizzling+collapsing bgrx(32bpp)->rgb(24bpp) on upload since gles+bgrx\n");
+                  vrend_swizzle_and_collapse_data_bgrx(send_size, data);
+               } else {
+                  assert(res->base.format == VIRGL_FORMAT_R8G8B8X8_UNORM);
+                  vrend_collapse_data_rgbx(send_size, data);
+               }
+
+            } else if (vrend_format_is_bgra(res->base.format)) {
                VREND_DEBUG(dbg_bgra, ctx, "manually swizzling bgra->rgba on upload since gles+bgra\n");
                vrend_swizzle_data_bgra(send_size, data);
             }
