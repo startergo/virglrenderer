@@ -33,7 +33,7 @@ vcomp_get_capset(void *capset)
 
    if (c)
    {
-      strncpy(c->platform_name, platform_name, strlen(platform_name));
+      strncpy(c->platform_name, platform_name, sizeof(c->platform_name));
    }
 
    return sizeof(*c);
