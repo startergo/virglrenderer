@@ -6423,8 +6423,19 @@ static inline bool is_const_blend(int blend_factor)
 
 static void vrend_hw_emit_blend(struct vrend_sub_context *sub_ctx, struct pipe_blend_state *state)
 {
+   bool logicop_changed = false;
    if (state->logicop_enable != sub_ctx->hw_blend_state.logicop_enable) {
       sub_ctx->hw_blend_state.logicop_enable = state->logicop_enable;
+      logicop_changed = true;
+   }
+
+   if (state->logicop_enable &&
+       state->logicop_func != sub_ctx->hw_blend_state.logicop_func) {
+      sub_ctx->hw_blend_state.logicop_func = state->logicop_func;
+      logicop_changed = true;
+   }
+
+   if (logicop_changed) {
       if (vrend_state.use_gles) {
          if (can_emulate_logicop(state->logicop_func))
             sub_ctx->shader_dirty = true;
