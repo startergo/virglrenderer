@@ -1143,6 +1143,11 @@ submit_cmd_dispatch(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    int ret;
 
+   if (!mctx->shmem) {
+      drm_log("shmem not inited");
+      return -EINVAL;
+   }
+
    if (hdr->cmd >= ARRAY_SIZE(ccmd_dispatch)) {
       drm_log("invalid cmd: %u", hdr->cmd);
       return -EINVAL;
