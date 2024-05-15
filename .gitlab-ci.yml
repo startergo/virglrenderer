@@ -479,6 +479,7 @@ virgl-traces:
     VK_DRIVER: virtio
     CROSVM_GALLIUM_DRIVER: "llvmpipe"
     CROSVM_VK_DRIVER: "lvp"
+    RUNNER_WRAPPER: "install/crosvm-runner.sh"
 
 venus-lavapipe:
   extends:

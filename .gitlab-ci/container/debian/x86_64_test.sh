@@ -76,7 +76,7 @@ if [ "${VK_DRIVER}" = "virtio" ] || [ "${GALLIUM_DRIVER}" = "virgl" ]; then
                 install/crosvm-runner.sh install/piglit/piglit-traces.sh
         fi
     else
-        install/deqp-runner.sh
+        ${RUNNER_WRAPPER} install/deqp-runner.sh
     fi
 
     RET=$?
