@@ -763,7 +763,10 @@ struct virgl_caps_v2 {
         uint32_t max_video_memory;
         char renderer[64];
         float max_anisotropy;
-        uint32_t max_texture_image_units;
+        // NOTE: this informs guest-side PIPE_SHADER_CAP_MAX_TEXTURE_SAMPLERS,
+        // **NOT** GL_MAX_TEXTURE_IMAGE_UNITS!!!
+        // Guest-side driver has always used it as such.
+        uint32_t max_texture_samplers;
         struct virgl_supported_format_mask supported_multisample_formats;
         uint32_t max_const_buffer_size[6]; // PIPE_SHADER_TYPES
         uint32_t num_video_caps;

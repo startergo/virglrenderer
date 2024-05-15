@@ -12665,8 +12665,15 @@ static void vrend_renderer_fill_caps_v2(int gl_ver, int gles_ver,  union virgl_c
       caps->v2.max_anisotropy = MIN2(max_aniso, 16.0);
    }
 
-   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max);
-   caps->v2.max_texture_image_units = MIN2(max, PIPE_MAX_SHADER_SAMPLER_VIEWS);
+   /* BUGFIX: original support for this cap was broken. It was _supposed_ to
+    * inform a guest-side client's query for GL_MAX_TEXTURE_IMAGE_UNITS, but
+    * only ever informed gallium's internal query for
+    * PIPE_SHADER_CAP_MAX_TEXTURE_SAMPLERS. This caused crashes on Mali.
+    *
+    * Now we send the "correct" value, to ensure good behavior from old guest
+    * drivers, but it is not "useful" for any other purpose.
+    */
+   caps->v2.max_texture_samplers = PIPE_MAX_SAMPLERS;
 
    if (has_feature(feat_ubo)) {
       glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &max);
