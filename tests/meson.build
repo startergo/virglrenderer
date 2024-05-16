@@ -74,6 +74,16 @@ foreach t : tests
    test(t[0], test_virgl)
 endforeach
 
+# For some unknown reason running this test in paralel with the others
+# breaks some tests, so run it sequentially until we figure out what
+# goes wrong
+test_virgl_gbm_resources = executable(
+   'test_virgl_gbm_resources',
+   'test_virgl_gbm_resources.c',
+   link_with: libvrtest,
+   dependencies : test_depends)
+
+test('test_virgl_gbm_resources', test_virgl_gbm_resources, is_parallel : false)
 
 fuzzytest_depends = [
    libvirglrenderer_dep,

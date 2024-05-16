@@ -55,6 +55,7 @@ struct virgl_resource {
     uint32_t handle;
     struct iovec *iovs;
     int niovs;
+    int stride;
 };
 
 
