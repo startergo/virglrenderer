@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1176182
+  MESA_PIPELINE_ID: 1186420
   MESA_PROJECT_PATH: mesa/mesa
   STORAGE_HOST: s3.freedesktop.org
   CI_REGISTRY_IMAGE: "registry.freedesktop.org/${MESA_PROJECT_PATH}"
@@ -43,7 +43,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: 3ab023edeecab129cbbd3943478ae54254330267
+    ref: d93d989e5d65922c6467cf61874f71665856bf80
     file:
       - '/.gitlab-ci/image-tags.yml'
 
@@ -296,7 +296,7 @@ make check venus:
   variables:
     CI_JOB_JWT_FILE: /minio_jwt
     MESA_IMAGE_PATH: ${DEBIAN_X86_64_TEST_IMAGE_GL_PATH}
-    MESA_IMAGE_TAG: ${DEBIAN_X86_64_TEST_GL_TAG}
+    MESA_IMAGE_TAG: ${DEBIAN_TEST_GL_TAG}
     MESA_BASE_TAG: "${DEBIAN_BASE_TAG}--${PKG_REPO_REV}--${KERNEL_TAG}"
   script:
     - export DEQP_RESULTS_DIR="results/${CI_JOB_NAME_SANITIZED}"
@@ -328,7 +328,7 @@ make check venus:
   variables:
     CI_JOB_JWT_FILE: /minio_jwt
     MESA_IMAGE_PATH: ${DEBIAN_X86_64_TEST_IMAGE_VK_PATH}
-    MESA_IMAGE_TAG: ${DEBIAN_X86_64_TEST_VK_TAG}
+    MESA_IMAGE_TAG: ${DEBIAN_TEST_VK_TAG}
     MESA_BASE_TAG: "${DEBIAN_BASE_TAG}--${PKG_REPO_REV}--${KERNEL_TAG}"
   script:
     - export DEQP_RESULTS_DIR="results/${CI_JOB_NAME_SANITIZED}"

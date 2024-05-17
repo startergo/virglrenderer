@@ -95,4 +95,5 @@ spec@!opengl 1.0@gl-1.0-front-invalidate-back
 # uprev Mesa in Virglrenderer
 spec@arb_occlusion_query@occlusion_query_conform
 spec@arb_occlusion_query@occlusion_query_conform@GetObjivAval_multi1
+spec@ext_image_dma_buf_import@ext_image_dma_buf_import-refcount-multithread
 
