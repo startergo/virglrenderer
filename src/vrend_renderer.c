@@ -6102,7 +6102,7 @@ int vrend_draw_vbo(struct vrend_context *ctx,
                                  blend_mask_shader != 0 &&
                                  blend_mode != 0 &&
                                  alpha_dst_factor == 0;
-   if(use_advanced_blending) {
+   if (use_advanced_blending) {
       GLenum blend = translate_blend_func_advanced(blend_mode);
       glBlendEquation(blend);
       glEnable(GL_BLEND);
@@ -6228,7 +6228,7 @@ void vrend_launch_grid(struct vrend_context *ctx,
          return;
       }
       if (!sub_ctx->shaders[PIPE_SHADER_COMPUTE]->current->is_compiled) {
-         if(!vrend_compile_shader(sub_ctx, sub_ctx->shaders[PIPE_SHADER_COMPUTE]->current)) {
+         if (!vrend_compile_shader(sub_ctx, sub_ctx->shaders[PIPE_SHADER_COMPUTE]->current)) {
             virgl_error("Failure to compile compute shader variant: %s\n", ctx->debug_name);
             return;
          }
@@ -7944,7 +7944,7 @@ void vrend_destroy_context(struct vrend_context *ctx)
    ctx->sub = NULL;
    ctx->sub0 = NULL;
 
-   if(ctx->ctx_id)
+   if (ctx->ctx_id)
       vrend_renderer_force_ctx_0();
 
    vrend_free_fences_for_context(ctx);
