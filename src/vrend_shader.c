@@ -2407,9 +2407,6 @@ static void emit_so_movs(const struct dump_ctx *ctx,
       } else
          snprintf(outtype, 15, "vec%d", ctx->so->output[i].num_components);
 
-      if (ctx->so->output[i].register_index >= 255)
-         continue;
-
       if (output->name == TGSI_SEMANTIC_CLIPDIST) {
          if (output->first == output->last)
             emit_buff(glsl_strbufs, "tfout%d = %s(clip_dist_temp[%d]%s);\n", i, outtype, output->sid,
