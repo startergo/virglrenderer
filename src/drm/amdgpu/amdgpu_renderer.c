@@ -159,6 +159,11 @@ struct amdgpu_object {
 
 static void free_amdgpu_object(struct amdgpu_context *ctx, struct amdgpu_object *obj);
 
+static void free_id_to_ctx(struct hash_entry *entry)
+{
+   amdgpu_cs_ctx_free(entry->data);
+}
+
 static void
 amdgpu_renderer_destroy_fini(struct amdgpu_context *ctx)
 {
@@ -176,6 +181,15 @@ amdgpu_renderer_destroy_fini(struct amdgpu_context *ctx)
       munmap(ctx->shmem, ctx->shmem_size);
       ctx->shmem = NULL;
    }
+
+   if (ctx->id_to_ctx)
+      _mesa_hash_table_u64_destroy(ctx->id_to_ctx, free_id_to_ctx);
+
+   if(ctx->blob_table)
+      _mesa_hash_table_destroy(ctx->blob_table, NULL);
+
+   if(ctx->resource_table)
+      _mesa_hash_table_destroy(ctx->resource_table, NULL);
 
    amdgpu_device_deinitialize(ctx->dev);
 
