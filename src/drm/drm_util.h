@@ -41,4 +41,10 @@ void _drm_log(const char *fmt, ...);
 #define NSEC_PER_SEC 1000000000ull
 #endif
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#  define DRM_ALIGN_4 __attribute__((gcc_struct,__packed__,__aligned__(4)))
+#else
+#  define DRM_ALIGN_4 __attribute__((__packed__, __aligned__(4)))
+#endif
+
 #endif /* DRM_UTIL_H_ */

@@ -6,6 +6,11 @@
 #ifndef MSM_PROTO_H_
 #define MSM_PROTO_H_
 
+#include "drm_util.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic error "-Wpadded"
+
 /**
  * General protocol notes:
  * 1) Request (req) messages are generally sent over DRM_VIRTGPU_EXECBUFFER
@@ -17,6 +22,8 @@
  * 3) Host and guest could have different pointer sizes, ie. 32b guest and
  *    64b host, or visa versa, so similar to kernel uabi, req and rsp msgs
  *    should be explicitly padded to avoid 32b vs 64b struct padding issues
+ * 4) Messages must only require 4 byte alignment. Structs with 64-bit ints
+ *    need to be marked with DRM_ALIGN_4 to avoid alignment problems.
  */
 
 /**
@@ -120,7 +127,7 @@ struct msm_ccmd_gem_new_req {
    uint64_t size;
    uint32_t flags;
    uint32_t blob_id;
-};
+} DRM_ALIGN_4;
 DEFINE_CAST(vdrm_ccmd_req, msm_ccmd_gem_new_req)
 
 /*
@@ -134,7 +141,8 @@ struct msm_ccmd_gem_set_iova_req {
 
    uint64_t iova;
    uint32_t res_id;
-};
+   uint32_t __pad;
+} DRM_ALIGN_4;
 DEFINE_CAST(vdrm_ccmd_req, msm_ccmd_gem_set_iova_req)
 
 /*
@@ -312,5 +320,7 @@ struct msm_ccmd_set_debuginfo_req {
    int8_t   payload[];
 };
 DEFINE_CAST(vdrm_ccmd_req, msm_ccmd_set_debuginfo_req)
+
+#pragma GCC diagnostic pop
 
 #endif /* MSM_PROTO_H_ */

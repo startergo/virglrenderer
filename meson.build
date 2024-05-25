@@ -175,10 +175,17 @@ endforeach
 
 supported_function_attributes = cc.get_supported_function_attributes([
   'const', 'flatten', 'format', 'malloc', 'noreturn', 'packed', 'pure',
-  'returns_nonnull', 'unused', 'warn_unused_result', 'weak',
+  'returns_nonnull', 'unused', 'warn_unused_result', 'weak', 'aligned'
 ])
+have_struct_attribute_packed = false
+have_struct_attribute_aligned = false
 foreach a : supported_function_attributes
-    conf_data.set('HAVE_FUNC_ATTRIBUTE_@0@'.format(a.to_upper()), 1)
+  conf_data.set('HAVE_FUNC_ATTRIBUTE_@0@'.format(a.to_upper()), 1)
+  if a == 'packed'
+    have_struct_attribute_packed = true
+  elif a == 'aligned'
+    have_struct_attribute_aligned = true
+  endif
 endforeach
 
 foreach f : ['memfd_create', 'strtok_r', 'timespec_get']
@@ -275,8 +282,11 @@ have_vla = not cc.has_header_symbol('stdlib.h', '__STDC_NO_VLA__')
 
 drm_renderers = get_option('drm-renderers')
 
-# drm/msm support requires the compiler to support VLA:
-with_drm_msm = have_vla and (get_option('drm-msm-experimental') or drm_renderers.contains('msm'))
+# DRM renderers require support for VLAs and packed and aligned structs
+with_drm_msm = (have_struct_attribute_packed
+            and have_struct_attribute_aligned
+            and have_vla
+            and (get_option('drm-msm-experimental') or drm_renderers.contains('msm')))
 if with_drm_msm
   conf_data.set('ENABLE_DRM_MSM', 1)
 endif
