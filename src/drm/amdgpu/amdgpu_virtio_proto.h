@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include "amdgpu.h"
 #include "amdgpu_drm.h"
+#ifdef __GNUC__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic error "-Wpadded"
+#endif
 
 enum amdgpu_ccmd {
    AMDGPU_CCMD_QUERY_INFO = 1,
@@ -21,6 +25,7 @@ struct amdgpu_ccmd_rsp {
    struct vdrm_ccmd_rsp base;
    int32_t ret;
 };
+static_assert(sizeof(struct amdgpu_ccmd_rsp) == 8, "bug");
 
 #define AMDGPU_STATIC_ASSERT_SIZE(t) \
    static_assert(sizeof(struct t) % 8 == 0, "sizeof(struct " #t ") not multiple of 8"); \
@@ -106,7 +111,7 @@ struct amdgpu_ccmd_bo_va_op_req {
    uint64_t offset;
    uint32_t res_id;
    uint32_t op;
-   bool is_sparse_bo;
+   uint64_t is_sparse_bo;
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_bo_va_op_req)
 AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_bo_va_op_req)
@@ -159,7 +164,7 @@ AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_bo_query_info_req)
 
 struct amdgpu_ccmd_bo_query_info_rsp {
    struct amdgpu_ccmd_rsp hdr;
-   uint32_t __pad;
+   uint64_t __pad;
    /* This is almost struct amdgpu_bo_info, but padded to get
     * the same struct on 32 bit and 64 bit builds.
     */
@@ -167,9 +172,18 @@ struct amdgpu_ccmd_bo_query_info_rsp {
       uint64_t                   alloc_size;           /*     0     8 */
       uint64_t                   phys_alignment;       /*     8     8 */
       uint32_t                   preferred_heap;       /*    16     4 */
-      uint32_t __pad;
-      uint64_t                   alloc_flags;          /*    20     8 */
-      struct amdgpu_bo_metadata  metadata;
+      uint32_t                   __pad;                /*    20     4 */
+      uint64_t                   alloc_flags;          /*    24     8 */
+      /* This is almost struct amdgpu_bo_metadata, but padded to get
+       * the same struct on 32 bit and 64 bit builds.
+       */
+      struct {
+         uint64_t                flags;                /*    32     8 */
+         uint64_t                tiling_info;          /*    40     8 */
+         uint32_t                size_metadata;        /*    48     4 */
+         uint32_t                umd_metadata[64];     /*    52   256 */
+         uint32_t                __pad;                /*    308    4 */
+      } metadata;
    } info;
 };
 AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_bo_query_info_rsp)
@@ -183,7 +197,7 @@ struct amdgpu_ccmd_create_ctx_req {
       int32_t priority; /* create */
       uint32_t id;      /* destroy */
    };
-   bool create;
+   uint32_t create;
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_create_ctx_req)
 AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_create_ctx_req)
@@ -200,7 +214,7 @@ AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_create_ctx_rsp)
  */
 struct amdgpu_ccmd_reserve_vmid_req {
    struct vdrm_ccmd_req hdr;
-   bool enable;
+   uint32_t enable;
    uint32_t pad; /* must be zero */
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_reserve_vmid_req)
@@ -225,5 +239,9 @@ struct amdgpu_ccmd_set_pstate_rsp {
    uint32_t pad;
 };
 AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_set_pstate_rsp)
+
+#ifdef __GNUC__
+# pragma GCC diagnostic pop
+#endif
 
 #endif
