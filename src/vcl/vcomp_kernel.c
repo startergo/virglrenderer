@@ -59,29 +59,37 @@ vcomp_dispatch_clCreateKernelsInProgram(struct vcl_dispatch_context *dispatch,
                                         struct vcl_command_clCreateKernelsInProgram *args)
 {
    struct vcomp_context *vctx = dispatch->data;
-   struct vcomp_program *program = vcomp_program_from_handle(args->program);
-   if (!program)
+   vcl_replace_clCreateKernelsInProgram_args_handle(args);
+   if (!args->program)
    {
       args->ret = CL_INVALID_PROGRAM;
       return;
    }
 
-   cl_kernel *handles = calloc(args->num_kernels, sizeof(*handles));
+   cl_kernel *handles = NULL;
+   struct vcomp_kernel **temp_kernels = NULL;
 
-   args->ret = clCreateKernelsInProgram(program->base.handle.program, args->num_kernels,
+   // We allocate space for host handles to avoid overwriting incoming kernel IDs
+   if (args->num_kernels > 0)
+      handles = calloc(args->num_kernels, sizeof(*handles));
+
+   args->ret = clCreateKernelsInProgram(args->program, args->num_kernels,
                                         handles, args->num_kernels_ret);
-   if (args->ret != CL_SUCCESS)
-   {
-      free(handles);
-      return;
-   }
+   // In case of error or no handles, there's nothing else to do
+   if (args->ret != CL_SUCCESS || handles == NULL || args->num_kernels == 0)
+      goto clean_up;
+
+   size_t actual_num_kernels = args->num_kernels;
+   if (args->num_kernels_ret)
+      actual_num_kernels = MIN2(actual_num_kernels, *args->num_kernels_ret);
+   if (actual_num_kernels == 0)
+      goto clean_up;
 
    uint32_t i;
-   struct vcomp_kernel **temp_kernels = calloc(*args->num_kernels_ret,
-                                               sizeof(*temp_kernels));
-   for (i = 0; i < *args->num_kernels_ret; ++i)
+   temp_kernels = calloc(actual_num_kernels, sizeof(*temp_kernels));
+   for (i = 0; i < actual_num_kernels; ++i)
    {
-      const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)args->kernels[i]);
+      const vcomp_object_id id = vcomp_cs_handle_load_id((const void **)(args->kernels + i));
       if (!vcomp_context_validate_object_id(vctx, id))
       {
          args->ret = CL_INVALID_VALUE;
@@ -89,35 +97,38 @@ vcomp_dispatch_clCreateKernelsInProgram(struct vcl_dispatch_context *dispatch,
       }
 
       struct vcomp_kernel *kernel = vcomp_object_alloc(sizeof(*kernel), id);
-      temp_kernels[i] = kernel;
       if (!kernel)
       {
          args->ret = CL_OUT_OF_HOST_MEMORY;
          break;
       }
-
+      temp_kernels[i] = kernel;
       kernel->base.handle.kernel = handles[i];
       vcomp_context_add_object(vctx, &kernel->base);
    }
 
    /* remove all devices on errors */
-   if (i < *args->num_kernels_ret)
+   if (i < actual_num_kernels)
    {
-      for (uint32_t j = 0; j < args->num_kernels; j++)
+      for (uint32_t j = 0; j < actual_num_kernels; j++)
       {
          struct vcomp_kernel *kernel = temp_kernels[j];
          if (!kernel)
             break;
          vcomp_context_remove_object(vctx, &kernel->base);
       }
-      for (uint32_t k = 0; k < *args->num_kernels_ret; k++)
+      for (uint32_t k = 0; k < actual_num_kernels; k++)
       {
-         clReleaseKernel(handles[k]);
+         if (handles && handles[k])
+            clReleaseKernel(handles[k]);
       }
    }
 
-   free(handles);
-   free(temp_kernels);
+clean_up:
+   if (temp_kernels)
+      free(temp_kernels);
+   if (handles)
+      free(handles);
 }
 
 static void
