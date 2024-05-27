@@ -350,6 +350,7 @@ static void
 vcomp_dispatch_clCreateImageWithPropertiesMESA(struct vcl_dispatch_context *ctx,
                                                struct vcl_command_clCreateImageWithPropertiesMESA *args)
 {
+#ifdef CL_API_SUFFIX__VERSION_3_0
    struct vcomp_context *vctx = ctx->data;
    struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
 
@@ -394,6 +395,10 @@ vcomp_dispatch_clCreateImageWithPropertiesMESA(struct vcl_dispatch_context *ctx,
 
    memory->base.handle.memory = mem;
    vcomp_context_add_object(vctx, &memory->base);
+#else
+   (void)ctx;
+   (void)args;
+#endif /* CL_API_SUFFIX__VERSION_3_0 */
 }
 
 static void
