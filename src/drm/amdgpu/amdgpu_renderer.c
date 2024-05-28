@@ -209,13 +209,13 @@ amdgpu_context_rsp_noshadow(struct amdgpu_context *ctx, const struct vdrm_ccmd_r
 
 static void *
 amdgpu_context_rsp(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr,
-                   unsigned len)
+                   size_t len)
 {
    unsigned rsp_mem_sz = ctx->rsp_mem_sz;
    unsigned off = hdr->rsp_off;
 
    if ((off > rsp_mem_sz) || (len > rsp_mem_sz - off)) {
-      print(0, "invalid shm offset: off=%u, len=%u (shmem_size=%u)", off, len, rsp_mem_sz);
+      print(0, "invalid shm offset: off=%u, len=%zu (shmem_size=%u)", off, len, rsp_mem_sz);
       return NULL;
    }
 
