@@ -766,15 +766,92 @@ vn_replace_VkMemoryBarrier_handle(VkMemoryBarrier *val)
     } while (pnext);
 }
 
-/* struct VkBufferMemoryBarrier chain */
+/* struct VkExternalMemoryAcquireUnmodifiedEXT chain */
 
 static inline void *
-vn_decode_VkBufferMemoryBarrier_pnext_temp(struct vn_cs_decoder *dec)
+vn_decode_VkExternalMemoryAcquireUnmodifiedEXT_pnext_temp(struct vn_cs_decoder *dec)
 {
     /* no known/supported struct */
     if (vn_decode_simple_pointer(dec))
         vn_cs_decoder_set_fatal(dec);
     return NULL;
+}
+
+static inline void
+vn_decode_VkExternalMemoryAcquireUnmodifiedEXT_self_temp(struct vn_cs_decoder *dec, VkExternalMemoryAcquireUnmodifiedEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->acquireUnmodifiedMemory);
+}
+
+static inline void
+vn_decode_VkExternalMemoryAcquireUnmodifiedEXT_temp(struct vn_cs_decoder *dec, VkExternalMemoryAcquireUnmodifiedEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkExternalMemoryAcquireUnmodifiedEXT_pnext_temp(dec);
+    vn_decode_VkExternalMemoryAcquireUnmodifiedEXT_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkExternalMemoryAcquireUnmodifiedEXT_handle_self(VkExternalMemoryAcquireUnmodifiedEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->acquireUnmodifiedMemory */
+}
+
+static inline void
+vn_replace_VkExternalMemoryAcquireUnmodifiedEXT_handle(VkExternalMemoryAcquireUnmodifiedEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
+            vn_replace_VkExternalMemoryAcquireUnmodifiedEXT_handle_self((VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkBufferMemoryBarrier chain */
+
+static inline void *
+vn_decode_VkBufferMemoryBarrier_pnext_temp(struct vn_cs_decoder *dec)
+{
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkExternalMemoryAcquireUnmodifiedEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkBufferMemoryBarrier_pnext_temp(dec);
+            vn_decode_VkExternalMemoryAcquireUnmodifiedEXT_self_temp(dec, (VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
+        vn_cs_decoder_set_fatal(dec);
+        break;
+    }
+
+    return pnext;
 }
 
 static inline void
@@ -827,6 +904,9 @@ vn_replace_VkBufferMemoryBarrier_handle(VkBufferMemoryBarrier *val)
         case VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER:
             vn_replace_VkBufferMemoryBarrier_handle_self((VkBufferMemoryBarrier *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
+            vn_replace_VkExternalMemoryAcquireUnmodifiedEXT_handle_self((VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
+            break;
         default:
             /* ignore unknown/unsupported struct */
             break;
@@ -840,10 +920,30 @@ vn_replace_VkBufferMemoryBarrier_handle(VkBufferMemoryBarrier *val)
 static inline void *
 vn_decode_VkImageMemoryBarrier_pnext_temp(struct vn_cs_decoder *dec)
 {
-    /* no known/supported struct */
-    if (vn_decode_simple_pointer(dec))
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkExternalMemoryAcquireUnmodifiedEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkImageMemoryBarrier_pnext_temp(dec);
+            vn_decode_VkExternalMemoryAcquireUnmodifiedEXT_self_temp(dec, (VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
         vn_cs_decoder_set_fatal(dec);
-    return NULL;
+        break;
+    }
+
+    return pnext;
 }
 
 static inline void
@@ -897,6 +997,9 @@ vn_replace_VkImageMemoryBarrier_handle(VkImageMemoryBarrier *val)
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER:
             vn_replace_VkImageMemoryBarrier_handle_self((VkImageMemoryBarrier *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
+            vn_replace_VkExternalMemoryAcquireUnmodifiedEXT_handle_self((VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -2307,10 +2410,30 @@ vn_replace_VkVertexInputAttributeDescription2EXT_handle(VkVertexInputAttributeDe
 static inline void *
 vn_decode_VkBufferMemoryBarrier2_pnext_temp(struct vn_cs_decoder *dec)
 {
-    /* no known/supported struct */
-    if (vn_decode_simple_pointer(dec))
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkExternalMemoryAcquireUnmodifiedEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkBufferMemoryBarrier2_pnext_temp(dec);
+            vn_decode_VkExternalMemoryAcquireUnmodifiedEXT_self_temp(dec, (VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
         vn_cs_decoder_set_fatal(dec);
-    return NULL;
+        break;
+    }
+
+    return pnext;
 }
 
 static inline void
@@ -2367,6 +2490,9 @@ vn_replace_VkBufferMemoryBarrier2_handle(VkBufferMemoryBarrier2 *val)
         case VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2:
             vn_replace_VkBufferMemoryBarrier2_handle_self((VkBufferMemoryBarrier2 *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
+            vn_replace_VkExternalMemoryAcquireUnmodifiedEXT_handle_self((VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
+            break;
         default:
             /* ignore unknown/unsupported struct */
             break;
@@ -2380,10 +2506,30 @@ vn_replace_VkBufferMemoryBarrier2_handle(VkBufferMemoryBarrier2 *val)
 static inline void *
 vn_decode_VkImageMemoryBarrier2_pnext_temp(struct vn_cs_decoder *dec)
 {
-    /* no known/supported struct */
-    if (vn_decode_simple_pointer(dec))
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkExternalMemoryAcquireUnmodifiedEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkImageMemoryBarrier2_pnext_temp(dec);
+            vn_decode_VkExternalMemoryAcquireUnmodifiedEXT_self_temp(dec, (VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
         vn_cs_decoder_set_fatal(dec);
-    return NULL;
+        break;
+    }
+
+    return pnext;
 }
 
 static inline void
@@ -2441,6 +2587,9 @@ vn_replace_VkImageMemoryBarrier2_handle(VkImageMemoryBarrier2 *val)
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2:
             vn_replace_VkImageMemoryBarrier2_handle_self((VkImageMemoryBarrier2 *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
+            vn_replace_VkExternalMemoryAcquireUnmodifiedEXT_handle_self((VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */

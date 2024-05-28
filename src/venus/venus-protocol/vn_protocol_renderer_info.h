@@ -12,7 +12,7 @@
 
 struct vn_info_extension_table {
    union {
-      bool enabled[117];
+      bool enabled[118];
       struct {
          bool EXT_4444_formats;
          bool EXT_attachment_feedback_loop_layout;
@@ -30,6 +30,7 @@ struct vn_info_extension_table {
          bool EXT_extended_dynamic_state;
          bool EXT_extended_dynamic_state2;
          bool EXT_extended_dynamic_state3;
+         bool EXT_external_memory_acquire_unmodified;
          bool EXT_external_memory_dma_buf;
          bool EXT_fragment_shader_interlock;
          bool EXT_graphics_pipeline_library;
@@ -144,8 +145,8 @@ struct vn_info_extension {
 };
 
 /* sorted by extension names for bsearch */
-static const uint32_t _vn_info_extension_count = 117;
-static const struct vn_info_extension _vn_info_extensions[117] = {
+static const uint32_t _vn_info_extension_count = 118;
+static const struct vn_info_extension _vn_info_extensions[118] = {
    { "VK_EXT_4444_formats", 341, 1 },
    { "VK_EXT_attachment_feedback_loop_layout", 340, 2 },
    { "VK_EXT_border_color_swizzle", 412, 1 },
@@ -162,6 +163,7 @@ static const struct vn_info_extension _vn_info_extensions[117] = {
    { "VK_EXT_extended_dynamic_state", 268, 1 },
    { "VK_EXT_extended_dynamic_state2", 378, 1 },
    { "VK_EXT_extended_dynamic_state3", 456, 2 },
+   { "VK_EXT_external_memory_acquire_unmodified", 454, 1 },
    { "VK_EXT_external_memory_dma_buf", 126, 1 },
    { "VK_EXT_fragment_shader_interlock", 252, 1 },
    { "VK_EXT_graphics_pipeline_library", 321, 1 },
