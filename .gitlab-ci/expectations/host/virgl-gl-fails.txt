@@ -489,6 +489,5 @@ spec@arb_texture_float@texwrap formats bordercolor@GL_RGB32F- border color only,
 spec@arb_texture_float@texwrap formats bordercolor@GL_LUMINANCE_ALPHA16F_ARB- border color only,Fail
 
 # uprev Mesa in virglrenderer
-KHR-GL43.texture_view.view_sampling,Fail
 spec@glsl-1.40@uniform_buffer@two-stages,Fail
 
