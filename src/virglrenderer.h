@@ -498,6 +498,18 @@ virgl_renderer_submit_cmd2(void *buffer,
                            uint64_t *in_fence_ids,
                            uint32_t num_in_fences);
 
+/* Map a resource to an specific userspace address. If successful, the
+ * mapping is owned by the caller and is its responsibility to unmap
+ * the resource by its own means (i.e. overriding the map with
+ * anonymous memory or calling munmap).
+ *
+ * Returns -EOPNOTSUPP if mapping the resource using this mechanism is
+ * not supported. In that case, you can still try mapping the resource
+ * using virgl_renderer_resource_map().
+ */
+VIRGL_EXPORT int
+virgl_renderer_resource_map_fixed(uint32_t res_handle, void *addr);
+
 /* vtest semi-private APIs: */
 VIRGL_EXPORT int virgl_renderer_attach_fence(int ctx_id, int fence_fd);
 VIRGL_EXPORT int virgl_renderer_get_fence_fd(uint64_t fence_id);

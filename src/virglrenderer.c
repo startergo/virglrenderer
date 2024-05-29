@@ -1275,6 +1275,48 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
    return ret;
 }
 
+int virgl_renderer_resource_map_fixed(uint32_t res_handle, void *addr)
+{
+   void *map = NULL;
+   struct virgl_resource *res = virgl_resource_lookup(res_handle);
+   enum virgl_resource_fd_type fd_type = res->fd_type;
+   enum virgl_resource_fd_type export_fd_type = res->fd_type;
+   int fd = res->fd;
+
+   if (!res)
+      return -EINVAL;
+
+   /* Create a transient dmabuf. */
+   if (fd_type == VIRGL_RESOURCE_OPAQUE_HANDLE)
+      export_fd_type = virgl_resource_export_fd(res, &fd);
+
+   switch (export_fd_type) {
+      case VIRGL_RESOURCE_FD_DMABUF:
+      case VIRGL_RESOURCE_FD_SHM:
+         map = mmap(addr, res->map_size, PROT_WRITE | PROT_READ,
+                    MAP_FIXED | MAP_SHARED, fd, 0);
+         break;
+      case VIRGL_RESOURCE_OPAQUE_HANDLE:
+      case VIRGL_RESOURCE_FD_OPAQUE:
+      case VIRGL_RESOURCE_FD_INVALID:
+         /* Avoid a default case so that -Wswitch will tell us at compile time
+          * if a new virgl resource type is added without being handled here.
+          */
+      break;
+   }
+
+   if (export_fd_type != fd_type)
+      close(fd);
+
+   if (!map)
+      return -EOPNOTSUPP;
+
+   if (map == MAP_FAILED)
+      return -EINVAL;
+
+   return 0;
+}
+
 int virgl_renderer_resource_unmap(uint32_t res_handle)
 {
    TRACE_FUNC();
