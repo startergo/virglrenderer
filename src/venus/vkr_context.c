@@ -32,6 +32,10 @@
 #include "vkr_ring.h"
 #include "vkr_transport.h"
 
+#ifdef __APPLE__
+#define lseek64 lseek
+#endif
+
 void
 vkr_context_add_instance(struct vkr_context *ctx,
                          struct vkr_instance *instance,
