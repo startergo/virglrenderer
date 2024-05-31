@@ -505,8 +505,8 @@ static int virgl_renderer_resource_get_info_common(int res_handle,
    return ret;
 }
 
-int virgl_renderer_resource_get_info(int res_handle,
-                                     struct virgl_renderer_resource_info *info)
+int virgl_renderer_borrow_texture_for_scanout(int res_handle,
+                                             struct virgl_renderer_texture_info *info)
 {
    TRACE_FUNC();
    int ret;
@@ -526,8 +526,8 @@ int virgl_renderer_resource_get_info(int res_handle,
    return 0;
 }
 
-int virgl_renderer_resource_get_info_ext(int res_handle,
-                                         struct virgl_renderer_resource_info_ext *info_ext)
+int virgl_renderer_borrow_texture_for_scanout(int res_handle,
+                                             struct virgl_renderer_texture_info_ext *info_ext)
 {
    TRACE_FUNC();
    int ret;
