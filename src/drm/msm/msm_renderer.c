@@ -130,14 +130,14 @@ struct msm_object {
    uint32_t res_id;
    uint32_t handle;
    uint32_t flags;
-   uint32_t size;
+   uint64_t size;
    bool exported   : 1;
    bool exportable : 1;
    uint8_t *map;
 };
 
 static struct msm_object *
-msm_object_create(uint32_t handle, uint32_t flags, uint32_t size)
+msm_object_create(uint32_t handle, uint32_t flags, uint64_t size)
 {
    struct msm_object *obj = calloc(1, sizeof(*obj));
 
@@ -393,9 +393,9 @@ msm_renderer_attach_resource(struct virgl_context *vctx, struct virgl_resource *
          }
 
          /* lseek() to get bo size */
-         int size = lseek(fd, 0, SEEK_END);
+         off_t size = lseek(fd, 0, SEEK_END);
          if (size < 0)
-            drm_log("lseek failed: %d (%s)", size, strerror(errno));
+            drm_log("lseek failed: %" PRId64 " (%s)", size, strerror(errno));
          close(fd);
 
          obj = msm_object_create(handle, 0, size);
