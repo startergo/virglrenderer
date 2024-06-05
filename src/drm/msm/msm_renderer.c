@@ -394,9 +394,12 @@ msm_renderer_attach_resource(struct virgl_context *vctx, struct virgl_resource *
 
          /* lseek() to get bo size */
          off_t size = lseek(fd, 0, SEEK_END);
-         if (size < 0)
-            drm_log("lseek failed: %" PRId64 " (%s)", size, strerror(errno));
          close(fd);
+         if (size < 0) {
+            drm_log("lseek failed: %" PRId64 " (%s)", size, strerror(errno));
+            gem_close(fd, handle);
+            return;
+         }
 
          obj = msm_object_create(handle, 0, size);
          if (!obj)
