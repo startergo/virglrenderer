@@ -1122,6 +1122,11 @@ submit_cmd_dispatch(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
 {
    int ret;
 
+   if (!ctx->shmem) {
+      print(0, "shmem not inited");
+      return -EINVAL;
+   }
+
    if (hdr->cmd >= ARRAY_SIZE(ccmd_dispatch)) {
       print(0, "invalid cmd: %u", hdr->cmd);
       return -EINVAL;
