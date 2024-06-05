@@ -1307,7 +1307,7 @@ amdgpu_renderer_submit_fence(struct virgl_context *vctx, uint32_t flags,
     * meaning by the time ->submit_fence() is called, the fence has
     * already passed.. so just immediate signal:
     */
-   if (ring_idx == 0) {
+   if (ring_idx == 0 || ctx->timelines[ring_idx - 1].last_fence_fd < 0) {
       vctx->fence_retire(vctx, ring_idx, fence_id);
       return 0;
    }
