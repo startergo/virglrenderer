@@ -1010,6 +1010,9 @@ msm_ccmd_gem_upload(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
       return -ENOENT;
    }
 
+   if (size_add(req->off, req->len) > obj->size)
+      return -EFAULT;
+
    ret = map_object(mctx, obj);
    if (ret)
       return ret;
