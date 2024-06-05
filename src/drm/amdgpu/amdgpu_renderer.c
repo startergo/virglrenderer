@@ -532,6 +532,7 @@ amdgpu_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t b
       if (ctx->shmem == MAP_FAILED) {
          print(0, "shmem mmap failed: %s", strerror(errno));
          close_fd(ctx, fd, __FUNCTION__);
+         ctx->shmem = NULL;
          return -ENOMEM;
       }
       ctx->shmem_size = blob_size;
