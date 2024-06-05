@@ -402,8 +402,10 @@ msm_renderer_attach_resource(struct virgl_context *vctx, struct virgl_resource *
          }
 
          obj = msm_object_create(handle, 0, size);
-         if (!obj)
+         if (!obj) {
+            gem_close(fd, handle);
             return;
+         }
 
          msm_object_set_res_id(mctx, obj, res->res_id);
 
