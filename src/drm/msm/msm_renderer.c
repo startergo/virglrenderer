@@ -537,6 +537,7 @@ msm_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t blob
       mctx->shmem = mmap(NULL, blob_size, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
       if (mctx->shmem == MAP_FAILED) {
          drm_log("shmem mmap failed: %s", strerror(errno));
+         mctx->shmem = NULL;
          close(fd);
          return -ENOMEM;
       }
