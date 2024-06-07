@@ -387,6 +387,9 @@ vkr_dispatch_vkWaitRingSeqnoMESA(struct vn_dispatch_context *dispatch,
       return;
    }
 
+   /* ensure to wake ring up to properly error out invalid ring wait */
+   vkr_ring_notify(ring);
+
    if (!vkr_context_wait_ring_seqno(ctx, ring, args->seqno))
       vkr_context_set_fatal(ctx);
 }

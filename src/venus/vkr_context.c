@@ -406,11 +406,35 @@ vkr_seqno_ge(uint32_t a, uint32_t b)
 void
 vkr_context_on_ring_seqno_update(struct vkr_context *ctx,
                                  uint64_t ring_id,
-                                 uint64_t ring_seqno)
+                                 uint32_t ring_seqno)
 {
    mtx_lock(&ctx->wait_ring.mutex);
    if (ctx->wait_ring.id == ring_id && vkr_seqno_ge(ring_seqno, ctx->wait_ring.seqno))
       cnd_signal(&ctx->wait_ring.cond);
+   mtx_unlock(&ctx->wait_ring.mutex);
+}
+
+bool
+vkr_context_on_ring_empty(struct vkr_context *ctx, uint64_t ring_id, uint32_t ring_seqno)
+{
+   /* Error out if the last ring cmd is unable to signal the virtqueue that is currently
+    * waiting for this ring. This happens when the driver emits invalid asynchronous ring
+    * wait cmds.
+    */
+   mtx_lock(&ctx->wait_ring.mutex);
+   bool ok =
+      ctx->wait_ring.id != ring_id || vkr_seqno_ge(ring_seqno, ctx->wait_ring.seqno);
+   mtx_unlock(&ctx->wait_ring.mutex);
+   return ok;
+}
+
+void
+vkr_context_on_ring_fatal(struct vkr_context *ctx)
+{
+   vkr_context_set_fatal(ctx);
+
+   mtx_lock(&ctx->wait_ring.mutex);
+   cnd_signal(&ctx->wait_ring.cond);
    mtx_unlock(&ctx->wait_ring.mutex);
 }
 
@@ -426,7 +450,8 @@ vkr_context_wait_ring_seqno(struct vkr_context *ctx,
    mtx_lock(&ctx->wait_ring.mutex);
    ctx->wait_ring.id = ring->id;
    ctx->wait_ring.seqno = ring_seqno;
-   while (ok && !vkr_seqno_ge(vkr_ring_load_head(ring), ring_seqno)) {
+   while (!vkr_context_get_fatal(ctx) && ok &&
+          !vkr_seqno_ge(vkr_ring_load_head(ring), ring_seqno)) {
       ok = cnd_wait(&ctx->wait_ring.cond, &ctx->wait_ring.mutex) == thrd_success;
    }
    ctx->wait_ring.id = 0;

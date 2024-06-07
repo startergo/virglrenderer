@@ -297,12 +297,19 @@ vkr_ring_thread(void *arg)
          last_submit = vkr_ring_now();
          relax_iter = 0;
       } else {
+         if (!vkr_context_on_ring_empty(ctx, ring->id, vkr_ring_load_head(ring))) {
+            ret = -EINVAL;
+            break;
+         }
+
          vkr_ring_relax(&relax_iter);
       }
    }
 
-   if (ret < 0)
+   if (ret < 0) {
       vkr_ring_set_status_bits(ring, VK_RING_STATUS_FATAL_BIT_MESA);
+      vkr_context_on_ring_fatal(ctx);
+   }
 
    return ret;
 }
