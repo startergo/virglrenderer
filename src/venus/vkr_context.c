@@ -422,8 +422,12 @@ vkr_context_on_ring_empty(struct vkr_context *ctx, uint64_t ring_id, uint32_t ri
     * wait cmds.
     */
    mtx_lock(&ctx->wait_ring.mutex);
-   bool ok =
+   const bool ok =
       ctx->wait_ring.id != ring_id || vkr_seqno_ge(ring_seqno, ctx->wait_ring.seqno);
+   if (unlikely(!ok)) {
+      vkr_log("%s: wait for empty ring at seqno(%u) to reach seqno(%u)", __func__,
+              ring_seqno, ctx->wait_ring.seqno);
+   }
    mtx_unlock(&ctx->wait_ring.mutex);
    return ok;
 }

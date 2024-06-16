@@ -282,6 +282,8 @@ vkr_ring_thread(void *arg)
       const uint32_t cmd_size = vkr_ring_load_tail(ring) - ring->buffer.cur;
       if (cmd_size) {
          if (cmd_size > ring->buffer.size) {
+            vkr_log("%s: cmd_size(%u) > ring->buffer.size(%u)", __func__, cmd_size,
+                    ring->buffer.size);
             ret = -EINVAL;
             break;
          }
