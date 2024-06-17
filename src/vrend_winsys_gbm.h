@@ -75,6 +75,8 @@ struct gbm_device_info {
 
 #define GBM_DETECT_FLAG_CONNECTED (1u << 0) /* Check if any connectors are connected. SLOW! */
 
+uint32_t virgl_gbm_get_map_info(struct gbm_bo *bo);
+
 #ifdef MINIGBM
 int gbm_detect_device_info(unsigned int detect_flags, int fd, struct gbm_device_info *info);
 int gbm_detect_device_info_path(unsigned int detect_flags, const char *dev_node,

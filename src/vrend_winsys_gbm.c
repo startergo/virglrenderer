@@ -518,7 +518,45 @@ err_close:
    query->out_num_fds = 0;
    return ret;
 }
+
+uint32_t virgl_gbm_get_map_info(struct gbm_bo *bo) {
+   uint32_t map_info;
+#if defined(MINIGBM) && defined(MINIGBM_HAS_GBM_BO_GET_MAP_INFO)
+      enum gbm_bo_map_cache_mode cache_mode = gbm_bo_get_map_info(bo);
+      switch(cache_mode) {
+      /* case GBM_BO_MAP_CACHE_NONE: */
+      /*    map_info = VIRGL_RENDERER_MAP_CACHE_NONE; */
+      /*    break; */
+      case GBM_BO_MAP_CACHE_CACHED:
+         map_info = VIRGL_RENDERER_MAP_CACHE_CACHED;
+         break;
+      /* case GBM_BO_MAP_CACHE_UNCACHED: */
+      /*    map_info = VIRGL_RENDERER_MAP_CACHE_UNCACHED; */
+      /*    break; */
+      case GBM_BO_MAP_CACHE_WC:
+      default:
+         map_info = VIRGL_RENDERER_MAP_CACHE_WC;
+         break;
+      }
+#else
+   /* That GPU allocations on all intel devices are CACHED is famously untrue
+    * on Intel devices that don't have a shared last-level-cache architecture to
+    * ensure memory coherency between CPU/GPU cores (e.g. GLK). Thus, mistakenly
+    * reporting CACHED mapping type would cause stale cached CPU access to GPU
+    * writes that are resident only in system memory.
+    *
+    * Still this heuristic is retained as a fallback for the missing minigbm API
+    */
+   if (!strcmp(gbm_device_get_backend_name(gbm->device), "i915"))
+      map_info = VIRGL_RENDERER_MAP_CACHE_CACHED;
+   else
+      map_info = VIRGL_RENDERER_MAP_CACHE_WC;
+
+   (void)bo;
 #endif
+   return map_info;
+}
+#endif // #ifdef ENABLE_MINIGBM_ALLOCATION
 
 int virgl_gbm_export_fd(struct gbm_device *gbm, uint32_t handle, int32_t *out_fd)
 {
