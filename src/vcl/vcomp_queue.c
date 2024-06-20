@@ -10,6 +10,7 @@
 #include "vcomp_platform.h"
 
 #include "vcl-protocol/vcl_protocol_renderer_defines.h"
+#include "vcl-protocol/vcl_protocol_renderer_queue.h"
 
 static void
 vcomp_context_add_queue(struct vcomp_context *vctx, cl_command_queue queue,
@@ -157,6 +158,26 @@ vcomp_dispatch_clSetCommandQueueProperty(struct vcl_dispatch_context *dispatch,
 }
 
 static void
+vcomp_dispatch_clEnqueueBarrier(UNUSED struct vcl_dispatch_context *dispatch,
+                                 struct vcl_command_clEnqueueBarrier *args)
+{
+#ifdef CL_USE_DEPRECATED_OPENCL_1_1_APIS
+   vcl_replace_clEnqueueBarrier_args_handle(args);
+
+   if(!args->command_queue)
+   {
+      args->ret = CL_INVALID_COMMAND_QUEUE;
+      return;
+   }
+
+   args->ret = clEnqueueBarrier(args->command_queue);
+#else
+   (void)dispatch;
+   (void)args;
+#endif // CL_USE_DEPRECATED_OPENCL_1_1_APIS
+}
+
+static void
 vcomp_dispatch_clSetDefaultDeviceCommandQueue(UNUSED struct vcl_dispatch_context *dispatch,
                                               struct vcl_command_clSetDefaultDeviceCommandQueue *args)
 {
@@ -226,6 +247,7 @@ void vcomp_context_init_queue_dispatch(struct vcomp_context *vctx)
    dispatch->dispatch_clGetCommandQueueInfo = vcomp_dispatch_clGetCommandQueueInfo;
    dispatch->dispatch_clReleaseCommandQueue = vcomp_dispatch_clReleaseCommandQueue;
    dispatch->dispatch_clSetCommandQueueProperty = vcomp_dispatch_clSetCommandQueueProperty;
+   dispatch->dispatch_clEnqueueBarrier = vcomp_dispatch_clEnqueueBarrier;
    dispatch->dispatch_clSetDefaultDeviceCommandQueue = vcomp_dispatch_clSetDefaultDeviceCommandQueue;
    dispatch->dispatch_clFlush = vcomp_dispatch_clFlush;
    dispatch->dispatch_clFinish = vcomp_dispatch_clFinish;
