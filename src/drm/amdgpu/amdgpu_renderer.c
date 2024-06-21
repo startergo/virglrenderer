@@ -948,7 +948,15 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
       uint16_t length_dw;
       uint32_t offset;
    };
-   struct desc *descriptors = (void*) req->payload;
+   size_t descriptors_len = size_add(offsetof(struct amdgpu_ccmd_cs_submit_req, payload),
+                                     size_mul(req->num_chunks, sizeof(struct desc)));
+   if (descriptors_len == SIZE_MAX || descriptors_len > hdr->len) {
+      print(0, "Descriptors are out of bounds: %zu > %" PRIu32,
+            descriptors_len, hdr->len);
+      r = -EINVAL;
+      goto end;
+   }
+   const struct desc *descriptors = (void*) req->payload;
 
    for (size_t i = 0; i < req->num_chunks; i++) {
       unsigned chunk_id = descriptors[i].chunk_id;
