@@ -1013,6 +1013,12 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
 
          bo_handles_in = input;
          bo_list = malloc(bo_count * sizeof(struct drm_amdgpu_bo_list_entry));
+         if (!bo_list) {
+            print(0, "Unable to allocate %zu bytes for bo_list",
+                  bo_count * sizeof(struct drm_amdgpu_bo_list_entry));
+            r = -ENOMEM;
+            goto end;
+         }
 
          bo_list_in.operation = ~0;
          bo_list_in.list_handle = ~0;
