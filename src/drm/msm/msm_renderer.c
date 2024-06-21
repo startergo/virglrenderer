@@ -617,13 +617,14 @@ msm_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t blob
 }
 
 static void *
-msm_context_rsp(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr, unsigned len)
+msm_context_rsp(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr, size_t len)
 {
-   unsigned rsp_mem_sz = mctx->rsp_mem_sz;
-   unsigned off = hdr->rsp_off;
+   uint32_t rsp_mem_sz = mctx->rsp_mem_sz;
+   uint32_t off = hdr->rsp_off;
 
    if ((off > rsp_mem_sz) || (len > rsp_mem_sz - off)) {
-      drm_log("invalid shm offset: off=%u, len=%u (shmem_size=%u)", off, len, rsp_mem_sz);
+      drm_log("invalid shm offset: off=%" PRIu32
+              ", len=%zu (shmem_size=%" PRIu32 ")", off, len, rsp_mem_sz);
       return NULL;
    }
 
@@ -652,10 +653,10 @@ msm_ccmd_ioctl_simple(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
 {
    const struct msm_ccmd_ioctl_simple_req *req = to_msm_ccmd_ioctl_simple_req(hdr);
    unsigned payload_len = _IOC_SIZE(req->cmd);
-   unsigned req_len = size_add(sizeof(*req), payload_len);
+   size_t req_len = size_add(sizeof(*req), payload_len);
 
    if (hdr->len != req_len) {
-      drm_log("%u != %u", hdr->len, req_len);
+      drm_log("%zu != %u", hdr->len, req_len);
       return -EINVAL;
    }
 
@@ -678,7 +679,7 @@ msm_ccmd_ioctl_simple(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
    }
 
    struct msm_ccmd_ioctl_simple_rsp *rsp;
-   unsigned rsp_len = sizeof(*rsp);
+   size_t rsp_len = sizeof(*rsp);
 
    if (req->cmd & IOC_OUT)
       rsp_len = size_add(rsp_len, payload_len);
