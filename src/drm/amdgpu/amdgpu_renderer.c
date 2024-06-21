@@ -793,6 +793,17 @@ amdgpu_ccmd_set_metadata(struct amdgpu_context *ctx, const struct vdrm_ccmd_req 
    metadata.size_metadata = req->size_metadata;
    if (req->size_metadata) {
       if (req->size_metadata > sizeof(metadata.umd_metadata)) {
+         print(0, "Metadata size is too large for target buffer: %" PRIu32 " > %zu",
+               req->size_metadata, sizeof(metadata.umd_metadata));
+         rsp->ret = -EINVAL;
+         return -1;
+      }
+      size_t requested_size = size_add(req->size_metadata,
+                                       offsetof(struct amdgpu_ccmd_set_metadata_req,
+                                                umd_metadata));
+      if (requested_size > hdr->len || requested_size == SIZE_MAX) {
+         print(0, "Metadata size is too large for source buffer: %zu > %" PRIu32,
+               requested_size, hdr->len);
          rsp->ret = -EINVAL;
          return -1;
       }
