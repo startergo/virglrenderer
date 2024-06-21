@@ -652,6 +652,12 @@ amdgpu_ccmd_gem_new(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
    int ret = 0;
    int64_t va_map_size = 0;
 
+   if (req->pad || req->r.__pad) {
+      print(0, "Invalid value for struct %s_req padding: "
+            "0x%" PRIx32 ":0x%" PRIx32, __FUNCTION__, req->pad, req->r.__pad);
+      ret = -EINVAL;
+      goto alloc_failed;
+   }
    if (!valid_blob_id(ctx, req->blob_id)) {
       print(0, "Invalid blob_id %ld", req->blob_id);
       ret = -EINVAL;
