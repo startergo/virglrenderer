@@ -1035,6 +1035,11 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
             goto end;
          }
          in = input;
+         if (in->offset % sizeof(uint64_t)) {
+            print(0, "Invalid chunk offset %" PRIu32 " (not multiple of 8)", in->offset);
+            r = -EINVAL;
+            goto end;
+         }
          struct amdgpu_object *obj =
                amdgpu_get_object_from_res_id(ctx, in->handle, __FUNCTION__);
          if (!obj) {
