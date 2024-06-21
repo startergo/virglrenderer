@@ -1060,7 +1060,8 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
          }
       } else {
          print(0, "Unsupported chunk_id %d received", chunk_id);
-         assert(false);
+         r = -EINVAL;
+         goto end;
       }
 
       num_chunks++;
@@ -1072,7 +1073,10 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
       chunks[num_chunks].length_dw = sizeof(syncobj_in) / 4;
       chunks[num_chunks].chunk_data = (uintptr_t)&syncobj_in;
       r = drmSyncobjCreate(amdgpu_device_get_fd(ctx->dev), 0, &syncobj_in.handle);
-      assert(r == 0);
+      if (r != 0) {
+         print(0, "input syncobj creation failed");
+         goto end;
+      }
       r = drmSyncobjImportSyncFile(
          amdgpu_device_get_fd(ctx->dev), syncobj_in.handle, in_fence_fd);
       if (r == 0)
