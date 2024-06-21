@@ -849,7 +849,15 @@ amdgpu_ccmd_bo_query_info(struct amdgpu_context *ctx, const struct vdrm_ccmd_req
       return -1;
    }
 
-   memcpy(&rsp->info, &info, sizeof(info));
+   rsp->info.alloc_size = info.alloc_size;
+   rsp->info.phys_alignment = info.phys_alignment;
+   rsp->info.preferred_heap = info.preferred_heap;
+   rsp->info.alloc_flags = info.alloc_flags;
+   rsp->info.metadata.flags = info.metadata.flags;
+   rsp->info.metadata.tiling_info = info.metadata.tiling_info;
+   rsp->info.metadata.size_metadata = info.metadata.size_metadata;
+   memcpy(rsp->info.metadata.umd_metadata, info.metadata.umd_metadata,
+          info.metadata.size_metadata);
 
    return 0;
 }
