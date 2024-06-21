@@ -619,14 +619,19 @@ amdgpu_ccmd_query_info(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *h
 {
    const struct amdgpu_ccmd_query_info_req *req = to_amdgpu_ccmd_query_info_req(hdr);
    struct amdgpu_ccmd_query_info_rsp *rsp;
-   unsigned rsp_len = sizeof(*rsp) + req->info.return_size;
+   unsigned rsp_len;
+   if (__builtin_add_overflow(sizeof(*rsp), req->info.return_size, &rsp_len)) {
+      print(1, "%s: Request size overflow: %zu + %" PRIu32 " > %u",
+            __FUNCTION__, sizeof(*rsp), req->info.return_size, UINT_MAX);
+      return -EINVAL;
+   }
 
    rsp = amdgpu_context_rsp(ctx, hdr, rsp_len);
 
    if (!rsp)
       return -ENOMEM;
 
-   size_t return_size = MIN2(req->info.return_size, rsp_len);
+   size_t return_size = req->info.return_size;
    void *value = calloc(return_size, 1);
    struct drm_amdgpu_info request;
    memcpy(&request, &req->info, sizeof(request));
