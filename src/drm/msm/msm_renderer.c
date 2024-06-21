@@ -617,12 +617,6 @@ msm_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t blob
 }
 
 static void *
-msm_context_rsp_noshadow(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
-{
-   return &mctx->rsp_mem[hdr->rsp_off];
-}
-
-static void *
 msm_context_rsp(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr, unsigned len)
 {
    unsigned rsp_mem_sz = mctx->rsp_mem_sz;
@@ -633,22 +627,15 @@ msm_context_rsp(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr, unsig
       return NULL;
    }
 
-   struct vdrm_ccmd_rsp *rsp = msm_context_rsp_noshadow(mctx, hdr);
-
-   assert(len >= sizeof(*rsp));
-
-   /* With newer host and older guest, we could end up wanting a larger rsp struct
-    * than guest expects, so allocate a shadow buffer in this case rather than
-    * having to deal with this in all the different ccmd handlers.  This is similar
-    * in a way to what drm_ioctl() does.
+   /* The shared buffer might be writable by the guest.  To avoid TOCTOU,
+    * data races, and other security problems, always allocate a shadow buffer.
+    *
+    * Zero it to ensure that uninitialized heap memory cannot be exposed to guests.
     */
-   if (len > rsp->len) {
-      rsp = malloc(len);
-      if (!rsp)
-         return NULL;
-      rsp->len = len;
-   }
-
+   struct vdrm_ccmd_rsp *rsp = calloc(len, 1);
+   if (!rsp)
+	   return NULL;
+   rsp->len = len;
    mctx->current_rsp = rsp;
 
    return rsp;
@@ -1193,9 +1180,10 @@ submit_cmd_dispatch(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
     * copy is used, and we need to copy back to the actual rsp
     * buffer.
     */
-   struct vdrm_ccmd_rsp *rsp = msm_context_rsp_noshadow(mctx, hdr);
-   if (mctx->current_rsp && (mctx->current_rsp != rsp)) {
-      unsigned len = rsp->len;
+   struct vdrm_ccmd_rsp *rsp = (struct vdrm_ccmd_rsp *)&mctx->rsp_mem[hdr->rsp_off];
+   if (mctx->current_rsp) {
+      uint32_t len = *(volatile uint32_t *)&rsp->len;
+      len = MIN2(len, mctx->current_rsp->len);
       memcpy(rsp, mctx->current_rsp, len);
       rsp->len = len;
       free(mctx->current_rsp);
