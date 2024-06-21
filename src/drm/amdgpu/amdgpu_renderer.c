@@ -514,6 +514,12 @@ amdgpu_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t b
          return -EINVAL;
       }
 
+      if ((blob_size < sizeof(*ctx->shmem)) || (blob_size >= SIZE_MAX) ||
+            ((uint64_t)(off_t)blob_size != blob_size) || ((off_t)blob_size < 0)) {
+         drm_log("Invalid blob size 0x%" PRIx64, blob_size);
+         return -EINVAL;
+      }
+
       char name[64];
       snprintf(name, 64, "amdgpu-shmem-%s", ctx->debug_name);
       fd = os_create_anonymous_file(blob_size, name);
