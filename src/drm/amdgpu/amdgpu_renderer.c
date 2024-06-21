@@ -951,8 +951,9 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
    size_t descriptors_len = size_add(offsetof(struct amdgpu_ccmd_cs_submit_req, payload),
                                      size_mul(req->num_chunks, sizeof(struct desc)));
    if (descriptors_len == SIZE_MAX || descriptors_len > hdr->len) {
-      print(0, "Descriptors are out of bounds: %zu > %" PRIu32,
-            descriptors_len, hdr->len);
+      print(0, "Descriptors are out of bounds: %zu + %zu * %" PRIu32 " > %" PRIu32,
+            offsetof(struct amdgpu_ccmd_cs_submit_req, payload),
+            sizeof(struct desc), req->num_chunks, hdr->len);
       r = -EINVAL;
       goto end;
    }
@@ -960,20 +961,19 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
 
    for (size_t i = 0; i < req->num_chunks; i++) {
       unsigned chunk_id = descriptors[i].chunk_id;
-      uint64_t offset = req->num_chunks * sizeof(struct desc) +
-                        descriptors[i].offset;
+      size_t offset = size_add(descriptors_len, descriptors[i].offset);
+      size_t len = size_mul(descriptors[i].length_dw, 4);
+      size_t end = size_add(offset, len);
 
       chunks[num_chunks].chunk_id = chunk_id;
       /* Validate input. */
-      if ((offsetof(struct amdgpu_ccmd_cs_submit_req, payload) +
-             offset >= req->hdr.len) ||
-          (offsetof(struct amdgpu_ccmd_cs_submit_req, payload) +
-             offset + descriptors[i].length_dw * 4 > req->hdr.len)) {
+      if (end == SIZE_MAX || end > hdr->len) {
+         print(0, "Descriptors are out of bounds: %zu > %" PRIu32, end, hdr->len);
          r = -EINVAL;
          goto end;
       }
 
-      void *input = (void*) &req->payload[offset];
+      void *input = (char *)req + offset;
 
       if (chunk_id == AMDGPU_CHUNK_ID_BO_HANDLES) {
          /* Don't trust blindly the inputs. */
