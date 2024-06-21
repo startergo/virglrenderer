@@ -740,6 +740,10 @@ amdgpu_ccmd_bo_va_op(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr
    struct amdgpu_object *obj;
    struct amdgpu_ccmd_rsp *rsp;
    rsp = amdgpu_context_rsp(ctx, hdr, sizeof(struct amdgpu_ccmd_rsp));
+   if (!rsp) {
+      print(0, "Cannot alloc response buffer");
+      return -ENOMEM;
+   }
 
    if (req->is_sparse_bo) {
       rsp->ret = amdgpu_bo_va_op_raw(
@@ -781,7 +785,10 @@ amdgpu_ccmd_set_metadata(struct amdgpu_context *ctx, const struct vdrm_ccmd_req 
 {
    const struct amdgpu_ccmd_set_metadata_req *req = to_amdgpu_ccmd_set_metadata_req(hdr);
    struct amdgpu_ccmd_rsp *rsp = amdgpu_context_rsp(ctx, hdr, sizeof(struct amdgpu_ccmd_rsp));
-
+   if (!rsp) {
+      print(0, "Cannot alloc response buffer");
+      return -ENOMEM;
+   }
    struct amdgpu_object *obj = amdgpu_get_object_from_res_id(ctx, req->res_id, __FUNCTION__);
    if (!obj) {
       print(0, "Cannot find object with res_id=%d",
@@ -833,6 +840,10 @@ amdgpu_ccmd_bo_query_info(struct amdgpu_context *ctx, const struct vdrm_ccmd_req
       to_amdgpu_ccmd_bo_query_info_req(hdr);
    struct amdgpu_ccmd_bo_query_info_rsp *rsp;
    rsp = amdgpu_context_rsp(ctx, hdr, sizeof(struct amdgpu_ccmd_bo_query_info_rsp));
+   if (!rsp) {
+      print(0, "Cannot alloc response buffer");
+      return -ENOMEM;
+   }
 
    struct amdgpu_object *obj = amdgpu_get_object_from_res_id(ctx, req->res_id, __FUNCTION__);
    if (!obj) {
@@ -868,6 +879,10 @@ amdgpu_ccmd_create_ctx(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *h
    const struct amdgpu_ccmd_create_ctx_req *req = to_amdgpu_ccmd_create_ctx_req(hdr);
    struct amdgpu_ccmd_create_ctx_rsp *rsp;
    rsp = amdgpu_context_rsp(ctx, hdr, sizeof(struct amdgpu_ccmd_create_ctx_rsp));
+   if (!rsp) {
+      print(0, "Cannot alloc response buffer");
+      return -ENOMEM;
+   }
 
    if (req->create) {
       amdgpu_context_handle ctx_handle;
@@ -947,6 +962,10 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
 
    struct amdgpu_ccmd_rsp *rsp;
    rsp = amdgpu_context_rsp(ctx, hdr, sizeof(struct amdgpu_ccmd_rsp));
+   if (!rsp) {
+      print(0, "Cannot alloc response buffer");
+      return -ENOMEM;
+   }
    /* Do not allocate arbitrarily large buffer. */
    if (req->num_chunks > AMDGPU_CCMD_CS_SUBMIT_MAX_NUM_CHUNKS) {
       print(1, "%s: Invalid num_chunks: %" PRIu32 " > %d",
@@ -1178,6 +1197,10 @@ static int amdgpu_ccmd_reserve_vmid(struct amdgpu_context *ctx, const struct vdr
    const struct amdgpu_ccmd_reserve_vmid_req *req = to_amdgpu_ccmd_reserve_vmid_req(hdr);
    struct amdgpu_ccmd_rsp *rsp;
    rsp = amdgpu_context_rsp(ctx, hdr, sizeof(struct amdgpu_ccmd_rsp));
+   if (!rsp) {
+      print(0, "Cannot alloc response buffer");
+      return -ENOMEM;
+   }
    rsp->ret = req->enable ?
          amdgpu_vm_reserve_vmid(ctx->dev, 0) : amdgpu_vm_unreserve_vmid(ctx->dev, 0);
    return 0;
@@ -1188,6 +1211,10 @@ static int amdgpu_ccmd_set_pstate(struct amdgpu_context *ctx, const struct vdrm_
    const struct amdgpu_ccmd_set_pstate_req *req = to_amdgpu_ccmd_set_pstate_req(hdr);
    struct amdgpu_ccmd_set_pstate_rsp *rsp;
    rsp = amdgpu_context_rsp(ctx, hdr, sizeof(*rsp));
+   if (!rsp) {
+      print(0, "Cannot alloc response buffer");
+      return -ENOMEM;
+   }
    amdgpu_context_handle actx = _mesa_hash_table_u64_search(ctx->id_to_ctx,
                                                             (uintptr_t)req->ctx_id);
    if (actx == NULL) {
