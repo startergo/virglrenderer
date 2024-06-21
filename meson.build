@@ -71,6 +71,7 @@ add_project_arguments(cc.get_supported_arguments(warnings), language : 'c')
 
 flags = [
    '-fvisibility=hidden',
+   '-fno-strict-aliasing',
 ]
 
 add_project_arguments(cc.get_supported_arguments(flags), language : 'c')
