@@ -110,7 +110,7 @@ struct amdgpu_ccmd_cs_submit_req {
    struct vdrm_ccmd_req hdr;
 
    uint32_t ctx_id;
-   uint32_t num_chunks;
+   uint32_t num_chunks; /* limited to AMDGPU_CCMD_CS_SUBMIT_MAX_NUM_CHUNKS */
    uint32_t bo_number;
    uint32_t ring_idx;
 
@@ -120,6 +120,7 @@ struct amdgpu_ccmd_cs_submit_req {
    uint8_t payload[];
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_cs_submit_req)
+#define AMDGPU_CCMD_CS_SUBMIT_MAX_NUM_CHUNKS 128
 
 /*
  * AMDGPU_CCMD_SET_METADATA

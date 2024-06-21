@@ -903,22 +903,36 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
    const struct amdgpu_ccmd_cs_submit_req *req = to_amdgpu_ccmd_cs_submit_req(hdr);
    struct drm_amdgpu_bo_list_in bo_list_in;
    struct drm_amdgpu_cs_chunk_fence user_fence;
-   struct drm_amdgpu_cs_chunk chunks[req->num_chunks + 1 /* syncobj_in */ + 1 /* syncobj_out */];
    struct drm_amdgpu_cs_chunk_sem syncobj_in = { 0 };
    struct drm_amdgpu_bo_list_entry *bo_handles_in = NULL;
+   struct drm_amdgpu_bo_list_entry *bo_list = NULL;
+   struct drm_amdgpu_cs_chunk *chunks;
    unsigned num_chunks = 0;
    uint64_t seqno = 0;
    int r;
 
    struct amdgpu_ccmd_rsp *rsp;
    rsp = amdgpu_context_rsp(ctx, hdr, sizeof(struct amdgpu_ccmd_rsp));
-
+   /* Do not allocate arbitrarily large buffer. */
+   if (req->num_chunks > AMDGPU_CCMD_CS_SUBMIT_MAX_NUM_CHUNKS) {
+      print(1, "%s: Invalid num_chunks: %" PRIu32 " > %d",
+            __FUNCTION__, req->num_chunks, AMDGPU_CCMD_CS_SUBMIT_MAX_NUM_CHUNKS);
+      rsp->ret = -EINVAL;
+      return -1;
+   }
    if (req->ring_idx == 0 || ctx->timeline_count < req->ring_idx) {
       print(0, "Invalid ring_idx value: %d (must be in [1, %d] range)",
          req->ring_idx,
          ctx->timeline_count);
       rsp->ret = -EINVAL;
       return -1;
+   }
+   chunks = malloc((req->num_chunks + 1 /* syncobj_in */ + 1 /* syncobj_out */) *
+                   sizeof(*chunks));
+   if (chunks == NULL) {
+      print(0, "Failed to allocate %" PRIu32 " chunks", req->num_chunks + 2);
+      r = -EINVAL;
+      goto end;
    }
 
    amdgpu_context_handle actx = _mesa_hash_table_u64_search(ctx->id_to_ctx,
@@ -930,7 +944,6 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
       uint32_t offset;
    };
    struct desc *descriptors = (void*) req->payload;
-   struct drm_amdgpu_bo_list_entry *bo_list = NULL;
 
    for (size_t i = 0; i < req->num_chunks; i++) {
       unsigned chunk_id = descriptors[i].chunk_id;
@@ -943,8 +956,8 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
              offset >= req->hdr.len) ||
           (offsetof(struct amdgpu_ccmd_cs_submit_req, payload) +
              offset + descriptors[i].length_dw * 4 > req->hdr.len)) {
-         rsp->ret = -EINVAL;
-         return -1;
+         r = -EINVAL;
+         goto end;
       }
 
       void *input = (void*) &req->payload[offset];
@@ -1085,7 +1098,7 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
 end:
    if (bo_list)
       free(bo_list);
-
+   free(chunks);
    rsp->ret = r;
    return r;
 }
