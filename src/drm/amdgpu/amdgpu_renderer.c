@@ -202,12 +202,6 @@ amdgpu_renderer_destroy(struct virgl_context *vctx)
 }
 
 static void *
-amdgpu_context_rsp_noshadow(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
-{
-   return &ctx->rsp_mem[hdr->rsp_off];
-}
-
-static void *
 amdgpu_context_rsp(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr,
                    size_t len)
 {
@@ -219,22 +213,15 @@ amdgpu_context_rsp(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr,
       return NULL;
    }
 
-   struct amdgpu_ccmd_rsp *rsp = amdgpu_context_rsp_noshadow(ctx, hdr);
-
-   assert(len >= sizeof(*rsp));
-
-   /* With newer host and older guest, we could end up wanting a larger rsp struct
-    * than guest expects, so allocate a shadow buffer in this case rather than
-    * having to deal with this in all the different ccmd handlers.  This is similar
-    * in a way to what drm_ioctl() does.
+   /* The shared buffer might be writable by the guest.  To avoid TOCTOU,
+    * data races, and other security problems, always allocate a shadow buffer.
+    *
+    * Zero it to ensure that uninitialized heap memory cannot be exposed to guests.
     */
-   if (len > rsp->base.len) {
-      rsp = malloc(len);
-      if (!rsp)
-         return NULL;
-      rsp->base.len = len;
-   }
-
+   struct amdgpu_ccmd_rsp *rsp = calloc(len, 1);
+   if (!rsp)
+      return NULL;
+   rsp->base.len = len;
    ctx->current_rsp = rsp;
 
    return rsp;
@@ -1341,16 +1328,15 @@ submit_cmd_dispatch(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
    if (ret)
       print(0, "%s: dispatch failed: %d (%s)", ccmd->name, ret, strerror(errno));
 
-   /* If the response length from the guest is smaller than the
-    * expected size, ie. newer host and older guest, then a shadow
-    * copy is used, and we need to copy back to the actual rsp
+   /* A shadow copy is used, and we need to copy back to the actual rsp
     * buffer.
     */
-   struct amdgpu_ccmd_rsp *rsp = amdgpu_context_rsp_noshadow(ctx, hdr);
-   if (ctx->current_rsp && (ctx->current_rsp != rsp)) {
-      unsigned len = rsp->base.len;
+   struct vdrm_ccmd_rsp *rsp = (struct vdrm_ccmd_rsp *)&ctx->rsp_mem[hdr->rsp_off];
+   if (ctx->current_rsp) {
+      uint32_t len = *(volatile uint32_t *)&rsp->len;
+      len = MIN2(len, ctx->current_rsp->base.len);
       memcpy(rsp, ctx->current_rsp, len);
-      rsp->base.len = len;
+      rsp->len = len;
       free(ctx->current_rsp);
    }
    ctx->current_rsp = NULL;
