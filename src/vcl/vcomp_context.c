@@ -298,8 +298,6 @@ vcomp_context_create(int id, uint32_t nlen, const char *debug_name)
    vcomp_context_init_base(vctx, id);
    vcomp_context_init_dispatch(vctx);
 
-   vcomp_log("context %d created: `%s`", vctx->base.ctx_id, vctx->debug_name);
-
    return &vctx->base;
 
 err_ctx_resource_table:
