@@ -36,6 +36,7 @@
 #include "virglrenderer.h"
 #include "vrend_renderer.h"
 
+#include <stdalign.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <string.h>
@@ -902,6 +903,26 @@ amdgpu_ccmd_create_ctx(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *h
    return 0;
 }
 
+/* Check that 'offset + len' fits in buffer of size 'max_len', that
+ * 'len' is correct for 'count' objects of size 'size',
+ * and that 'offset' is aligned to 'align'.
+ */
+static bool validate_chunk_inputs(size_t offset, size_t len, struct amdgpu_context *ctx,
+                                  size_t count, size_t size, size_t align)
+{
+   if (offset % align != 0) {
+      print(0, "Offset 0x%zx is misaligned (needed 0x%zx)", offset, align);
+      return false; /* misaligned */
+   }
+   size_t total_len = size_mul(size, count);
+   if (total_len == SIZE_MAX || total_len > len) {
+      print(0, "Length 0x%zx cannot hold 0x%zx entries of size 0x%zx",
+            len, count, size);
+      return false;
+   }
+   return true;
+}
+
 static int
 amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
 {
@@ -972,13 +993,14 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
          r = -EINVAL;
          goto end;
       }
+#define validate_chunk_inputs(count, type) \
+   validate_chunk_inputs(offset, len, ctx, count, sizeof(type), alignof(type))
 
       void *input = (char *)req + offset;
 
       if (chunk_id == AMDGPU_CHUNK_ID_BO_HANDLES) {
-         /* Don't trust blindly the inputs. */
-         size_t bo_count = MIN2(req->bo_number, req->hdr.len / 4);
-         if (bo_count != req->bo_number) {
+         uint32_t bo_count = req->bo_number;
+         if (!validate_chunk_inputs(bo_count, typeof(*bo_handles_in))) {
             r = -EINVAL;
             goto end;
          }
@@ -992,7 +1014,7 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
          bo_list_in.bo_info_size = sizeof(struct drm_amdgpu_bo_list_entry);
          bo_list_in.bo_info_ptr = (uint64_t)(uintptr_t)bo_list;
 
-         for (unsigned j = 0; j < req->bo_number; j++) {
+         for (uint32_t j = 0; j < bo_count; j++) {
             struct amdgpu_object *obj =
                amdgpu_get_object_from_res_id(ctx, bo_handles_in[j].bo_handle, __FUNCTION__);
             if (!obj) {
@@ -1004,10 +1026,15 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
             bo_list[j].bo_priority = bo_handles_in[j].bo_priority;
          }
 
-         chunks[num_chunks].length_dw = sizeof(struct drm_amdgpu_bo_list_in) / 4;
+         chunks[num_chunks].length_dw = sizeof(bo_list_in) / 4;
          chunks[num_chunks].chunk_data = (uintptr_t)&bo_list_in;
       } else if (chunk_id == AMDGPU_CHUNK_ID_FENCE) {
-         struct drm_amdgpu_cs_chunk_fence *in = input;
+         const struct drm_amdgpu_cs_chunk_fence *in;
+         if (!validate_chunk_inputs(1, typeof(*in))) {
+            r = -EINVAL;
+            goto end;
+         }
+         in = input;
          struct amdgpu_object *obj =
                amdgpu_get_object_from_res_id(ctx, in->handle, __FUNCTION__);
          if (!obj) {
