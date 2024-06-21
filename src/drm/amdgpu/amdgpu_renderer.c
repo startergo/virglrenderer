@@ -1105,10 +1105,11 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
    chunks[num_chunks].length_dw = sizeof(syncobj_out) / 4;
    chunks[num_chunks].chunk_data = (uintptr_t)&syncobj_out;
    r = drmSyncobjCreate(amdgpu_device_get_fd(ctx->dev), 0, &syncobj_out.handle);
-   if (r == 0)
-      num_chunks++;
-   else
+   if (r != 0) {
       print(0, "out syncobj creation failed");
+      goto end;
+   }
+   num_chunks++;
 
    r = amdgpu_cs_submit_raw2(ctx->dev, actx, 0, num_chunks, chunks, &seqno);
 
