@@ -959,7 +959,7 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
    struct drm_amdgpu_bo_list_in bo_list_in;
    struct drm_amdgpu_cs_chunk_fence user_fence;
    struct drm_amdgpu_cs_chunk_sem syncobj_in = { 0 };
-   struct drm_amdgpu_bo_list_entry *bo_handles_in = NULL;
+   const struct drm_amdgpu_bo_list_entry *bo_handles_in = NULL;
    struct drm_amdgpu_bo_list_entry *bo_list = NULL;
    struct drm_amdgpu_cs_chunk *chunks;
    unsigned num_chunks = 0;
@@ -1011,7 +1011,7 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
       r = -EINVAL;
       goto end;
    }
-   const struct desc *descriptors = (void*) req->payload;
+   const struct desc *descriptors = (const void*) req->payload;
 
    for (size_t i = 0; i < req->num_chunks; i++) {
       unsigned chunk_id = descriptors[i].chunk_id;
@@ -1029,7 +1029,7 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
 #define validate_chunk_inputs(count, type) \
    validate_chunk_inputs(offset, len, ctx, count, sizeof(type), alignof(type))
 
-      void *input = (char *)req + offset;
+      const void *input = (const char *)req + offset;
 
       if (chunk_id == AMDGPU_CHUNK_ID_BO_HANDLES) {
          uint32_t bo_count = req->bo_number;
