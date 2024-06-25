@@ -239,6 +239,30 @@ vcomp_dispatch_clEnqueueNDRangeKernel(struct vcl_dispatch_context *dispatch,
 }
 
 static void
+vcomp_dispatch_clEnqueueTask(struct vcl_dispatch_context *dispatch,
+                             struct vcl_command_clEnqueueTask *args)
+{
+#ifdef CL_USE_DEPRECATED_OPENCL_1_2_APIS
+   struct vcomp_context *vctx = dispatch->data;
+
+   vcl_replace_clEnqueueTask_args_handle(args);
+
+   cl_event host_event = NULL;
+   args->ret = clEnqueueTask(args->command_queue,
+                             args->kernel,                                     
+                             args->num_events_in_wait_list,
+                             args->event_wait_list,
+                             args->event ? &host_event : NULL);
+
+   if (args->event && args->ret == CL_SUCCESS)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+#else
+   (void)dispatch;
+   (void)args;
+#endif // CL_USE_DEPRECATED_OPENCL_1_2_APIS
+}
+
+static void
 vcomp_dispatch_clGetKernelArgInfo(UNUSED struct vcl_dispatch_context *dispatch,
                                   struct vcl_command_clGetKernelArgInfo *args)
 {
@@ -376,6 +400,7 @@ void vcomp_context_init_kernel_dispatch(struct vcomp_context *vctx)
    dispatch->dispatch_clGetKernelInfo = vcomp_dispatch_clGetKernelInfo;
    dispatch->dispatch_clGetKernelWorkGroupInfo = vcomp_dispatch_clGetKernelWorkGroupInfo;
    dispatch->dispatch_clEnqueueNDRangeKernel = vcomp_dispatch_clEnqueueNDRangeKernel;
+   dispatch->dispatch_clEnqueueTask = vcomp_dispatch_clEnqueueTask;
    dispatch->dispatch_clGetKernelArgInfo = vcomp_dispatch_clGetKernelArgInfo;
    dispatch->dispatch_clSetKernelArgSVMPointer = vcomp_dispatch_clSetKernelArgSVMPointer;
    dispatch->dispatch_clSetKernelExecInfo = vcomp_dispatch_clSetKernelExecInfo;
