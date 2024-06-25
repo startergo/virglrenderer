@@ -59,6 +59,7 @@ static uint32_t uabi_version;
 struct msm_context {
    struct virgl_context base;
 
+   uint32_t shmem_size;
    struct msm_shmem *shmem;
    uint8_t *rsp_mem;
    uint32_t rsp_mem_sz;
@@ -330,9 +331,7 @@ msm_renderer_unmap_blob(struct msm_context *mctx)
    if (!mctx->shmem)
       return;
 
-   uint32_t blob_size = mctx->rsp_mem_sz + mctx->shmem->base.rsp_mem_offset;
-
-   munmap(mctx->shmem, blob_size);
+   munmap(mctx->shmem, mctx->shmem_size);
 
    mctx->shmem = NULL;
    mctx->rsp_mem = NULL;
@@ -542,6 +541,7 @@ msm_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t blob
          return -ENOMEM;
       }
 
+      mctx->shmem_size = blob_size;
       mctx->shmem->base.rsp_mem_offset = sizeof(*mctx->shmem);
 
       uint8_t *ptr = (uint8_t *)mctx->shmem;
