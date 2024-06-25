@@ -172,6 +172,21 @@ vcomp_dispatch_clGetEventProfilingInfo(UNUSED struct vcl_dispatch_context *dispa
                                        args->param_value_size_ret);
 }
 
+static void
+vcomp_dispatch_clEnqueueWaitForEvents(UNUSED struct vcl_dispatch_context *dispatch,
+                                      struct vcl_command_clEnqueueWaitForEvents *args)
+{
+#ifdef CL_USE_DEPRECATED_OPENCL_1_1_APIS
+   vcl_replace_clEnqueueWaitForEvents_args_handle(args);
+
+   args->ret = clEnqueueWaitForEvents(args->command_queue,
+                                      args->num_events,
+                                      args->event_list);
+#else
+   (void)args;
+#endif
+}
+
 void vcomp_context_init_event_dispatch(struct vcomp_context *vctx)
 {
    struct vcl_dispatch_context *dispatch = &vctx->dispatch;
@@ -185,4 +200,5 @@ void vcomp_context_init_event_dispatch(struct vcomp_context *vctx)
    dispatch->dispatch_clEnqueueMarkerWithWaitList = vcomp_dispatch_clEnqueueMarkerWithWaitList;
    dispatch->dispatch_clEnqueueBarrierWithWaitList = vcomp_dispatch_clEnqueueBarrierWithWaitList;
    dispatch->dispatch_clGetEventProfilingInfo = vcomp_dispatch_clGetEventProfilingInfo;
+   dispatch->dispatch_clEnqueueWaitForEvents = vcomp_dispatch_clEnqueueWaitForEvents;
 }
