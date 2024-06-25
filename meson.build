@@ -273,13 +273,15 @@ endif
 
 have_vla = not cc.has_header_symbol('stdlib.h', '__STDC_NO_VLA__')
 
+drm_renderers = get_option('drm-renderers')
+
 # drm/msm support requires the compiler to support VLA:
-with_drm_msm = have_vla and get_option('drm-msm-experimental')
+with_drm_msm = have_vla and (get_option('drm-msm-experimental') or drm_renderers.contains('msm'))
 if with_drm_msm
   conf_data.set('ENABLE_DRM_MSM', 1)
 endif
 
-with_drm_amdgpu = have_vla and get_option('drm-amdgpu-experimental')
+with_drm_amdgpu = have_vla and (get_option('drm-amdgpu-experimental') or drm_renderers.contains('amdgpu-experimental'))
 if with_drm_amdgpu
   conf_data.set('ENABLE_DRM', 1)
   conf_data.set('ENABLE_DRM_AMDGPU', 1)
