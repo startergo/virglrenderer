@@ -516,7 +516,7 @@ msm_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t blob
       }
 
       if ((blob_size < sizeof(*mctx->shmem)) || (blob_size > UINT32_MAX)) {
-         drm_log("Invalid blob size 0x" PRIx64, blob_size);
+         drm_log("Invalid blob size 0x%" PRIx64, blob_size);
          return -EINVAL;
       }
 
