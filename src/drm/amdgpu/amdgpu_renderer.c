@@ -791,8 +791,13 @@ amdgpu_ccmd_set_metadata(struct amdgpu_context *ctx, const struct vdrm_ccmd_req 
    metadata.flags = req->flags;
    metadata.tiling_info = req->tiling_info;
    metadata.size_metadata = req->size_metadata;
-   if (req->size_metadata)
+   if (req->size_metadata) {
+      if (req->size_metadata > sizeof(metadata.umd_metadata)) {
+         rsp->ret = -EINVAL;
+         return -1;
+      }
       memcpy(metadata.umd_metadata, req->umd_metadata, req->size_metadata);
+   }
 
    rsp->ret = amdgpu_bo_set_metadata(obj->bo, &metadata);
    if (rsp->ret) {
