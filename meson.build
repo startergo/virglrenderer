@@ -286,6 +286,7 @@ drm_renderers = get_option('drm-renderers')
 with_drm_msm = (have_struct_attribute_packed
             and have_struct_attribute_aligned
             and have_vla
+            and ['aarch64'].contains(host_machine.cpu_family())
             and (get_option('drm-msm-experimental') or drm_renderers.contains('msm')))
 if with_drm_msm
   conf_data.set('ENABLE_DRM_MSM', 1)
