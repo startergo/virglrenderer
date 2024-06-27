@@ -31,6 +31,15 @@ vcomp_context_add_memory(struct vcomp_context *vctx, cl_mem memory, cl_mem *args
 
    v_memory->base.handle.memory = memory;
 
+   v_memory->map_table =
+       _mesa_hash_table_u64_create(NULL);
+   if (!v_memory->map_table)
+   {
+      free(v_memory);
+      *args_ret = CL_OUT_OF_HOST_MEMORY;
+      return;
+   }
+
    vcomp_context_add_object(vctx, &v_memory->base);
 }
 
@@ -545,6 +554,138 @@ vcomp_dispatch_clEnqueueFillImageMESA(struct vcl_dispatch_context *ctx,
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
 }
 
+static inline void *
+vcomp_memory_get_mapping(const struct vcomp_memory *mem, const void *ptr)
+{
+   return _mesa_hash_table_u64_search(mem->map_table, (uint64_t)ptr);
+}
+
+static inline void
+vcomp_memory_add_mapping(struct vcomp_memory *mem, const void *ptr, void *mapped_ptr)
+{
+   assert(ptr && mapped_ptr);
+   assert(!_mesa_hash_table_u64_search(mem->map_table, (uint64_t)ptr));
+   _mesa_hash_table_u64_insert(mem->map_table, (uint64_t)ptr, mapped_ptr);
+}
+
+static void *
+vcomp_memory_remove_mapping(struct vcomp_memory *mem, void *ptr)
+{
+   void *mapped_ptr = _mesa_hash_table_u64_search(mem->map_table, (uint64_t)ptr);
+   assert(mapped_ptr);
+   _mesa_hash_table_u64_remove(mem->map_table, (uint64_t)ptr);
+   return mapped_ptr;
+}
+
+static cl_int
+vcomp_memory_force_unmap(struct vcomp_memory *mem, cl_command_queue queue, void *ptr)
+{
+   void *mapped_ptr = vcomp_memory_remove_mapping(mem, ptr);
+   return clEnqueueUnmapMemObject(queue,
+                                  mem->base.handle.memory,
+                                  mapped_ptr,
+                                  0,
+                                  NULL,
+                                  NULL);
+}
+
+static void
+vcomp_dispatch_clEnqueueMapBufferMESA(struct vcl_dispatch_context *ctx,
+                                      struct vcl_command_clEnqueueMapBufferMESA *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+
+   struct vcomp_memory *buffer = vcomp_memory_from_handle(args->buffer);
+   if (!buffer)
+   {
+      args->ret = CL_INVALID_MEM_OBJECT;
+      return;
+   }
+
+   vcl_replace_clEnqueueMapBufferMESA_args_handle(args);
+
+   void *mapped_ptr = vcomp_memory_get_mapping(buffer, args->ptr);
+   if (mapped_ptr)
+   {
+      /* Guest pointer already mapped, remove current mapping before mapping again */
+      args->ret = vcomp_memory_force_unmap(buffer, args->command_queue, mapped_ptr);
+      if (args->ret != CL_SUCCESS)
+      {
+         return;
+      }
+      mapped_ptr = NULL;
+   }
+
+   cl_event host_event;
+
+   mapped_ptr = clEnqueueMapBuffer(args->command_queue,
+                                   args->buffer,
+                                   args->blocking_map,
+                                   args->map_flags,
+                                   args->offset,
+                                   args->size,
+                                   args->num_events_in_wait_list,
+                                   args->event_wait_list,
+                                   args->event ? &host_event : NULL,
+                                   &args->ret);
+
+   if (args->ret != CL_SUCCESS)
+      return;
+
+   vcomp_memory_add_mapping(buffer, args->ptr, mapped_ptr);
+
+   if (args->event)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+
+   if (mapped_ptr && args->size > 0)
+      memcpy(args->ptr, mapped_ptr, args->size);
+}
+
+static void
+vcomp_dispatch_clEnqueueUnmapMemObjectMESA(struct vcl_dispatch_context *ctx,
+                                           struct vcl_command_clEnqueueUnmapMemObjectMESA *args)
+{
+
+   struct vcomp_context *vctx = ctx->data;
+
+   struct vcomp_memory *memobj = vcomp_memory_from_handle(args->memobj);
+   if (!memobj)
+   {
+      args->ret = CL_INVALID_MEM_OBJECT;
+      return;
+   }
+
+   void *mapped_ptr = vcomp_memory_get_mapping(memobj, args->mapped_ptr);
+   if (mapped_ptr == NULL)
+   {
+      /* not a valid pointer returned by clEnqueueMap* */
+      args->ret = CL_INVALID_VALUE;
+      return;
+   }
+
+   /* Copy memory from host before unmapping */
+   memcpy(mapped_ptr, args->mapped_ptr, args->size);
+
+   vcl_replace_clEnqueueUnmapMemObjectMESA_args_handle(args);
+
+   cl_event host_event;
+
+   args->ret = clEnqueueUnmapMemObject(args->command_queue,
+                                       args->memobj,
+                                       mapped_ptr,
+                                       args->num_events_in_wait_list,
+                                       args->event_wait_list,
+                                       args->event ? &host_event : NULL);
+
+   if (args->ret != CL_SUCCESS)
+      return;
+
+   vcomp_memory_remove_mapping(memobj, (void *)args->mapped_ptr);
+
+   if (args->event)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+}
+
 void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
 {
    vctx->dispatch.dispatch_clCreateBufferMESA = vcomp_dispatch_clCreateBufferMESA;
@@ -569,10 +710,13 @@ void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
    vctx->dispatch.dispatch_clEnqueueCopyImageToBuffer = vcomp_dispatch_clEnqueueCopyImageToBuffer;
    vctx->dispatch.dispatch_clEnqueueCopyBufferToImage = vcomp_dispatch_clEnqueueCopyBufferToImage;
    vctx->dispatch.dispatch_clEnqueueFillImageMESA = vcomp_dispatch_clEnqueueFillImageMESA;
+   vctx->dispatch.dispatch_clEnqueueMapBufferMESA = vcomp_dispatch_clEnqueueMapBufferMESA;
+   vctx->dispatch.dispatch_clEnqueueUnmapMemObjectMESA = vcomp_dispatch_clEnqueueUnmapMemObjectMESA;
 }
 
 cl_int vcomp_memory_destroy(struct vcomp_context *vctx, struct vcomp_memory *memory)
 {
+   _mesa_hash_table_u64_destroy(memory->map_table, NULL);
    cl_int ret = clReleaseMemObject(memory->base.handle.memory);
    vcomp_context_remove_object(vctx, &memory->base);
    return ret;
