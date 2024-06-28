@@ -396,13 +396,6 @@ vkr_context_destroy_resource(struct vkr_context *ctx, uint32_t res_id)
    vkr_context_remove_resource(ctx, res_id);
 }
 
-static inline bool
-vkr_seqno_ge(uint32_t a, uint32_t b)
-{
-   /* a >= b, but deal with wrapping as well */
-   return (a - b) <= INT32_MAX;
-}
-
 void
 vkr_context_on_ring_seqno_update(struct vkr_context *ctx,
                                  uint64_t ring_id,
@@ -415,21 +408,18 @@ vkr_context_on_ring_seqno_update(struct vkr_context *ctx,
 }
 
 bool
-vkr_context_on_ring_empty(struct vkr_context *ctx, uint64_t ring_id, uint32_t ring_seqno)
+vkr_context_get_wait_ring_seqno(struct vkr_context *ctx,
+                                uint64_t ring_id,
+                                uint32_t *out_seqno)
 {
-   /* Error out if the last ring cmd is unable to signal the virtqueue that is currently
-    * waiting for this ring. This happens when the driver emits invalid asynchronous ring
-    * wait cmds.
-    */
+   bool wait_ring = false;
    mtx_lock(&ctx->wait_ring.mutex);
-   const bool ok =
-      ctx->wait_ring.id != ring_id || vkr_seqno_ge(ring_seqno, ctx->wait_ring.seqno);
-   if (unlikely(!ok)) {
-      vkr_log("%s: wait for empty ring at seqno(%u) to reach seqno(%u)", __func__,
-              ring_seqno, ctx->wait_ring.seqno);
+   if (ctx->wait_ring.id == ring_id) {
+      wait_ring = true;
+      *out_seqno = ctx->wait_ring.seqno;
    }
    mtx_unlock(&ctx->wait_ring.mutex);
-   return ok;
+   return wait_ring;
 }
 
 void

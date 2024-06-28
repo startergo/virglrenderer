@@ -317,4 +317,11 @@ vkr_region_make_relative(const struct vkr_region *region)
    };
 }
 
+static inline bool
+vkr_seqno_ge(uint32_t a, uint32_t b)
+{
+   /* a >= b, but deal with wrapping as well */
+   return (a - b) <= INT32_MAX;
+}
+
 #endif /* VKR_COMMON_H */

@@ -249,7 +249,9 @@ vkr_context_on_ring_seqno_update(struct vkr_context *ctx,
                                  uint32_t ring_seqno);
 
 bool
-vkr_context_on_ring_empty(struct vkr_context *ctx, uint64_t ring_id, uint32_t ring_seqno);
+vkr_context_get_wait_ring_seqno(struct vkr_context *ctx,
+                                uint64_t ring_id,
+                                uint32_t *out_seqno);
 
 void
 vkr_context_on_ring_fatal(struct vkr_context *ctx);

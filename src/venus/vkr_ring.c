@@ -299,9 +299,20 @@ vkr_ring_thread(void *arg)
          last_submit = vkr_ring_now();
          relax_iter = 0;
       } else {
-         if (!vkr_context_on_ring_empty(ctx, ring->id, vkr_ring_load_head(ring))) {
-            ret = -EINVAL;
-            break;
+         /* Get the active wait_ring seqno first to ensure ordering. */
+         uint32_t wait_ring_seqno = 0;
+         if (vkr_context_get_wait_ring_seqno(ctx, ring->id, &wait_ring_seqno)) {
+            /* Error out if the latest ring cmd is unable to signal the virtqueue that is
+             * currently waiting for this ring. This happens when the driver emits invalid
+             * asynchronous ring wait cmds.
+             */
+            const uint32_t ring_tail = vkr_ring_load_tail(ring);
+            if (unlikely(!vkr_seqno_ge(ring_tail, wait_ring_seqno))) {
+               vkr_log("%s: ring seqno(%u) unable to reach wait seqno(%u)", __func__,
+                       ring_tail, wait_ring_seqno);
+               ret = -EINVAL;
+               break;
+            }
          }
 
          vkr_ring_relax(&relax_iter);
