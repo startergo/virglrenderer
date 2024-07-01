@@ -108,7 +108,6 @@ vcomp_dispatch_clEnqueueReadBuffer(struct vcl_dispatch_context *dispatch,
                                    args->event_wait_list,
                                    args->event ? &host_event : NULL);
 
-
    /* Need to create a new vcomp event */
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
@@ -407,10 +406,10 @@ vcomp_dispatch_clEnqueueReadImageMESA(struct vcl_dispatch_context *ctx,
 {
    struct vcomp_context *vctx = ctx->data;
 
-   vcl_replace_clEnqueueReadImageMESA_args_handle(args);   
+   vcl_replace_clEnqueueReadImageMESA_args_handle(args);
 
    cl_event host_event;
-   
+
    args->ret = clEnqueueReadImage(args->command_queue,
                                   args->image,
                                   args->blocking_read,
@@ -420,7 +419,7 @@ vcomp_dispatch_clEnqueueReadImageMESA(struct vcl_dispatch_context *ctx,
                                   args->ptr,
                                   args->num_events_in_wait_list,
                                   args->event_wait_list,
-                                  args->event? &host_event : NULL);
+                                  args->event ? &host_event : NULL);
 
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
@@ -445,7 +444,7 @@ vcomp_dispatch_clEnqueueWriteImageMESA(struct vcl_dispatch_context *ctx,
                                    args->ptr,
                                    args->num_events_in_wait_list,
                                    args->event_wait_list,
-                                   args->event? &host_event : NULL);
+                                   args->event ? &host_event : NULL);
 
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
@@ -469,8 +468,8 @@ vcomp_dispatch_clEnqueueCopyImage(struct vcl_dispatch_context *ctx,
                                   args->region,
                                   args->num_events_in_wait_list,
                                   args->event_wait_list,
-                                  args->event? &host_event : NULL);
-   
+                                  args->event ? &host_event : NULL);
+
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
 }
@@ -493,7 +492,7 @@ vcomp_dispatch_clEnqueueCopyImageToBuffer(struct vcl_dispatch_context *ctx,
                                           args->dst_offset,
                                           args->num_events_in_wait_list,
                                           args->event_wait_list,
-                                          args->event? &host_event : NULL);
+                                          args->event ? &host_event : NULL);
 
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
@@ -517,8 +516,8 @@ vcomp_dispatch_clEnqueueCopyBufferToImage(struct vcl_dispatch_context *ctx,
                                           args->region,
                                           args->num_events_in_wait_list,
                                           args->event_wait_list,
-                                          args->event? &host_event : NULL);
-   
+                                          args->event ? &host_event : NULL);
+
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
 }
@@ -540,8 +539,8 @@ vcomp_dispatch_clEnqueueFillImageMESA(struct vcl_dispatch_context *ctx,
                                   args->region,
                                   args->num_events_in_wait_list,
                                   args->event_wait_list,
-                                  args->event? &host_event : NULL);
-   
+                                  args->event ? &host_event : NULL);
+
    if (args->event && args->ret == CL_SUCCESS)
       vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
 }
