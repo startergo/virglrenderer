@@ -166,7 +166,6 @@ AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_bo_query_info_req)
 
 struct amdgpu_ccmd_bo_query_info_rsp {
    struct amdgpu_ccmd_rsp hdr;
-   uint64_t __pad;
    /* This is almost struct amdgpu_bo_info, but padded to get
     * the same struct on 32 bit and 64 bit builds.
     */
