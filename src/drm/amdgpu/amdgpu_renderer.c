@@ -838,6 +838,12 @@ amdgpu_ccmd_bo_query_info(struct amdgpu_context *ctx, const struct vdrm_ccmd_req
       return -ENOMEM;
    }
 
+   if (req->pad != 0) {
+      print(0, "Padding not zeroed");
+      rsp->hdr.ret = -EINVAL;
+      return -1;
+   }
+
    struct amdgpu_object *obj = amdgpu_get_object_from_res_id(ctx, req->res_id, __FUNCTION__);
    if (!obj) {
       print(0, "Cannot find object");
@@ -1194,6 +1200,13 @@ static int amdgpu_ccmd_reserve_vmid(struct amdgpu_context *ctx, const struct vdr
       print(0, "Cannot alloc response buffer");
       return -ENOMEM;
    }
+
+   if (req->pad != 0) {
+      print(0, "Padding not zeroed");
+      rsp->ret = -EINVAL;
+      return -1;
+   }
+
    rsp->ret = req->enable ?
          amdgpu_vm_reserve_vmid(ctx->dev, 0) : amdgpu_vm_unreserve_vmid(ctx->dev, 0);
    return 0;
@@ -1208,6 +1221,13 @@ static int amdgpu_ccmd_set_pstate(struct amdgpu_context *ctx, const struct vdrm_
       print(0, "Cannot alloc response buffer");
       return -ENOMEM;
    }
+
+   if (req->pad != 0) {
+      print(0, "Padding not zeroed");
+      rsp->hdr.ret = -EINVAL;
+      return -1;
+   }
+
    amdgpu_context_handle actx = _mesa_hash_table_u64_search(ctx->id_to_ctx,
                                                             (uintptr_t)req->ctx_id);
    if (actx == NULL) {
@@ -1364,16 +1384,25 @@ amdgpu_renderer_submit_cmd(struct virgl_context *vctx, const void *_buffer, size
    struct amdgpu_context *ctx = to_amdgpu_context(vctx);
    const uint8_t *buffer = _buffer;
 
+   /* Check buffer alignment */
+   if ((uintptr_t)buffer % 8) {
+      print(0, "incoming buffer isn't 8-byte aligned");
+      return -EINVAL;
+   }
+
    while (size >= sizeof(struct vdrm_ccmd_req)) {
       const struct vdrm_ccmd_req *hdr = (const struct vdrm_ccmd_req *)buffer;
+      uint32_t const hdr_len = hdr->len;
 
-      /* Sanity check first: */
-      if ((hdr->len > size) || (hdr->len < sizeof(*hdr)) || (hdr->len % 4)) {
-         print(0, "bad size, %u vs %zu (%u)", hdr->len, size, hdr->cmd);
+      /* Consistency check first: */
+      if ((hdr_len > size) || (hdr_len < sizeof(*hdr)) || (hdr_len % 8)) {
+         print(0, "bad size for command %" PRIu32 ": 0x%" PRIx32
+               " is outside [0x%zx, 0x%zx] or is not 8-byte aligned",
+               hdr->cmd, hdr_len, sizeof(*hdr), size);
          return -EINVAL;
       }
 
-      if (hdr->rsp_off % 4) {
+      if (hdr->rsp_off % 8) {
          print(0, "bad rsp_off, %u", hdr->rsp_off);
          return -EINVAL;
       }
@@ -1384,8 +1413,8 @@ amdgpu_renderer_submit_cmd(struct virgl_context *vctx, const void *_buffer, size
          return ret;
       }
 
-      buffer += hdr->len;
-      size -= hdr->len;
+      buffer += hdr_len;
+      size -= hdr_len;
    }
 
    if (size > 0) {

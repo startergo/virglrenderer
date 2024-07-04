@@ -22,6 +22,9 @@ struct amdgpu_ccmd_rsp {
    int32_t ret;
 };
 
+#define AMDGPU_STATIC_ASSERT_SIZE(t) \
+   static_assert(sizeof(struct t) % 8 == 0, "sizeof(struct " #t ") not multiple of 8"); \
+   static_assert(alignof(struct t) <= 8, "alignof(struct " #t ") too large");
 
 /**
  * Defines the layout of shmem buffer used for host->guest communication.
@@ -42,6 +45,7 @@ struct amdvgpu_shmem {
    struct amdgpu_heap_info vram;
    struct amdgpu_heap_info vis_vram;
 };
+AMDGPU_STATIC_ASSERT_SIZE(amdvgpu_shmem)
 DEFINE_CAST(vdrm_shmem, amdvgpu_shmem)
 
 
@@ -60,11 +64,13 @@ struct amdgpu_ccmd_query_info_req {
    struct drm_amdgpu_info info;
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_query_info_req)
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_query_info_req)
 
 struct amdgpu_ccmd_query_info_rsp {
    struct amdgpu_ccmd_rsp hdr;
    uint8_t payload[];
 };
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_query_info_rsp)
 
 struct amdgpu_ccmd_gem_new_req {
    struct vdrm_ccmd_req hdr;
@@ -85,6 +91,7 @@ struct amdgpu_ccmd_gem_new_req {
    } r;
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_gem_new_req)
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_gem_new_req)
 
 
 /*
@@ -102,6 +109,7 @@ struct amdgpu_ccmd_bo_va_op_req {
    bool is_sparse_bo;
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_bo_va_op_req)
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_bo_va_op_req)
 
 /*
  * AMDGPU_CCMD_CS_SUBMIT
@@ -120,6 +128,7 @@ struct amdgpu_ccmd_cs_submit_req {
    uint8_t payload[];
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_cs_submit_req)
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_cs_submit_req)
 #define AMDGPU_CCMD_CS_SUBMIT_MAX_NUM_CHUNKS 128
 
 /*
@@ -134,6 +143,7 @@ struct amdgpu_ccmd_set_metadata_req {
    uint32_t umd_metadata[];
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_set_metadata_req)
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_set_metadata_req)
 
 
 /*
@@ -142,8 +152,10 @@ DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_set_metadata_req)
 struct amdgpu_ccmd_bo_query_info_req {
    struct vdrm_ccmd_req hdr;
    uint32_t res_id;
+   uint32_t pad; /* must be zero */
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_bo_query_info_req)
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_bo_query_info_req)
 
 struct amdgpu_ccmd_bo_query_info_rsp {
    struct amdgpu_ccmd_rsp hdr;
@@ -160,6 +172,7 @@ struct amdgpu_ccmd_bo_query_info_rsp {
       struct amdgpu_bo_metadata  metadata;
    } info;
 };
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_bo_query_info_rsp)
 
 /*
  * AMDGPU_CCMD_CREATE_CTX
@@ -173,11 +186,14 @@ struct amdgpu_ccmd_create_ctx_req {
    bool create;
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_create_ctx_req)
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_create_ctx_req)
 
 struct amdgpu_ccmd_create_ctx_rsp {
    struct amdgpu_ccmd_rsp hdr;
    uint32_t ctx_id;
+   uint32_t pad;
 };
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_create_ctx_rsp)
 
 /*
  * AMDGPU_CCMD_RESERVE_VMID
@@ -185,8 +201,10 @@ struct amdgpu_ccmd_create_ctx_rsp {
 struct amdgpu_ccmd_reserve_vmid_req {
    struct vdrm_ccmd_req hdr;
    bool enable;
+   uint32_t pad; /* must be zero */
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_reserve_vmid_req)
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_reserve_vmid_req)
 
 /*
  * AMDGPU_CCMD_SET_PSTATE
@@ -196,11 +214,16 @@ struct amdgpu_ccmd_set_pstate_req {
    uint32_t ctx_id;
    uint32_t op;
    uint32_t flags;
+   uint32_t pad;
 };
+DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_set_pstate_req)
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_set_pstate_req)
+
 struct amdgpu_ccmd_set_pstate_rsp {
    struct amdgpu_ccmd_rsp hdr;
    uint32_t out_flags;
+   uint32_t pad;
 };
-DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_set_pstate_req)
+AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_set_pstate_rsp)
 
 #endif
