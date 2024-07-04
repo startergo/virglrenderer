@@ -155,7 +155,7 @@ debian/x86_64_build_msm:
   variables:
     MINIO_ARTIFACT_NAME: virgl-amd64
     EXTRA_OPTION: >
-      -D drm=enabled -D drm-msm-experimental=true
+      -D drm-renderers=msm
   script:
     - .gitlab-ci/meson/build.sh
   artifacts:
