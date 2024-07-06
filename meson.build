@@ -64,6 +64,7 @@ warnings = [
    '-Werror=switch',
    '-Wno-overlength-strings',
    '-Wno-missing-field-initializers',
+   '-Werror=format',
 ]
 
 add_project_arguments(cc.get_supported_arguments(warnings), language : 'c')

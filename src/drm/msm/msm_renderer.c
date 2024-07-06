@@ -656,7 +656,7 @@ msm_ccmd_ioctl_simple(struct msm_context *mctx, const struct vdrm_ccmd_req *hdr)
    size_t req_len = size_add(sizeof(*req), payload_len);
 
    if (hdr->len != req_len) {
-      drm_log("%zu != %u", hdr->len, req_len);
+      drm_log("%u != %zu", hdr->len, req_len);
       return -EINVAL;
    }
 
