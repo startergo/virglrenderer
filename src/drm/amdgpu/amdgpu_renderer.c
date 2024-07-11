@@ -744,7 +744,13 @@ amdgpu_ccmd_bo_va_op(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr
       return -ENOMEM;
    }
 
-   if (req->is_sparse_bo) {
+   if (req->flags2 & ~AMDGPU_CCMD_BO_VA_OP_SPARSE_BO) {
+      print(0, "Forbidden flags 0x%" PRIx32 " set in flags", req->flags);
+      rsp->ret = -EINVAL;
+      return -1;
+   }
+
+   if (req->flags2 & AMDGPU_CCMD_BO_VA_OP_SPARSE_BO) {
       rsp->ret = amdgpu_bo_va_op_raw(
          ctx->dev, NULL, req->offset, req->vm_map_size, req->va,
          req->flags, req->op);
@@ -889,7 +895,13 @@ amdgpu_ccmd_create_ctx(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *h
       return -ENOMEM;
    }
 
-   if (req->create) {
+   if (req->flags & ~AMDGPU_CCMD_CREATE_CTX_DESTROY) {
+      print(0, "Invalid flags 0x%" PRIu32, req->flags);
+      rsp->hdr.ret = -EINVAL;
+      return -1;
+   }
+
+   if (!(req->flags & AMDGPU_CCMD_CREATE_CTX_DESTROY)) {
       amdgpu_context_handle ctx_handle;
 
       int r = amdgpu_cs_ctx_create2(ctx->dev, req->priority, &ctx_handle);
@@ -1207,14 +1219,14 @@ static int amdgpu_ccmd_reserve_vmid(struct amdgpu_context *ctx, const struct vdr
       return -ENOMEM;
    }
 
-   if (req->pad != 0) {
-      print(0, "Padding not zeroed");
+   if (req->flags & ~AMDGPU_CCMD_RESERVE_VMID_UNRESERVE) {
+      print(0, "Invalid flags 0x%" PRIu64, req->flags);
       rsp->ret = -EINVAL;
       return -1;
    }
 
-   rsp->ret = req->enable ?
-         amdgpu_vm_reserve_vmid(ctx->dev, 0) : amdgpu_vm_unreserve_vmid(ctx->dev, 0);
+   rsp->ret = (req->flags & AMDGPU_CCMD_RESERVE_VMID_UNRESERVE) ?
+         amdgpu_vm_unreserve_vmid(ctx->dev, 0) : amdgpu_vm_reserve_vmid(ctx->dev, 0);
    return 0;
 }
 

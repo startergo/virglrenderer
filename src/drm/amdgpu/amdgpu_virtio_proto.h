@@ -107,14 +107,16 @@ struct amdgpu_ccmd_bo_va_op_req {
    struct vdrm_ccmd_req hdr;
    uint64_t va;
    uint64_t vm_map_size;
-   uint64_t flags;
+   uint32_t flags; /* Passed directly to kernel */
+   uint32_t flags2; /* AMDGPU_CCMD_BO_VA_OP_* */
    uint64_t offset;
    uint32_t res_id;
    uint32_t op;
-   uint64_t is_sparse_bo;
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_bo_va_op_req)
 AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_bo_va_op_req)
+/* Specifies that this is a sparse BO. */
+#define AMDGPU_CCMD_BO_VA_OP_SPARSE_BO (UINT64_C(1) << 32)
 
 /*
  * AMDGPU_CCMD_CS_SUBMIT
@@ -197,10 +199,12 @@ struct amdgpu_ccmd_create_ctx_req {
       int32_t priority; /* create */
       uint32_t id;      /* destroy */
    };
-   uint32_t create;
+   uint32_t flags; /* AMDGPU_CCMD_CREATE_CTX_* */
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_create_ctx_req)
 AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_create_ctx_req)
+/* Destroy a context instead of creating one */
+#define AMDGPU_CCMD_CREATE_CTX_DESTROY (1 << 0)
 
 struct amdgpu_ccmd_create_ctx_rsp {
    struct amdgpu_ccmd_rsp hdr;
@@ -214,11 +218,12 @@ AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_create_ctx_rsp)
  */
 struct amdgpu_ccmd_reserve_vmid_req {
    struct vdrm_ccmd_req hdr;
-   uint32_t enable;
-   uint32_t pad; /* must be zero */
+   uint64_t flags; /* AMDGPU_CCMD_RESERVE_VMID_* */
 };
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_reserve_vmid_req)
 AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_reserve_vmid_req)
+/* Unreserve a VMID instead of reserving one */
+#define AMDGPU_CCMD_RESERVE_VMID_UNRESERVE (1 << 0)
 
 /*
  * AMDGPU_CCMD_SET_PSTATE
