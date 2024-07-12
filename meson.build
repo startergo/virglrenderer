@@ -283,11 +283,7 @@ have_vla = not cc.has_header_symbol('stdlib.h', '__STDC_NO_VLA__')
 
 drm_renderers = get_option('drm-renderers')
 
-# DRM renderers require support for VLAs and packed and aligned structs
-with_drm_msm = (have_struct_attribute_packed
-            and have_struct_attribute_aligned
-            and have_vla
-            and not ['arm'].contains(target_machine.cpu_family())
+with_drm_msm = (not ['arm'].contains(target_machine.cpu_family())
             and (get_option('drm-msm-experimental') or drm_renderers.contains('msm')))
 if with_drm_msm
   conf_data.set('ENABLE_DRM_MSM', 1)
@@ -300,6 +296,14 @@ if with_drm_amdgpu
 endif
 
 with_drm = with_drm_msm or with_drm_amdgpu
+
+if with_drm
+   if (not have_struct_attribute_packed or
+       not have_struct_attribute_aligned or
+       not have_vla)
+      error('DRM renderers require compiler support for VLAs, packed and aligned structs')
+   endif
+endif
 
 with_check_gl_errors = get_option('check-gl-errors')
 if with_check_gl_errors
