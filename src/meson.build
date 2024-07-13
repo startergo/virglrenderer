@@ -141,6 +141,8 @@ venus_codegen = custom_target(
 )
 
 drm_sources = [
+   'drm/drm_context.c',
+   'drm/drm_context.h',
    'drm/drm_fence.c',
    'drm/drm_fence.h',
    'drm/drm_renderer.c',
