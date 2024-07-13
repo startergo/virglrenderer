@@ -240,7 +240,7 @@ amdgpu_context_rsp(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr,
 }
 
 static struct amdgpu_object *
-amdgpu_object_create(amdgpu_bo_handle handle, uint32_t flags, uint32_t size)
+amdgpu_object_create(amdgpu_bo_handle handle, uint32_t flags, uint64_t size)
 {
    struct amdgpu_object *obj = calloc(1, sizeof(*obj));
 
