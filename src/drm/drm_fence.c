@@ -80,7 +80,7 @@ thread_sync(void *arg)
       mtx_lock(&timeline->fence_mutex);
 
       if (ret == 1) {
-         drm_dbg("fence signaled: %p (%" PRIu64 ")", fence, fence->fence_id);
+         drm_dbg("fence signaled: %p (%" PRIu64 ")", (void*)fence, fence->fence_id);
          timeline->fence_retire(timeline->vctx, timeline->ring_idx, fence->fence_id);
          write_eventfd(timeline->eventfd, 1);
          drm_fence_destroy(fence);
@@ -151,7 +151,7 @@ drm_timeline_submit_fence(struct drm_timeline *timeline, uint32_t flags,
    if (!fence)
       return -ENOMEM;
 
-   drm_dbg("fence: %p (%" PRIu64 ")", fence, fence->fence_id);
+   drm_dbg("fence: %p (%" PRIu64 ")", (void*)fence, fence->fence_id);
 
    virgl_fence_set_fd(fence_id, fence->fd);
 
