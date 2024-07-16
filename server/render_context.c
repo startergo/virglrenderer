@@ -273,7 +273,7 @@ render_context_set_thread_name(uint32_t ctx_id, UNUSED const char *ctx_name)
    char thread_name[16];
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if !defined(__clang__) || __clang_major__ >= 18
 #pragma GCC diagnostic ignored "-Wformat-truncation"
 #endif
    /* context name may match guest process name, so use a generic name in
