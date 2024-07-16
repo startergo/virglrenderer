@@ -80,7 +80,7 @@ prog_python = import('python').find_installation('python3')
 
 not_found = dependency('', required: false)
 libdrm_dep = dependency('libdrm', version : '>=2.4.50', required: get_option('drm').enabled() or get_option('venus'))
-libdrm_amdgpu_dep = dependency('libdrm_amdgpu', version : '>=2.4.121', required: get_option('drm-amdgpu-experimental'))
+libdrm_amdgpu_dep = dependency('libdrm_amdgpu', version : '>=2.4.121', required: get_option('drm-renderers').contains('amdgpu-experimental'))
 gbm_dep = not_found
 thread_dep = dependency('threads')
 epoxy_dep = dependency('epoxy', version: '>= 1.5.4')

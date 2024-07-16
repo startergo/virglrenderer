@@ -66,22 +66,6 @@ option(
   description : 'enable support for drm'
 )
 
-# Backwards compat
-option(
-  'drm-msm-experimental',
-  type : 'boolean',
-  value : 'false',
-  description : 'enable support for msm drm native context'
-)
-
-# Backwards compat
-option(
-  'drm-amdgpu-experimental',
-  type : 'boolean',
-  value : 'false',
-  description : 'enable support for amdgpu drm native context'
-)
-
 option(
   'drm-renderers',
   type : 'array',
