@@ -1005,6 +1005,12 @@ amdgpu_ccmd_cs_submit(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hd
             goto end;
          }
 
+         if (bo_list != NULL) {
+            print(0, "Refusing to allocate multiple BO lists");
+            r = -EINVAL;
+            goto end;
+         }
+
          bo_handles_in = input;
          bo_list = malloc(bo_count * sizeof(struct drm_amdgpu_bo_list_entry));
 
