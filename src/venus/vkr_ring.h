@@ -96,6 +96,7 @@ struct vkr_ring {
    mtx_t mutex;
    cnd_t cond;
    thrd_t thread;
+   bool prio_valid;
    int prio;
    atomic_bool started;
    atomic_bool pending_notify;

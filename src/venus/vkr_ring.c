@@ -247,8 +247,8 @@ vkr_ring_thread(void *arg)
 
    snprintf(thread_name, ARRAY_SIZE(thread_name), "vkr-ring-%d", ctx->ctx_id);
    u_thread_setname(thread_name);
-   if (setpriority(PRIO_PROCESS, 0, ring->prio))
-      vkr_log("failed to set ring thread priority");
+   if (ring->prio_valid && setpriority(PRIO_PROCESS, 0, ring->prio))
+      vkr_log("failed to set ring thread priority to %d (%d)", ring->prio, errno);
 
    uint64_t last_submit = vkr_ring_now();
    uint32_t relax_iter = 0;
