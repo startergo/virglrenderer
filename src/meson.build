@@ -221,7 +221,7 @@ if with_venus
    virgl_depends += [venus_dep]
 endif
 
-if with_drm
+if with_drm_renderers
    virgl_sources += drm_sources
 endif
 

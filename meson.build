@@ -79,8 +79,6 @@ add_project_arguments(cc.get_supported_arguments(flags), language : 'c')
 prog_python = import('python').find_installation('python3')
 
 not_found = dependency('', required: false)
-libdrm_dep = dependency('libdrm', version : '>=2.4.50', required: get_option('drm').enabled() or get_option('venus'))
-libdrm_amdgpu_dep = dependency('libdrm_amdgpu', version : '>=2.4.121', required: get_option('drm-renderers').contains('amdgpu-experimental'))
 gbm_dep = not_found
 thread_dep = dependency('threads')
 epoxy_dep = dependency('epoxy', version: '>= 1.5.4')
@@ -93,6 +91,23 @@ conf_data.set('_GNU_SOURCE', 1)
 # the lib. It's up to virglrenderer users to decide whether to use these
 # APIs. Unstable APIs may be changed or removed without a notice.
 conf_data.set('VIRGL_RENDERER_UNSTABLE_APIS', 1)
+
+drm_renderers = get_option('drm-renderers')
+
+with_drm_msm = drm_renderers.contains('msm')
+if with_drm_msm
+  conf_data.set('ENABLE_DRM_MSM', 1)
+endif
+
+with_drm_amdgpu = drm_renderers.contains('amdgpu-experimental')
+if with_drm_amdgpu
+  conf_data.set('ENABLE_DRM_AMDGPU', 1)
+endif
+
+with_drm_renderers = drm_renderers.length() > 0
+
+libdrm_dep = dependency('libdrm', version : '>=2.4.50', required: with_drm_renderers or get_option('venus'))
+libdrm_amdgpu_dep = dependency('libdrm_amdgpu', version : '>=2.4.121', required: with_drm_amdgpu)
 conf_data.set('ENABLE_DRM', libdrm_dep.found())
 
 pkg_cflags = []
@@ -282,27 +297,15 @@ endif
 
 have_vla = not cc.has_header_symbol('stdlib.h', '__STDC_NO_VLA__')
 
-drm_renderers = get_option('drm-renderers')
-
-with_drm_msm = (not ['arm'].contains(target_machine.cpu_family())
-            and drm_renderers.contains('msm'))
-if with_drm_msm
-  conf_data.set('ENABLE_DRM_MSM', 1)
-endif
-
-with_drm_amdgpu = have_vla and drm_renderers.contains('amdgpu-experimental')
-if with_drm_amdgpu
-  conf_data.set('ENABLE_DRM', 1)
-  conf_data.set('ENABLE_DRM_AMDGPU', 1)
-endif
-
-with_drm = with_drm_msm or with_drm_amdgpu
-
-if with_drm
+if with_drm_renderers
    if (not have_struct_attribute_packed or
        not have_struct_attribute_aligned or
        not have_vla)
       error('DRM renderers require compiler support for VLAs, packed and aligned structs')
+   endif
+
+   if (['arm'].contains(target_machine.cpu_family()) and with_drm_msm)
+      error('MSM renderer doesn\'t support 32bit ARM target')
    endif
 endif
 

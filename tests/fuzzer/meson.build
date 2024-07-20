@@ -42,7 +42,7 @@ virgl_fuzzer_from_states = executable(
 )
 
 
-if with_drm
+if with_drm_renderers
    virgl_drm_fuzzer = executable(
       'virgl_drm_fuzzer',
       'virgl_drm_fuzzer.c',
