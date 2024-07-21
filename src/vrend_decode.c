@@ -2021,7 +2021,7 @@ static void dump_command_stream_to_file(const void *buffer, size_t size)
    uint64_t hash = XXH64(buffer, size, 0);
    char fname[64];
    snprintf(fname,
-            sizeof(fname), "buffer_%016lx.seed",  hash);
+            sizeof(fname), "buffer_%016" PRIx64 ".seed",  hash);
    FILE *f = fopen(fname, "wb");
    if (f) {
       fwrite(buffer, 1, size, f);
