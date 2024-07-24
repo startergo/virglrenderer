@@ -987,18 +987,27 @@ bool vrend_format_is_bgra(enum virgl_formats format) {
            format == VIRGL_FORMAT_B8G8R8A8_SRGB);
 }
 
-static bool vrend_resource_has_24bpp_internal_format(const struct vrend_resource *res)
+static GLuint vrend_resource_get_internal_format_override(const struct vrend_resource *res)
 {
    /* Some shared resources imported to guest mesa as EGL images occupy 24bpp instead of more common 32bpp.
     *
     * TODO: perhaps this can be generalized to all alpha-less formats?
     */
    const enum virgl_formats format = res->base.format;
-   return (has_bit(res->storage_bits, VREND_STORAGE_EGL_IMAGE) &&
-           (format == VIRGL_FORMAT_B8G8R8X8_UNORM ||
-            format == VIRGL_FORMAT_B8G8R8X8_SRGB ||
-            format == VIRGL_FORMAT_R8G8B8X8_UNORM ||
-            format == VIRGL_FORMAT_R8G8B8X8_SRGB));
+   if (has_bit(res->storage_bits, VREND_STORAGE_EGL_IMAGE)) {
+      switch (format) {
+      case VIRGL_FORMAT_B8G8R8X8_UNORM:
+      case VIRGL_FORMAT_B8G8R8X8_SRGB:
+      case VIRGL_FORMAT_R8G8B8X8_UNORM:
+      case VIRGL_FORMAT_R8G8B8X8_SRGB:
+         return GL_RGB8;
+      case VIRGL_FORMAT_R16G16B16X16_FLOAT:
+         return GL_RGB16F;
+      default:
+         ;
+      }
+   }
+   return GL_NONE;
 }
 
 static bool vrend_resource_supports_view(const struct vrend_resource *res,
@@ -1014,7 +1023,7 @@ static bool vrend_resource_supports_view(const struct vrend_resource *res,
     * decode/encode is required. */
    return !(vrend_format_is_bgra(res->base.format) &&
             has_bit(res->storage_bits, VREND_STORAGE_EGL_IMAGE)) &&
-         !vrend_resource_has_24bpp_internal_format(res);
+         (vrend_resource_get_internal_format_override(res) == GL_NONE);
 }
 
 static inline bool
@@ -2842,12 +2851,15 @@ int vrend_create_sampler_view(struct vrend_context *ctx,
         // a different path that imposes stricter enforcement of allowable
         // internalformat for glTextureView().
 
+        GLuint real_internalformat =
+              vrend_resource_get_internal_format_override(view->texture);
+
         if (util_format_has_alpha(view->format) &&
-            vrend_resource_has_24bpp_internal_format(view->texture)) {
+            real_internalformat != GL_NONE) {
            VREND_DEBUG(dbg_tex, ctx, "Fixing view with alpha into EGL-backed texture without alpha (format: %s, view: %s)\n",
                        util_format_name(view->texture->base.format),
                        util_format_name(view->format));
-           internalformat = GL_RGB8;
+           internalformat = real_internalformat;
         }
 
         glTextureView(view->gl_id, view->target, view->texture->gl_id, internalformat,
@@ -9202,7 +9214,7 @@ static void vrend_swizzle_and_collapse_data_bgrx(uint64_t size, void *data) {
    }
 }
 
-static void vrend_collapse_data_rgbx(uint64_t size, void *data) {
+static void vrend_collapse_data_r8g8b8x8(uint64_t size, void *data) {
    const size_t in_bpp = 4;
    const size_t out_bpp = 3;
 
@@ -9220,6 +9232,27 @@ static void vrend_collapse_data_rgbx(uint64_t size, void *data) {
 
       in_pixel += in_bpp;
       out_pixel += out_bpp;
+   }
+}
+
+static void vrend_collapse_data_r16g16b16x16(uint64_t size, void *data) {
+   const size_t in_channels = 4;
+   const size_t out_channels = 3;
+
+   uint16_t *in_pixel, *out_pixel;
+   in_pixel = out_pixel = data;
+
+   // in-place modification, so output cursor must not lead
+   assert(in_channels >= out_channels);
+
+   const size_t num_pixels = size / in_channels / 2;
+   for (size_t i = 0; i < num_pixels; ++i) {
+      *(out_pixel + 0) = *(in_pixel + 0);
+      *(out_pixel + 1) = *(in_pixel + 1);
+      *(out_pixel + 2) = *(in_pixel + 2);
+
+      in_pixel += in_channels;
+      out_pixel += out_channels;
    }
 }
 
@@ -9405,7 +9438,7 @@ static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
          /* GLES doesn't allow format conversions, which we need for BGRA resources with RGBA
           * internal format. So we fallback to performing a CPU swizzle before uploading. */
          if (vrend_state.use_gles) {
-            if (vrend_resource_has_24bpp_internal_format(res)) {
+            if (vrend_resource_get_internal_format_override(res) != GL_NONE) {
                glformat = GL_RGB;
                glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -9421,8 +9454,18 @@ static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
                   VREND_DEBUG(dbg_bgra, ctx, "manually swizzling+collapsing bgrx(32bpp)->rgb(24bpp) on upload since gles+bgrx\n");
                   vrend_swizzle_and_collapse_data_bgrx(send_size, data);
                } else {
-                  assert(res->base.format == VIRGL_FORMAT_R8G8B8X8_UNORM);
-                  vrend_collapse_data_rgbx(send_size, data);
+                  const struct util_format_description *descr =
+                        util_format_description(res->base.format);
+                  switch (descr->channel[0].size) {
+                  case 8:
+                     vrend_collapse_data_r8g8b8x8(send_size, data);
+                     break;
+                  case 16:
+                     vrend_collapse_data_r16g16b16x16(send_size, data);
+                     break;
+                  default:
+                     assert(0 && "unsupported collaps four channel to three channel");
+                  }
                }
 
             } else if (vrend_format_is_bgra(res->base.format)) {
