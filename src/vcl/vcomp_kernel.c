@@ -242,14 +242,14 @@ static void
 vcomp_dispatch_clEnqueueTask(struct vcl_dispatch_context *dispatch,
                              struct vcl_command_clEnqueueTask *args)
 {
-#ifdef CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#ifdef CL_API_SUFFIX__VERSION_1_2_DEPRECATED
    struct vcomp_context *vctx = dispatch->data;
 
    vcl_replace_clEnqueueTask_args_handle(args);
 
    cl_event host_event = NULL;
    args->ret = clEnqueueTask(args->command_queue,
-                             args->kernel,                                     
+                             args->kernel,
                              args->num_events_in_wait_list,
                              args->event_wait_list,
                              args->event ? &host_event : NULL);
@@ -259,7 +259,7 @@ vcomp_dispatch_clEnqueueTask(struct vcl_dispatch_context *dispatch,
 #else
    (void)dispatch;
    (void)args;
-#endif // CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#endif // CL_API_SUFFIX__VERSION_1_2_DEPRECATED
 }
 
 static void

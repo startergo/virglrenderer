@@ -22,6 +22,14 @@ typedef cl_properties cl_queue_properties;
 typedef cl_properties cl_mem_properties;
 #endif
 
+#ifndef CL_API_SUFFIX__VERSION_1_1_DEPRECATED
+#define CL_API_SUFFIX__VERSION_1_1_DEPRECATED
+#endif
+
+#ifndef CL_API_SUFFIX__VERSION_1_2_DEPRECATED
+#define CL_API_SUFFIX__VERSION_1_2_DEPRECATED
+#endif
+
 typedef struct cl_image_desc_MESA
 {
    cl_mem_object_type image_type;

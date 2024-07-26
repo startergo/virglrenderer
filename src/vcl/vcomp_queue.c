@@ -45,32 +45,19 @@ static void
 vcomp_dispatch_clCreateCommandQueueMESA(struct vcl_dispatch_context *dispatch,
                                         struct vcl_command_clCreateCommandQueueMESA *args)
 {
-#ifdef CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#ifdef CL_API_SUFFIX__VERSION_1_2_DEPRECATED
    struct vcomp_context *vctx = dispatch->data;
 
-   struct vcomp_cl_context *context = vcomp_cl_context_from_handle(args->context);
-   if (!context)
-   {
-      args->ret = CL_INVALID_CONTEXT;
-      return;
-   }
+   vcl_replace_clCreateCommandQueueMESA_args_handle(args);
 
-   struct vcomp_device *device = vcomp_device_from_handle(args->device);
-   if (!device)
-   {
-      args->ret = CL_INVALID_DEVICE;
-      return;
-   }
-
-   cl_command_queue queue = clCreateCommandQueue(context->base.handle.cl_context,
-                                                 device->base.handle.device,
+   cl_command_queue queue = clCreateCommandQueue(args->context, args->device,
                                                  args->properties, &args->ret);
 
    vcomp_context_add_queue(vctx, queue, args->queue, &args->ret);
 #else
    (void)dispatch;
    (void)args;
-#endif /* CL_USE_DEPRECATED_OPENCL_1_2_APIS */
+#endif /* CL_API_SUFFIX__VERSION_1_2_DEPRECATED */
 }
 
 static void
@@ -162,7 +149,7 @@ static void
 vcomp_dispatch_clEnqueueMarker(struct vcl_dispatch_context *dispatch,
                                struct vcl_command_clEnqueueMarker *args)
 {
-#ifdef CL_USE_DEPRECATED_OPENCL_1_1_APIS   
+#ifdef CL_API_SUFFIX__VERSION_1_1_DEPRECATED
    struct vcomp_context *vctx = dispatch->data;
 
    vcl_replace_clEnqueueMarker_args_handle(args);
@@ -177,18 +164,17 @@ vcomp_dispatch_clEnqueueMarker(struct vcl_dispatch_context *dispatch,
 #else
    (void)dispatch;
    (void)args;
-#endif // CL_USE_DEPRECATED_OPENCL_1_1_APIS
-
+#endif // CL_API_SUFFIX__VERSION_1_1_DEPRECATED
 }
 
 static void
 vcomp_dispatch_clEnqueueBarrier(UNUSED struct vcl_dispatch_context *dispatch,
-                                 struct vcl_command_clEnqueueBarrier *args)
+                                struct vcl_command_clEnqueueBarrier *args)
 {
-#ifdef CL_USE_DEPRECATED_OPENCL_1_1_APIS
+#ifdef CL_API_SUFFIX__VERSION_1_1_DEPRECATED
    vcl_replace_clEnqueueBarrier_args_handle(args);
 
-   if(!args->command_queue)
+   if (!args->command_queue)
    {
       args->ret = CL_INVALID_COMMAND_QUEUE;
       return;
@@ -198,7 +184,7 @@ vcomp_dispatch_clEnqueueBarrier(UNUSED struct vcl_dispatch_context *dispatch,
 #else
    (void)dispatch;
    (void)args;
-#endif // CL_USE_DEPRECATED_OPENCL_1_1_APIS
+#endif // CL_API_SUFFIX__VERSION_1_1_DEPRECATED
 }
 
 static void

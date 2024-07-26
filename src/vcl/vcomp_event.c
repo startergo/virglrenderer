@@ -176,7 +176,7 @@ static void
 vcomp_dispatch_clEnqueueWaitForEvents(UNUSED struct vcl_dispatch_context *dispatch,
                                       struct vcl_command_clEnqueueWaitForEvents *args)
 {
-#ifdef CL_USE_DEPRECATED_OPENCL_1_1_APIS
+#ifdef CL_API_SUFFIX__VERSION_1_1_DEPRECATED
    vcl_replace_clEnqueueWaitForEvents_args_handle(args);
 
    args->ret = clEnqueueWaitForEvents(args->command_queue,
