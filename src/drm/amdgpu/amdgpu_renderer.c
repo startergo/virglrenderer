@@ -759,7 +759,7 @@ amdgpu_ccmd_bo_va_op(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr
    }
 
    if (req->flags2 & ~AMDGPU_CCMD_BO_VA_OP_SPARSE_BO) {
-      print(0, "Forbidden flags 0x%" PRIx32 " set in flags", req->flags);
+      print(0, "Forbidden flags 0x%" PRIx64 " set in flags", req->flags);
       rsp->ret = -EINVAL;
       return -1;
    }

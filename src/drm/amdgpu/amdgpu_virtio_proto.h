@@ -107,8 +107,8 @@ struct amdgpu_ccmd_bo_va_op_req {
    struct vdrm_ccmd_req hdr;
    uint64_t va;
    uint64_t vm_map_size;
-   uint32_t flags; /* Passed directly to kernel */
-   uint32_t flags2; /* AMDGPU_CCMD_BO_VA_OP_* */
+   uint64_t flags; /* Passed directly to kernel */
+   uint64_t flags2; /* AMDGPU_CCMD_BO_VA_OP_* */
    uint64_t offset;
    uint32_t res_id;
    uint32_t op;
