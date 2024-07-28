@@ -11,3 +11,7 @@ dEQP-VK.transform_feedback.primitives_generated_query.get.*reset.*
 dEQP-VK.binding_model.mutable_descriptor.multiple_arrays_mixed.constant_size.aliasing.update_write.no_source.no_source.pool_no_types.pre_update.index_constant.comp
 dEQP-VK.binding_model.mutable_descriptor.multiple_arrays_mixed.unbounded.noaliasing.update_write.no_source.no_source.*
 dEQP-VK.pipeline.monolithic.timestamp.calibrated.calibration_test
+
+# uprev Mesa in Virglrenderer
+dEQP-VK.api.info.image_format_properties2.2d.linear.g16b16g16r16_422_unorm
+

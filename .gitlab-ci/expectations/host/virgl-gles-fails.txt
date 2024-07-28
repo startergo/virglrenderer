@@ -3086,13 +3086,29 @@ spec@arb_texture_float@texwrap formats bordercolor@GL_RGB32F- border color only,
 spec@arb_texture_float@texwrap formats bordercolor@GL_LUMINANCE_ALPHA16F_ARB- border color only,Fail
 
 # uprev Mesa in Virglrenderer
-spec@glsl-1.40@uniform_buffer@two-stages,Fail
-
+spec@!opengl 1.1@depthstencil-default_fb-clear samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-clear samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-24_8 samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-24_8 samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-32f_24_8_rev samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-32f_24_8_rev samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-float-and-ushort samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-float-and-ushort samples=4,Fail
 spec@arb_copy_image@arb_copy_image-formats --samples=2,Fail
 spec@arb_copy_image@arb_copy_image-formats --samples=2@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
 spec@arb_copy_image@arb_copy_image-formats --samples=4,Fail
 spec@arb_copy_image@arb_copy_image-formats --samples=4@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
+spec@arb_texture_cube_map@copyteximage cube samples=2,Fail
+spec@arb_texture_cube_map@copyteximage cube samples=4,Fail
+spec@arb_texture_rectangle@copyteximage rect samples=2,Fail
+spec@arb_texture_rectangle@copyteximage rect samples=4,Fail
+spec@ext_texture_array@copyteximage 1d_array samples=2,Fail
+spec@ext_texture_array@copyteximage 1d_array samples=4,Fail
+spec@ext_texture_array@copyteximage 2d_array samples=2,Fail
+spec@ext_texture_array@copyteximage 2d_array samples=4,Fail
+spec@glsl-1.40@uniform_buffer@two-stages,Fail
 spec@nv_copy_image@nv_copy_image-formats --samples=2,Fail
 spec@nv_copy_image@nv_copy_image-formats --samples=2@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
 spec@nv_copy_image@nv_copy_image-formats --samples=4,Fail
 spec@nv_copy_image@nv_copy_image-formats --samples=4@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
+

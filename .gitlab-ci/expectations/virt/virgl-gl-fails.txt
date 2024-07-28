@@ -509,7 +509,6 @@ spec@!opengl 2.0@vertex-program-two-side front back@gs-out and fs,Fail
 spec@!opengl 2.0@vertex-program-two-side front front2 back2@gs-out and fs,Fail
 spec@!opengl 3.2@layered-rendering@clear-color-mismatched-layer-count,Fail
 spec@!opengl 1.1@line-smooth-stipple,Fail
-spec@arb_pipeline_statistics_query@arb_pipeline_statistics_query-frag,Fail
 
 spec@arb_gl_spirv@execution@xfb@vs_two_block,Timeout
 spec@arb_gl_spirv@execution@xfb@vs_two_sets_ifc,Fail

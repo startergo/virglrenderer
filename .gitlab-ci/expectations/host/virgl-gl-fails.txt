@@ -453,7 +453,6 @@ spec@!opengl 2.0@gl-2.0-edgeflag,Fail
 spec@!opengl 2.0@gl-2.0-edgeflag-immediate,Fail
 spec@!opengl 3.2@layered-rendering@clear-color-mismatched-layer-count,Fail
 spec@!opengl 1.1@line-smooth-stipple,Fail
-spec@arb_pipeline_statistics_query@arb_pipeline_statistics_query-frag,Fail
 
 spec@arb_gl_spirv@execution@ssbo@unsized-array,Fail
 spec@arb_viewport_array@display-list,Fail
@@ -489,5 +488,23 @@ spec@arb_texture_float@texwrap formats bordercolor@GL_RGB32F- border color only,
 spec@arb_texture_float@texwrap formats bordercolor@GL_LUMINANCE_ALPHA16F_ARB- border color only,Fail
 
 # uprev Mesa in virglrenderer
+spec@!opengl 1.1@depthstencil-default_fb-blit samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-blit samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-clear samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-clear samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-float-and-ushort samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-float-and-ushort samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-24_8 samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-24_8 samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-32f_24_8_rev samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-32f_24_8_rev samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-float-and-ushort samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-float-and-ushort samples=4,Fail
+spec@arb_texture_cube_map@copyteximage cube samples=2,Fail
+spec@arb_texture_cube_map@copyteximage cube samples=4,Fail
+spec@ext_texture_array@copyteximage 1d_array samples=2,Fail
+spec@ext_texture_array@copyteximage 1d_array samples=4,Fail
+spec@ext_texture_array@copyteximage 2d_array samples=2,Fail
+spec@ext_texture_array@copyteximage 2d_array samples=4,Fail
 spec@glsl-1.40@uniform_buffer@two-stages,Fail
 
