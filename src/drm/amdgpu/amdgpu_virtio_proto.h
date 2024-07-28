@@ -116,7 +116,7 @@ struct amdgpu_ccmd_bo_va_op_req {
 DEFINE_CAST(vdrm_ccmd_req, amdgpu_ccmd_bo_va_op_req)
 AMDGPU_STATIC_ASSERT_SIZE(amdgpu_ccmd_bo_va_op_req)
 /* Specifies that this is a sparse BO. */
-#define AMDGPU_CCMD_BO_VA_OP_SPARSE_BO (UINT64_C(1) << 32)
+#define AMDGPU_CCMD_BO_VA_OP_SPARSE_BO (1 << 0)
 
 /*
  * AMDGPU_CCMD_CS_SUBMIT
