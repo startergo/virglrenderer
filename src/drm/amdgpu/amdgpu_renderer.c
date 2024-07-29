@@ -1146,7 +1146,7 @@ amdgpu_renderer_submit_fence(struct virgl_context *vctx, uint32_t flags,
 }
 
 struct virgl_context *
-amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
+amdgpu_renderer_create(int fd, int flags, size_t debug_len, const char *debug_name)
 {
    struct amdgpu_context *ctx;
    amdgpu_device_handle dev;
@@ -1202,7 +1202,7 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
    print(1, "amdgpu_renderer_create name=%s fd=%d (from %d) -> dev=%p", ctx->debug_name, fd,
          amdgpu_device_get_fd(ctx->dev), (void*)ctx->dev);
 
-   if (!drm_context_init(&ctx->base, -1, ccmd_dispatch, ARRAY_SIZE(ccmd_dispatch)))
+   if (!drm_context_init(&ctx->base, -1, ccmd_dispatch, ARRAY_SIZE(ccmd_dispatch), flags))
       goto fail_init;
 
    ctx->base.base.destroy = amdgpu_renderer_destroy;

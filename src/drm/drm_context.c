@@ -225,7 +225,8 @@ drm_context_detach_resource(struct virgl_context *vctx, struct virgl_resource *r
 
 bool
 drm_context_init(struct drm_context *dctx, int fd,
-                 const struct drm_ccmd *ccmd_dispatch, unsigned int dispatch_size)
+                 const struct drm_ccmd *ccmd_dispatch, unsigned int dispatch_size,
+                 int flags)
 {
    /* Indexed by res_id: */
    dctx->resource_table = _mesa_hash_table_create_u32_keys(NULL);
@@ -244,6 +245,7 @@ drm_context_init(struct drm_context *dctx, int fd,
 
    /* 8 bytes by default */
    dctx->ccmd_alignment = 8;
+   dctx->flags = flags;
 
    dctx->base.submit_cmd = drm_context_submit_cmd;
    dctx->base.transfer_3d = drm_context_transfer_3d;
@@ -266,7 +268,7 @@ free_blob(const void *blob_id, UNUSED void *_obj, void *_dctx)
 
    assert(obj == _obj);
 
-   if (obj)
+   if (obj && _obj == obj)
       drm_context_free_object(dctx, obj);
 }
 
@@ -278,7 +280,7 @@ free_resource(const void *res_id, UNUSED void *_obj, void *_dctx)
 
    assert(obj == _obj);
 
-   if (obj)
+   if (obj && obj == _obj)
       drm_context_free_object(dctx, obj);
 }
 
