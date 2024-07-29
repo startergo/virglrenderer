@@ -846,14 +846,14 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       }
       /* This macro must be used to validate the offset AND count.  Even if
        * the count is trusted, the offset must still be validated! */
-#define validate_chunk_inputs(count, type) \
-   validate_chunk_inputs(offset, len, ctx, count, sizeof(type), alignof(type))
+#define validate_chunk_inputs(count, ptr) \
+   validate_chunk_inputs(offset, len, ctx, count, sizeof(*(ptr)), alignof(typeof(*(ptr))))
 
       const void *input = (const char *)req + offset;
 
       if (chunk_id == AMDGPU_CHUNK_ID_BO_HANDLES) {
          uint32_t bo_count = len / sizeof(*bo_handles_in);
-         if (!validate_chunk_inputs(bo_count, typeof(*bo_handles_in))) {
+         if (!validate_chunk_inputs(bo_count, bo_handles_in)) {
             r = -EINVAL;
             goto end;
          }
@@ -895,13 +895,13 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
          chunks[num_chunks].chunk_data = (uintptr_t)&bo_list_in;
       } else if (chunk_id == AMDGPU_CHUNK_ID_FENCE) {
          const struct drm_amdgpu_cs_chunk_fence *in;
-         if (!validate_chunk_inputs(1, typeof(*in))) {
+         if (!validate_chunk_inputs(1, in)) {
             r = -EINVAL;
             goto end;
          }
          in = input;
          if (in->offset % sizeof(uint64_t)) {
-            print(0, "Invalid chunk offset %" PRIu32 " (not multiple of 8)", in->offset);
+            print(0, "Invalid fence offset %" PRIu32 " (not multiple of 8)", in->offset);
             r = -EINVAL;
             goto end;
          }
@@ -919,15 +919,21 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
          chunks[num_chunks].length_dw = sizeof(struct drm_amdgpu_cs_chunk_fence) / 4;
          chunks[num_chunks].chunk_data = (uintptr_t)&user_fence;
       } else if (chunk_id == AMDGPU_CHUNK_ID_DEPENDENCIES) {
-         chunks[num_chunks].length_dw = descriptors[i].length_dw;
-         chunks[num_chunks].chunk_data = (uintptr_t)input;
-      } else if (chunk_id == AMDGPU_CHUNK_ID_IB) {
-         chunks[num_chunks].length_dw = descriptors[i].length_dw;
-         chunks[num_chunks].chunk_data = (uintptr_t)input;
-         if (chunks[num_chunks].length_dw != sizeof(struct drm_amdgpu_cs_chunk_ib) / 4) {
+         const struct drm_amdgpu_cs_chunk_dep *dep;
+         if (!validate_chunk_inputs(1, dep)) {
             r = -EINVAL;
             goto end;
          }
+         chunks[num_chunks].length_dw = descriptors[i].length_dw;
+         chunks[num_chunks].chunk_data = (uintptr_t)input;
+      } else if (chunk_id == AMDGPU_CHUNK_ID_IB) {
+         const struct drm_amdgpu_cs_chunk_ib *ib;
+         if (!validate_chunk_inputs(1, ib)) {
+            r = -EINVAL;
+            goto end;
+         }
+         chunks[num_chunks].length_dw = descriptors[i].length_dw;
+         chunks[num_chunks].chunk_data = (uintptr_t)input;
       } else {
          print(0, "Unsupported chunk_id %d received", chunk_id);
          r = -EINVAL;
