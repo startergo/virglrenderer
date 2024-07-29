@@ -53,6 +53,9 @@
 #pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 #endif
 
+#define RESTRICTED_CONTENT_ERR ", but restricted content is disabled.  \
+To enable it, pass VIRGL_RENDERER_RESTRICTED_CONTENT to virgl_renderer_init()."
+
 #if 0
 #define print(level, fmt, ...) do {       \
    if (ctx->debug >= level) { \
@@ -539,6 +542,18 @@ amdgpu_ccmd_gem_new(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       .preferred_heap = req->r.preferred_heap,
       .flags = req->r.flags,
    };
+
+   /* Disable restricted content unless allowed by the VMM. */
+   if ((r.flags & AMDGPU_GEM_CREATE_ENCRYPTED) != 0 &&
+       (ctx->base.flags & VIRGL_RENDERER_RESTRICTED_CONTENT) == 0) {
+      print(0, "Encrypted buffer requested" RESTRICTED_CONTENT_ERR);
+      /* Indicate that paramters are valid, but operation was
+       * intentionally prohibited by host.
+       */
+      ret = -EPERM;
+      goto alloc_failed;
+   }
+
    amdgpu_bo_handle bo_handle;
    ret = amdgpu_bo_alloc(ctx->dev, &r, &bo_handle);
 
@@ -992,6 +1007,12 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
             goto end;
          }
          ib = input;
+         if ((ib->flags & AMDGPU_IB_FLAGS_SECURE) != 0 &&
+             (ctx->base.flags & VIRGL_RENDERER_RESTRICTED_CONTENT) == 0) {
+            print(0, "AMDGPU_IB_FLAGS_SECURE set" RESTRICTED_CONTENT_ERR);
+            r = -EPERM;
+            goto end;
+         }
          status = validate_ip_block(ctx, ib->ip_type, ctx->base.flags);
          if (status != 0) {
             r = status;
