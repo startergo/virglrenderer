@@ -31,7 +31,6 @@
 #include "util/u_math.h"
 #include "pipe/p_state.h"
 #include "amdgpu_virtio_proto.h"
-#include "u_thread.h"
 #include "virgl_context.h"
 #include "virglrenderer.h"
 #include "vrend_renderer.h"
@@ -62,12 +61,6 @@
    } \
  } while (false)
 
-struct cmd_stat {
-   uint64_t total_duration_us;
-   uint32_t min_duration_us, max_duration_us;
-   uint32_t count;
-};
-
 struct amdgpu_context {
    struct virgl_context base;
 
@@ -92,11 +85,6 @@ struct amdgpu_context {
    int debug;
 
    struct hash_table_u64 *id_to_ctx;
-
-   struct {
-      struct cmd_stat s[9];
-      uint64_t last_print_ms;
-   } statistics;
 
    uint32_t timeline_count;
    struct drm_timeline timelines[];
@@ -1311,11 +1299,8 @@ submit_cmd_dispatch(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
       return -EINVAL;
    }
 
-   struct cmd_stat * const stat = &ctx->statistics.s[hdr->cmd - 1];
    print(2, "command: %s (seqno: %u, size:%zu)",
          ccmd->name, hdr->seqno, ccmd->size);
-
-   uint64_t start = util_current_thread_get_time_nano();
 
    /* If the request length from the guest is smaller than the expected
     * size, ie. newer host and older guest, we need to make a copy of
@@ -1330,51 +1315,6 @@ submit_cmd_dispatch(struct amdgpu_context *ctx, const struct vdrm_ccmd_req *hdr)
       ret = ccmd->handler(ctx, (struct vdrm_ccmd_req *)buf);
    } else {
       ret = ccmd->handler(ctx, hdr);
-   }
-
-   uint64_t end = util_current_thread_get_time_nano();
-
-   stat->count++;
-   uint64_t dt = (end - start) / 1000;
-   stat->min_duration_us = MIN2(stat->min_duration_us, dt);
-   stat->max_duration_us = MAX2(stat->max_duration_us, dt);
-   stat->total_duration_us += dt;
-
-   uint64_t ms = end / 1000000;
-   if (ms - ctx->statistics.last_print_ms >= 1000 && ctx->debug >= 1) {
-      unsigned c = (unsigned)((uintptr_t)ctx >> 8) % 256;
-      printf("\033[0;38;5;%dm", c);
-
-      uint64_t dt = ms - ctx->statistics.last_print_ms;
-      uint32_t total = 0;
-      int align = 1;
-      for (unsigned i = 0; i < ARRAY_SIZE(ctx->statistics.s); i++) {
-         total += ctx->statistics.s[i].count;
-         if (total >= 10000)
-            align = 5;
-         else if (total >= 1000)
-            align = 4;
-         else if (total >= 100)
-            align = 3;
-      }
-
-      printf("====== Stats for %s (%d cmd, dt: %ld ms) =====\n", ctx->debug_name, total, dt);
-      for (unsigned i = 0; i < ARRAY_SIZE(ctx->statistics.s); i++) {
-         if (ctx->statistics.s[i].count) {
-            int n = (int)roundf(100 * ctx->statistics.s[i].count / (float)total);
-            printf("\t%s %3d%% (n: %*d, min: %.3f ms, max: %.3f ms, avg: %.3f ms)\n",
-                   ccmd_dispatch[i + 1].name,
-                   n,
-                   align,
-                   ctx->statistics.s[i].count,
-                   ctx->statistics.s[i].min_duration_us / 1000.f,
-                   ctx->statistics.s[i].max_duration_us / 1000.f,
-                   ctx->statistics.s[i].total_duration_us / (ctx->statistics.s[i].count * 1000.f));
-         }
-      }
-      printf("\033[0m");
-      memset(ctx->statistics.s, 0, sizeof(ctx->statistics.s));
-      ctx->statistics.last_print_ms = ms;
    }
 
    if (ret)
@@ -1607,8 +1547,6 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
    }
    ctx->timeline_count = timeline_count;
    assert(ring_idx == timeline_count + 1);
-
-   ctx->statistics.last_print_ms = util_current_thread_get_time_nano() / 1000000;
 
    close(fd);
 
