@@ -25,9 +25,15 @@ struct drm_ccmd {
 };
 
 struct drm_object {
+   /* Context-specific, assigned by guest userspace. It's used to link the bo
+    * created via CCMD that creates GEM and the get_blob() callback.
+    */
    uint32_t blob_id;
+   /* Global, assigned by guest kernel. */
    uint32_t res_id;
+   /* GEM handle, used in ioctl (eg: amdgpu_cs_submit_raw2). */
    uint32_t handle;
+   /* GEM size. */
    uint64_t size;
 };
 
