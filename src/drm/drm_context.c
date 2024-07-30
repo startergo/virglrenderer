@@ -153,12 +153,13 @@ drm_context_submit_cmd(struct virgl_context *vctx, const void *_buffer, size_t s
       const struct vdrm_ccmd_req *hdr = (const struct vdrm_ccmd_req *)buffer;
 
       /* Sanity check first: */
-      if ((hdr->len > size) || (hdr->len < sizeof(*hdr)) || (hdr->len % 4)) {
+      if ((hdr->len > size) || (hdr->len < sizeof(*hdr)) ||
+          (hdr->len % dctx->ccmd_alignment)) {
          drm_log("bad size, %u vs %zu (%u)", hdr->len, size, hdr->cmd);
          return -EINVAL;
       }
 
-      if (hdr->rsp_off % 4) {
+      if (hdr->rsp_off % dctx->ccmd_alignment) {
          drm_log("bad rsp_off, %u", hdr->rsp_off);
          return -EINVAL;
       }
@@ -195,6 +196,9 @@ drm_context_init(struct drm_context *dctx, int fd,
    dctx->dispatch_size = dispatch_size;
    dctx->eventfd = create_eventfd(0);
    dctx->fd = fd;
+
+   /* 4 bytes by default */
+   dctx->ccmd_alignment = 4;
 
    dctx->base.submit_cmd = drm_context_submit_cmd;
    dctx->base.transfer_3d = drm_context_transfer_3d;
