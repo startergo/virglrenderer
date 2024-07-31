@@ -460,11 +460,10 @@ amdgpu_ccmd_gem_new(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
    const struct amdgpu_ccmd_gem_new_req *req = to_amdgpu_ccmd_gem_new_req(hdr);
    struct amdgpu_context *ctx = to_amdgpu_context(dctx);
    int ret = 0;
-   int64_t va_map_size = 0;
 
-   if (req->pad || req->r.__pad) {
-      print(0, "Invalid value for struct %s_req padding: "
-            "0x%" PRIx32 ":0x%" PRIx32, __FUNCTION__, req->pad, req->r.__pad);
+   if (req->r.__pad) {
+      print(0, "Invalid value for struct %s_req::r::__pad: "
+            "0x%" PRIx32, __FUNCTION__, req->r.__pad);
       ret = -EINVAL;
       goto alloc_failed;
    }
@@ -488,29 +487,16 @@ amdgpu_ccmd_gem_new(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       goto alloc_failed;
    }
 
-   /* If a VA address was requested, assign it to the BO now. */
-   if (req->va) {
-      va_map_size = align64(req->vm_map_size, getpagesize());
-
-      ret = amdgpu_bo_va_op_raw(ctx->dev, bo_handle, 0, va_map_size, req->va,
-                                req->vm_flags, AMDGPU_VA_OP_MAP);
-      if (ret) {
-         print(0, "amdgpu_bo_va_op_raw failed: %d va: %" PRIx64 " va_map_size: %ld (%s)",
-               ret, req->va, va_map_size, strerror(errno));
-         goto va_map_failed;
-      }
-   }
-
    uint32_t gem_handle;
    ret = amdgpu_bo_export(bo_handle, amdgpu_bo_handle_type_kms, &gem_handle);
    if (ret) {
       print(0, "Failed to get kms handle");
-      goto export_failed;
+      goto va_map_failed;
    }
 
    struct amdgpu_object *obj = amdgpu_object_create(bo_handle, req->r.alloc_size);
    if (obj == NULL)
-      goto export_failed;
+      goto va_map_failed;
 
    obj->base.handle = gem_handle;
    /* Enable Write-Combine except for GTT buffers with WC disabled. */
@@ -520,21 +506,17 @@ amdgpu_ccmd_gem_new(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
 
    drm_context_object_set_blob_id(dctx, &obj->base, req->blob_id);
 
-   print(2, "new object blob_id: %ld heap: %08x flags: %lx vm_flags: %x",
-         req->blob_id, req->r.preferred_heap, req->r.flags, req->vm_flags);
+   print(2, "new object blob_id: %ld heap: %08x flags: %lx size: %ld",
+         req->blob_id, req->r.preferred_heap, req->r.flags, req->r.alloc_size);
 
    return 0;
-
-export_failed:
-   if (req->vm_flags)
-      amdgpu_bo_va_op(bo_handle, 0, va_map_size, req->va, 0, AMDGPU_VA_OP_UNMAP);
 
 va_map_failed:
    amdgpu_bo_free(bo_handle);
 
 alloc_failed:
-   print(2, "ERROR blob_id: %ld heap: %08x flags: %lx vm_flags: %x va: %" PRIx64,
-         req->blob_id, req->r.preferred_heap, req->r.flags, req->vm_flags, req->va);
+   print(2, "ERROR blob_id: %ld heap: %08x flags: %lx",
+         req->blob_id, req->r.preferred_heap, req->r.flags);
    if (ctx->shmem)
       ctx->shmem->async_error++;
    return ret;
@@ -560,24 +542,20 @@ amdgpu_ccmd_bo_va_op(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
    }
 
    if (req->flags2 & AMDGPU_CCMD_BO_VA_OP_SPARSE_BO) {
-      rsp->ret = amdgpu_bo_va_op_raw(
-         ctx->dev, NULL, req->offset, req->vm_map_size, req->va,
-         req->flags, req->op);
-      if (rsp->ret && ctx->shmem) {
-         ctx->shmem->async_error++;
-         print(0, "amdgpu_bo_va_op_raw for sparse bo failed: offset: 0x%lx size: 0x%lx va: %" PRIx64, req->offset, req->vm_map_size, req->va);
-      }
-      return 0;
-   }
+      obj = NULL;
+   } else {
+      obj = amdgpu_get_object_from_res_id(ctx, req->res_id, __FUNCTION__);
+      if (!obj) {
+         print(0, "amdgpu_bo_va_op_raw failed: op: %d res_id: %d offset: 0x%lx size: 0x%lx va: %" PRIx64 " r=%d",
+            req->op, obj->base.res_id, req->offset, req->vm_map_size, req->va, rsp->ret);
 
-   obj = amdgpu_get_object_from_res_id(ctx, req->res_id, __FUNCTION__);
-   if (!obj) {
-      /* This is ok. This means the guest closed the GEM already. */
-      return -EINVAL;
+         /* This is ok. This means the guest closed the GEM already. */
+         return -EINVAL;
+      }
    }
 
    rsp->ret = amdgpu_bo_va_op_raw(
-      ctx->dev, obj->bo, req->offset, req->vm_map_size, req->va,
+      ctx->dev, obj ? obj->bo : NULL, req->offset, req->vm_map_size, req->va,
       req->flags,
       req->op);
    if (rsp->ret) {
@@ -587,8 +565,8 @@ amdgpu_ccmd_bo_va_op(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       print(0, "amdgpu_bo_va_op_raw failed: op: %d res_id: %d offset: 0x%lx size: 0x%lx va: %" PRIx64 " r=%d",
          req->op, req->res_id, req->offset, req->vm_map_size, req->va, rsp->ret);
    } else {
-      print(2, "va_op %d res_id: %u va: 0x%" PRIx64 " @offset 0x%" PRIx64,
-            req->op, req->res_id, req->va, req->offset);
+      print(2, "va_op %d res_id: %u va: [0x%" PRIx64 ", 0x%" PRIx64 "] @offset 0x%" PRIx64,
+            req->op, req->res_id, req->va, req->va + req->vm_map_size - 1, req->offset);
    }
 
    return 0;

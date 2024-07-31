@@ -81,10 +81,6 @@ struct amdgpu_ccmd_gem_new_req {
    struct vdrm_ccmd_req hdr;
 
    uint64_t blob_id;
-   uint64_t va;
-   uint32_t pad;
-   uint32_t vm_flags;
-   uint64_t vm_map_size; /* may be smaller than alloc_size */
 
    /* This is amdgpu_bo_alloc_request but padded correctly. */
    struct {
