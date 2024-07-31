@@ -1050,6 +1050,37 @@ static int amdgpu_ccmd_set_pstate(struct drm_context *dctx, struct vdrm_ccmd_req
    return 0;
 }
 
+static int amdgpu_ccmd_cs_query_fence_status(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
+{
+   const struct amdgpu_ccmd_cs_query_fence_status_req *req = to_amdgpu_ccmd_cs_query_fence_status_req(hdr);
+   struct amdgpu_context *ctx = to_amdgpu_context(dctx);
+   struct amdgpu_ccmd_cs_query_fence_status_rsp *rsp;
+   rsp = drm_context_rsp(dctx, hdr, sizeof(*rsp));
+   if (!rsp) {
+      print(0, "Cannot alloc response buffer");
+      return -ENOMEM;
+   }
+
+   amdgpu_context_handle actx = _mesa_hash_table_u64_search(ctx->id_to_ctx,
+                                                            (uintptr_t)req->ctx_id);
+   if (actx == NULL) {
+      print(0, "Couldn't find amdgpu_context with id %d", req->ctx_id);
+      rsp->hdr.ret = -EINVAL;
+      return -1;
+   }
+
+   struct amdgpu_cs_fence fence;
+   fence.context = actx;
+   fence.ip_type = req->ip_type;
+   fence.ip_instance = req->ip_instance;
+   fence.ring = req->ring;
+   fence.fence = req->fence;
+
+   rsp->hdr.ret = amdgpu_cs_query_fence_status(&fence, req->timeout_ns, req->flags, &rsp->expired);
+
+   return 0;
+}
+
 static const struct drm_ccmd ccmd_dispatch[] = {
 #define HANDLER(N, n)                                                                    \
    [AMDGPU_CCMD_##N] = {#N, amdgpu_ccmd_##n, sizeof(struct amdgpu_ccmd_##n##_req)}
@@ -1062,6 +1093,7 @@ static const struct drm_ccmd ccmd_dispatch[] = {
    HANDLER(CREATE_CTX, create_ctx),
    HANDLER(RESERVE_VMID, reserve_vmid),
    HANDLER(SET_PSTATE, set_pstate),
+   HANDLER(CS_QUERY_FENCE_STATUS, cs_query_fence_status),
 };
 
 static int
