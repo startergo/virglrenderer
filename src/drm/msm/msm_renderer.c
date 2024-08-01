@@ -329,18 +329,10 @@ msm_renderer_attach_resource(struct virgl_context *vctx, struct virgl_resource *
 }
 
 static void
-msm_renderer_detach_resource(struct virgl_context *vctx, struct virgl_resource *res)
+msm_renderer_free_object(struct drm_context *dctx, struct drm_object *dobj)
 {
-   struct drm_context *dctx = to_drm_context(vctx);
-   struct msm_context *mctx = to_msm_context(dctx);
-   struct msm_object *obj = msm_get_object_from_res_id(mctx, res->res_id);
+   struct msm_object *obj = to_msm_object(dobj);
 
-   drm_dbg("obj=%p, res_id=%u", obj, res->res_id);
-
-   if (!obj)
-      return;
-
-   drm_dbg("obj=%p, blob_id=%u, res_id=%u", obj, obj->base.blob_id, obj->base.res_id);
    drm_context_remove_object(dctx, &obj->base);
    
    if (obj->map)
@@ -1033,11 +1025,11 @@ msm_renderer_create(int fd, UNUSED size_t debug_len, UNUSED const char *debug_na
 
    mctx->base.base.destroy = msm_renderer_destroy;
    mctx->base.base.attach_resource = msm_renderer_attach_resource;
-   mctx->base.base.detach_resource = msm_renderer_detach_resource;
    mctx->base.base.export_opaque_handle = msm_renderer_export_opaque_handle;
    mctx->base.base.get_blob = msm_renderer_get_blob;
    mctx->base.base.submit_fence = msm_renderer_submit_fence;
    mctx->base.base.supports_fence_sharing = true;
+   mctx->base.free_object = msm_renderer_free_object;
 
    return &mctx->base.base;
 }
