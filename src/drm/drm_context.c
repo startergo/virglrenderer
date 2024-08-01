@@ -225,10 +225,40 @@ drm_context_init(struct drm_context *dctx, int fd,
    dctx->base.detach_resource = drm_context_detach_resource;
 }
 
+static void
+free_blob(const void *blob_id, void *_obj, void *_dctx)
+{
+   struct drm_context *dctx = _dctx;
+   struct drm_object *obj = drm_context_retrieve_object_from_blob_id(dctx,
+                                                                     (uintptr_t)blob_id);
+
+   assert(obj == _obj);
+
+   if (obj)
+      dctx->free_object(dctx, obj);
+}
+
+static void
+free_resource(const void *res_id, void *_obj, void *_dctx)
+{
+   struct drm_context *dctx = _dctx;
+   struct drm_object *obj = drm_context_get_object_from_res_id(dctx, (uintptr_t)res_id);
+
+   assert(obj == _obj);
+
+   if (obj)
+      dctx->free_object(dctx, obj);
+}
+
 void
 drm_context_deinit(struct drm_context *dctx)
 {
    drm_context_unmap_shmem_blob(dctx);
+
+   if (dctx->free_object) {
+      hash_table_call_foreach(dctx->blob_table, free_blob, dctx);
+      hash_table_call_foreach(dctx->resource_table, free_resource, dctx);
+   }
 
    /* sanity-check for a leaked resources */
    assert(!dctx->resource_table->entries);
@@ -397,6 +427,9 @@ drm_context_get_object_from_res_id(struct drm_context *dctx, uint32_t res_id)
 void
 drm_context_remove_object(struct drm_context *dctx, struct drm_object *obj)
 {
+   if (drm_context_res_id_unused(dctx, obj->res_id))
+      return;
+
    _mesa_hash_table_remove_key(dctx->resource_table, (void *)(uintptr_t)obj->res_id);
 }
 
