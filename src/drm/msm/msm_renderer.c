@@ -333,8 +333,6 @@ msm_renderer_free_object(struct drm_context *dctx, struct drm_object *dobj)
 {
    struct msm_object *obj = to_msm_object(dobj);
 
-   drm_context_remove_object(dctx, &obj->base);
-   
    if (obj->map)
       munmap(obj->map, obj->base.size);
 

@@ -92,8 +92,6 @@ void drm_context_object_set_res_id(struct drm_context *dctx,
 struct drm_object *drm_context_get_object_from_res_id(struct drm_context *dctx,
                                                       uint32_t res_id);
 
-void drm_context_remove_object(struct drm_context *dctx, struct drm_object *obj);
-
 bool drm_context_res_id_unused(struct drm_context *dctx, uint32_t res_id);
 
 #endif /* ENABLE_DRM */

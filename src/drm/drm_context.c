@@ -183,6 +183,23 @@ drm_context_submit_cmd(struct virgl_context *vctx, const void *_buffer, size_t s
 }
 
 static void
+drm_context_remove_object(struct drm_context *dctx, struct drm_object *obj)
+{
+   if (drm_context_res_id_unused(dctx, obj->res_id))
+      return;
+
+   _mesa_hash_table_remove_key(dctx->resource_table, (void *)(uintptr_t)obj->res_id);
+}
+
+static void
+drm_context_free_object(struct drm_context *dctx, struct drm_object *dobj)
+{
+   drm_context_remove_object(dctx, dobj);
+
+   dctx->free_object(dctx, dobj);
+}
+
+static void
 drm_context_detach_resource(struct virgl_context *vctx, struct virgl_resource *res)
 {
    struct drm_context *dctx = to_drm_context(vctx);
@@ -197,7 +214,7 @@ drm_context_detach_resource(struct virgl_context *vctx, struct virgl_resource *r
 
    drm_dbg("obj=%p, blob_id=%u, res_id=%u", (void*)obj, obj->blob_id, obj->res_id);
 
-   dctx->free_object(dctx, obj);
+   drm_context_free_object(dctx, obj);
 }
 
 void
@@ -235,7 +252,7 @@ free_blob(const void *blob_id, void *_obj, void *_dctx)
    assert(obj == _obj);
 
    if (obj)
-      dctx->free_object(dctx, obj);
+      drm_context_free_object(dctx, obj);
 }
 
 static void
@@ -247,7 +264,7 @@ free_resource(const void *res_id, void *_obj, void *_dctx)
    assert(obj == _obj);
 
    if (obj)
-      dctx->free_object(dctx, obj);
+      drm_context_free_object(dctx, obj);
 }
 
 void
@@ -422,15 +439,6 @@ drm_context_get_object_from_res_id(struct drm_context *dctx, uint32_t res_id)
 {
    const struct hash_entry *entry = hash_table_search(dctx->resource_table, res_id);
    return likely(entry) ? entry->data : NULL;
-}
-
-void
-drm_context_remove_object(struct drm_context *dctx, struct drm_object *obj)
-{
-   if (drm_context_res_id_unused(dctx, obj->res_id))
-      return;
-
-   _mesa_hash_table_remove_key(dctx->resource_table, (void *)(uintptr_t)obj->res_id);
 }
 
 bool
