@@ -56,6 +56,8 @@ struct drm_context {
    const struct drm_ccmd *ccmd_dispatch;
    unsigned int dispatch_size;
    unsigned int ccmd_alignment;
+
+   void (*free_object)(struct drm_context *dctx, struct drm_object *dobj);
 };
 DEFINE_CAST(virgl_context, drm_context)
 

@@ -182,6 +182,24 @@ drm_context_submit_cmd(struct virgl_context *vctx, const void *_buffer, size_t s
    return 0;
 }
 
+static void
+drm_context_detach_resource(struct virgl_context *vctx, struct virgl_resource *res)
+{
+   struct drm_context *dctx = to_drm_context(vctx);
+   struct drm_object *obj = drm_context_get_object_from_res_id(dctx, res->res_id);
+
+   drm_dbg("obj=%p, res_id=%u", (void*)obj, res->res_id);
+
+   if (!obj) {
+      /* If this context doesn't know about this resource id there's nothing to do. */
+       return;
+   }
+
+   drm_dbg("obj=%p, blob_id=%u, res_id=%u", (void*)obj, obj->blob_id, obj->res_id);
+
+   dctx->free_object(dctx, obj);
+}
+
 void
 drm_context_init(struct drm_context *dctx, int fd,
                  const struct drm_ccmd *ccmd_dispatch, unsigned int dispatch_size)
@@ -204,6 +222,7 @@ drm_context_init(struct drm_context *dctx, int fd,
    dctx->base.transfer_3d = drm_context_transfer_3d;
    dctx->base.get_fencing_fd = drm_context_get_fencing_fd;
    dctx->base.retire_fences = drm_context_retire_fences;
+   dctx->base.detach_resource = drm_context_detach_resource;
 }
 
 void
