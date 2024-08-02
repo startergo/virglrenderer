@@ -123,7 +123,7 @@ struct amdgpu_ccmd_cs_submit_req {
 
    uint32_t ctx_id;
    uint32_t num_chunks; /* limited to AMDGPU_CCMD_CS_SUBMIT_MAX_NUM_CHUNKS */
-   uint32_t bo_number;
+   uint32_t pad;
    uint32_t ring_idx;
 
    /* Starts with a descriptor array:

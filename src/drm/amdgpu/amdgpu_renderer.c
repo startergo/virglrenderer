@@ -758,7 +758,7 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
 {
    const struct amdgpu_ccmd_cs_submit_req *req = to_amdgpu_ccmd_cs_submit_req(hdr);
    struct amdgpu_context *ctx = to_amdgpu_context(dctx);
-   struct drm_amdgpu_bo_list_in bo_list_in;
+   struct drm_amdgpu_bo_list_in bo_list_in = { 0 };
    struct drm_amdgpu_cs_chunk_fence user_fence;
    struct drm_amdgpu_cs_chunk_sem syncobj_in = { 0 };
    const struct drm_amdgpu_bo_list_entry *bo_handles_in = NULL;
@@ -834,11 +834,7 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       const void *input = (const char *)req + offset;
 
       if (chunk_id == AMDGPU_CHUNK_ID_BO_HANDLES) {
-         uint32_t bo_count = req->bo_number;
-         if (!validate_chunk_inputs(bo_count, typeof(*bo_handles_in))) {
-            r = -EINVAL;
-            goto end;
-         }
+         uint32_t bo_count = len / sizeof(*bo_handles_in);
 
          if (bo_list != NULL) {
             print(0, "Refusing to allocate multiple BO lists");
@@ -969,13 +965,13 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
    }
 
    if (r != 0 || ctx->debug >= 4) {
-      print(1, "GPU submit used %d BOs:", req->bo_number);
+      print(1, "GPU submit used %d BOs:", bo_list_in.bo_number);
       print(1, "Used | Resource ID ");
       print(1, "-----|-------------");
       hash_table_foreach (ctx->base.resource_table, entry) {
          const struct amdgpu_object *o = entry->data;
          bool used = false;
-         for (unsigned j = 0; j < req->bo_number && !used; j++) {
+         for (unsigned j = 0; j < bo_list_in.bo_number && !used; j++) {
             if (bo_handles_in[j].bo_handle == o->base.res_id)
                used = true;
          }
