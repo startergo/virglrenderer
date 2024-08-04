@@ -25,6 +25,7 @@
 
 void _drm_log(enum virgl_log_level_flags level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 #define drm_log(fmt, ...) _drm_log(VIRGL_LOG_LEVEL_INFO, "%s:%d: " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
+#define drm_err(fmt, ...) _drm_log(VIRGL_LOG_LEVEL_ERROR, "%s:%d: " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
 #define drm_dbg(fmt, ...) _drm_log(VIRGL_LOG_LEVEL_DEBUG, "%s:%d: " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
 
 #pragma GCC diagnostic pop
