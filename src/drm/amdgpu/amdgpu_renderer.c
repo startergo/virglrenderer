@@ -53,6 +53,7 @@
 #pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 #endif
 
+#if 0
 #define print(level, fmt, ...) do {       \
    if (ctx->debug >= level) { \
       unsigned c = (unsigned)((uintptr_t)ctx >> 8) % 256; \
@@ -61,6 +62,16 @@
       printf("\033[0m");     \
    } \
  } while (false)
+#else
+#define print(log_level, fmt, ...) do {       \
+   if (log_level == 0) \
+      drm_err("[%d|%s]: " fmt, ctx->base.base.ctx_id, ctx->debug_name, ##__VA_ARGS__); \
+   else if (log_level == 1) \
+      drm_log("[%d|%s]: " fmt, ctx->base.base.ctx_id, ctx->debug_name, ##__VA_ARGS__); \
+   else \
+      drm_dbg("[%d|%s]: " fmt, ctx->base.base.ctx_id, ctx->debug_name, ##__VA_ARGS__); \
+ } while (false)
+#endif
 
 struct amdgpu_context {
    struct drm_context base;
