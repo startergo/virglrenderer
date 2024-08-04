@@ -456,8 +456,9 @@ amdgpu_ccmd_query_info(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
    rsp->hdr.ret = r;
 
    if (rsp->hdr.ret < 0 && request.query != AMDGPU_INFO_HW_IP_INFO)
-      print(0, "ioctl error: fd: %d r: %d|%d %s",
-            amdgpu_device_get_fd(ctx->dev), rsp->hdr.ret, r,strerror(errno));
+      print(request.query <= AMDGPU_INFO_RAS_ENABLED_FEATURES ? 0 : 2,
+            "ioctl error: fd: %d request.query: 0x%x r: %d|%d %s",
+            amdgpu_device_get_fd(ctx->dev), request.query, rsp->hdr.ret, r, strerror(errno));
 
    memcpy(rsp->payload, value, req->info.return_size);
    free(value);
