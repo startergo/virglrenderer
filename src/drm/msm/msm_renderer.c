@@ -281,7 +281,7 @@ msm_renderer_attach_resource(struct virgl_context *vctx, struct virgl_resource *
    struct msm_context *mctx = to_msm_context(dctx);
    struct msm_object *obj = msm_get_object_from_res_id(mctx, res->res_id);
 
-   drm_dbg("obj=%p, res_id=%u", obj, res->res_id);
+   drm_dbg("obj=%p, res_id=%u", (void*)obj, res->res_id);
 
    if (!obj) {
       int fd;
@@ -319,7 +319,7 @@ msm_renderer_attach_resource(struct virgl_context *vctx, struct virgl_resource *
 
          drm_context_object_set_res_id(dctx, &obj->base, res->res_id);
 
-         drm_dbg("obj=%p, res_id=%u, handle=%u", obj, obj->base.res_id, obj->base.handle);
+         drm_dbg("obj=%p, res_id=%u, handle=%u", (void*)obj, obj->base.res_id, obj->base.handle);
       } else {
          if (fd_type != VIRGL_RESOURCE_FD_INVALID)
             close(fd);
@@ -350,7 +350,7 @@ msm_renderer_export_opaque_handle(struct virgl_context *vctx, struct virgl_resou
    struct msm_object *obj = msm_get_object_from_res_id(mctx, res->res_id);
    int ret;
 
-   drm_dbg("obj=%p, res_id=%u", obj, res->res_id);
+   drm_dbg("obj=%p, res_id=%u", (void*)obj, res->res_id);
 
    if (!obj) {
       drm_log("invalid res_id %u", res->res_id);
@@ -590,7 +590,7 @@ msm_ccmd_gem_new(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
    drm_context_object_set_blob_id(dctx, &obj->base, req->blob_id);
 
    drm_dbg("obj=%p, blob_id=%u, handle=%u, iova=%" PRIx64,
-           obj, obj->base.blob_id, obj->base.handle, iova);
+           (void*)obj, obj->base.blob_id, obj->base.handle, iova);
 
    return 0;
 
@@ -629,7 +629,7 @@ msm_ccmd_gem_set_iova(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       goto out_error;
    }
 
-   drm_dbg("obj=%p, blob_id=%u, handle=%u, iova=%" PRIx64, obj, obj->base.blob_id,
+   drm_dbg("obj=%p, blob_id=%u, handle=%u, iova=%" PRIx64, (void*)obj, obj->base.blob_id,
            obj->base.handle, iova);
 
    return 0;
