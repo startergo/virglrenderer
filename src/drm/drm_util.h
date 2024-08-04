@@ -21,18 +21,13 @@
 
 #include "linux/overflow.h"
 
-void _drm_log(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-#define drm_log(fmt, ...) _drm_log("%s:%d: " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
+#include "virglrenderer.h"
+
+void _drm_log(enum virgl_log_level_flags level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+#define drm_log(fmt, ...) _drm_log(VIRGL_LOG_LEVEL_INFO, "%s:%d: " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
+#define drm_dbg(fmt, ...) _drm_log(VIRGL_LOG_LEVEL_DEBUG, "%s:%d: " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
 
 #pragma GCC diagnostic pop
-
-#if 0
-#define drm_dbg drm_log
-#else
-#define drm_dbg(fmt, ...)                                                                \
-   do {                                                                                  \
-   } while (0)
-#endif
 
 #define VOID2U64(x) ((uint64_t)(unsigned long)(x))
 #define U642VOID(x) ((void *)(unsigned long)(x))

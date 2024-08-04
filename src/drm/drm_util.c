@@ -12,11 +12,11 @@
 #include "util/macros.h"
 
 void
-_drm_log(const char *fmt, ...)
+_drm_log(enum virgl_log_level_flags level, const char *fmt, ...)
 {
    va_list va;
 
    va_start(va, fmt);
-   virgl_prefixed_logv("drm", VIRGL_LOG_LEVEL_INFO, fmt, va);
+   virgl_prefixed_logv("drm", level, fmt, va);
    va_end(va);
 }
