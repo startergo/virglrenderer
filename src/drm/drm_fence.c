@@ -67,7 +67,7 @@ thread_sync(void *arg)
    while (!timeline->stop_sync_thread) {
       if (list_is_empty(&timeline->pending_fences)) {
          if (cnd_wait(&timeline->fence_cond, &timeline->fence_mutex))
-            drm_log("error waiting on fence condition");
+            drm_err("error waiting on fence condition");
          continue;
       }
 
@@ -85,7 +85,7 @@ thread_sync(void *arg)
          write_eventfd(timeline->eventfd, 1);
          drm_fence_destroy(fence);
       } else if (ret != 0) {
-         drm_log("poll failed: %s", strerror(errno));
+         drm_err("poll failed: %s", strerror(errno));
       }
    }
    mtx_unlock(&timeline->fence_mutex);
