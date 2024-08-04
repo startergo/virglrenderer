@@ -68,14 +68,14 @@ drm_context_submit_cmd_dispatch(struct drm_context *dctx, const struct vdrm_ccmd
    int ret;
 
    if (hdr->cmd >= dctx->dispatch_size) {
-      drm_log("invalid cmd: %u", hdr->cmd);
+      drm_err("invalid cmd: %u", hdr->cmd);
       return -EINVAL;
    }
 
    const struct drm_ccmd *ccmd = &dctx->ccmd_dispatch[hdr->cmd];
 
    if (!ccmd->handler) {
-      drm_log("no handler: %u", hdr->cmd);
+      drm_err("no handler: %u", hdr->cmd);
       return -EINVAL;
    }
 
@@ -108,7 +108,7 @@ drm_context_submit_cmd_dispatch(struct drm_context *dctx, const struct vdrm_ccmd
    free(buf);
 
    if (ret) {
-      drm_log("%s: dispatch failed: %d (%s)", ccmd->name, ret, strerror(errno));
+      drm_err("%s: dispatch failed: %d (%s)", ccmd->name, ret, strerror(errno));
       return ret;
    }
 
@@ -145,7 +145,7 @@ drm_context_submit_cmd(struct virgl_context *vctx, const void *_buffer, size_t s
    const uint8_t *buffer = _buffer;
 
    if (size > UINT32_MAX) {
-      drm_log("bad size, %zu too big", size);
+      drm_err("bad size, %zu too big", size);
       return -EINVAL;
    }
 
@@ -155,18 +155,18 @@ drm_context_submit_cmd(struct virgl_context *vctx, const void *_buffer, size_t s
       /* Sanity check first: */
       if ((hdr->len > size) || (hdr->len < sizeof(*hdr)) ||
           (hdr->len % dctx->ccmd_alignment)) {
-         drm_log("bad size, %u vs %zu (%u)", hdr->len, size, hdr->cmd);
+         drm_err("bad size, %u vs %zu (%u)", hdr->len, size, hdr->cmd);
          return -EINVAL;
       }
 
       if (hdr->rsp_off % dctx->ccmd_alignment) {
-         drm_log("bad rsp_off, %u", hdr->rsp_off);
+         drm_err("bad rsp_off, %u", hdr->rsp_off);
          return -EINVAL;
       }
 
       int ret = drm_context_submit_cmd_dispatch(dctx, hdr);
       if (ret) {
-         drm_log("dispatch failed: %d (%u)", ret, hdr->cmd);
+         drm_err("dispatch failed: %d (%u)", ret, hdr->cmd);
          return ret;
       }
 
@@ -175,7 +175,7 @@ drm_context_submit_cmd(struct virgl_context *vctx, const void *_buffer, size_t s
    }
 
    if (size > 0) {
-      drm_log("bad size, %zu trailing bytes", size);
+      drm_err("bad size, %zu trailing bytes", size);
       return -EINVAL;
    }
 
@@ -296,7 +296,7 @@ drm_context_rsp(struct drm_context *dctx, const struct vdrm_ccmd_req *hdr,
    size_t off = hdr->rsp_off;
 
    if ((off > rsp_mem_sz) || (len > rsp_mem_sz - off)) {
-      drm_log("invalid shm offset: off=%zu, len=%zu (shmem_size=%zu)",
+      drm_err("invalid shm offset: off=%zu, len=%zu (shmem_size=%zu)",
               off, len, rsp_mem_sz);
       return NULL;
    }
@@ -331,36 +331,36 @@ drm_context_get_shmem_blob(struct drm_context *dctx,
    int fd;
 
    if (blob_flags != VIRGL_RENDERER_BLOB_FLAG_USE_MAPPABLE) {
-      drm_log("invalid blob_flags: 0x%x", blob_flags);
+      drm_err("invalid blob_flags: 0x%x", blob_flags);
       return -EINVAL;
    }
 
    if (dctx->shmem) {
-      drm_log("there can be only one!");
+      drm_err("there can be only one!");
       return -EINVAL;
    }
 
    if ((blob_size < sizeof(*dctx->shmem)) || (blob_size > UINT32_MAX)) {
-      drm_log("invalid blob size 0x%" PRIx64, blob_size);
+      drm_err("invalid blob size 0x%" PRIx64, blob_size);
       return -EINVAL;
    }
 
    fd = os_create_anonymous_file(blob_size, name);
    if (fd < 0) {
-      drm_log("failed to create shmem file: %s", strerror(errno));
+      drm_err("failed to create shmem file: %s", strerror(errno));
       return -ENOMEM;
    }
 
    int ret = fcntl(fd, F_ADD_SEALS, F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW);
    if (ret) {
-      drm_log("fcntl failed: %s", strerror(errno));
+      drm_err("fcntl failed: %s", strerror(errno));
       close(fd);
       return -ENOMEM;
    }
 
    dctx->shmem = mmap(NULL, blob_size, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
    if (dctx->shmem == MAP_FAILED) {
-      drm_log("shmem mmap failed: %s", strerror(errno));
+      drm_err("shmem mmap failed: %s", strerror(errno));
       dctx->shmem = NULL;
       close(fd);
       return -ENOMEM;
