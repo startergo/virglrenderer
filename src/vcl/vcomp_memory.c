@@ -642,6 +642,60 @@ vcomp_dispatch_clEnqueueMapBufferMESA(struct vcl_dispatch_context *ctx,
 }
 
 static void
+vcomp_dispatch_clEnqueueMapImageMESA(struct vcl_dispatch_context *ctx,
+                                     struct vcl_command_clEnqueueMapImageMESA *args)
+{
+   struct vcomp_context *vctx = ctx->data;
+
+   struct vcomp_memory *buffer = vcomp_memory_from_handle(args->image);
+   if (!buffer)
+   {
+      args->ret = CL_INVALID_MEM_OBJECT;
+      return;
+   }
+
+   vcl_replace_clEnqueueMapImageMESA_args_handle(args);
+
+   void *mapped_ptr = vcomp_memory_get_mapping(buffer, args->ptr);
+   if (mapped_ptr)
+   {
+      /* Guest pointer already mapped, remove current mapping before mapping again */
+      args->ret = vcomp_memory_force_unmap(buffer, args->command_queue, mapped_ptr);
+      if (args->ret != CL_SUCCESS)
+      {
+         return;
+      }
+      mapped_ptr = NULL;
+   }
+
+   cl_event host_event;
+
+   mapped_ptr = clEnqueueMapImage(args->command_queue,
+                                  args->image,
+                                  args->blocking_map,
+                                  args->map_flags,
+                                  args->origin,
+                                  args->region,
+                                  args->image_row_pitch,
+                                  args->image_slice_pitch,
+                                  args->num_events_in_wait_list,
+                                  args->event_wait_list,
+                                  args->event ? &host_event : NULL,
+                                  &args->ret);
+
+   if (args->ret != CL_SUCCESS)
+      return;
+
+   vcomp_memory_add_mapping(buffer, args->ptr, mapped_ptr);
+
+   if (args->event)
+      vcomp_context_add_event(vctx, host_event, args->event, &args->ret);
+
+   if (mapped_ptr && args->size > 0)
+      memcpy(args->ptr, mapped_ptr, args->size);
+}
+
+static void
 vcomp_dispatch_clEnqueueUnmapMemObjectMESA(struct vcl_dispatch_context *ctx,
                                            struct vcl_command_clEnqueueUnmapMemObjectMESA *args)
 {
@@ -711,6 +765,7 @@ void vcomp_context_init_memory_dispatch(struct vcomp_context *vctx)
    vctx->dispatch.dispatch_clEnqueueCopyBufferToImage = vcomp_dispatch_clEnqueueCopyBufferToImage;
    vctx->dispatch.dispatch_clEnqueueFillImageMESA = vcomp_dispatch_clEnqueueFillImageMESA;
    vctx->dispatch.dispatch_clEnqueueMapBufferMESA = vcomp_dispatch_clEnqueueMapBufferMESA;
+   vctx->dispatch.dispatch_clEnqueueMapImageMESA = vcomp_dispatch_clEnqueueMapImageMESA;
    vctx->dispatch.dispatch_clEnqueueUnmapMemObjectMESA = vcomp_dispatch_clEnqueueUnmapMemObjectMESA;
 }
 
