@@ -234,8 +234,8 @@ drm_context_init(struct drm_context *dctx, int fd,
    dctx->eventfd = create_eventfd(0);
    dctx->fd = fd;
 
-   /* 4 bytes by default */
-   dctx->ccmd_alignment = 4;
+   /* 8 bytes by default */
+   dctx->ccmd_alignment = 8;
 
    dctx->base.submit_cmd = drm_context_submit_cmd;
    dctx->base.transfer_3d = drm_context_transfer_3d;

@@ -1193,7 +1193,6 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
    ctx->base.base.submit_fence = amdgpu_renderer_submit_fence;
    ctx->base.base.supports_fence_sharing = true;
    ctx->base.free_object = amdgpu_renderer_free_object;
-   ctx->base.ccmd_alignment = 8;
 
    ctx->id_to_ctx = _mesa_hash_table_u64_create(NULL);
 

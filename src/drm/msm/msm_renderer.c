@@ -1029,5 +1029,8 @@ msm_renderer_create(int fd, UNUSED size_t debug_len, UNUSED const char *debug_na
    mctx->base.base.supports_fence_sharing = true;
    mctx->base.free_object = msm_renderer_free_object;
 
+   /* Only 4 byte alignment is required for legacy reasons. */
+   mctx->base.ccmd_alignment = 4;
+
    return &mctx->base.base;
 }
