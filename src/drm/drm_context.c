@@ -155,12 +155,14 @@ drm_context_submit_cmd(struct virgl_context *vctx, const void *_buffer, size_t s
       /* Sanity check first: */
       if ((hdr->len > size) || (hdr->len < sizeof(*hdr)) ||
           (hdr->len % dctx->ccmd_alignment)) {
-         drm_err("bad size, %u vs %zu (%u)", hdr->len, size, hdr->cmd);
+         drm_err("bad size, %u vs %zu (cmd %u, min alignment %u)",
+                 hdr->len, size, hdr->cmd, dctx->ccmd_alignment);
          return -EINVAL;
       }
 
       if (hdr->rsp_off % dctx->ccmd_alignment) {
-         drm_err("bad rsp_off, %u", hdr->rsp_off);
+         drm_err("bad rsp_off, %u, min alignment %u",
+                 hdr->rsp_off, dctx->ccmd_alignment);
          return -EINVAL;
       }
 
