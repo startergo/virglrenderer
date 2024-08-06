@@ -61,7 +61,7 @@ struct drm_context {
 };
 DEFINE_CAST(virgl_context, drm_context)
 
-void drm_context_init(struct drm_context *dctx, int fd,
+bool drm_context_init(struct drm_context *dctx, int fd,
                       const struct drm_ccmd *ccmd_dispatch, unsigned int dispatch_size);
 
 void drm_context_deinit(struct drm_context *dctx);

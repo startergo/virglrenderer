@@ -1175,6 +1175,8 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
    if (ctx == NULL)
       goto fail;
    ctx->debug_name = strndup(debug_name, debug_len);
+   if (ctx->debug_name == NULL)
+      goto fail;
    ctx->debug = -1;
    ctx->dev = dev;
    const char *d = getenv("DEBUG");
@@ -1184,7 +1186,8 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
    print(1, "amdgpu_renderer_create name=%s fd=%d (from %d) -> dev=%p", ctx->debug_name, fd,
          amdgpu_device_get_fd(ctx->dev), (void*)ctx->dev);
 
-   drm_context_init(&ctx->base, -1, ccmd_dispatch, ARRAY_SIZE(ccmd_dispatch));
+   if (!drm_context_init(&ctx->base, -1, ccmd_dispatch, ARRAY_SIZE(ccmd_dispatch)))
+      goto fail_init;
 
    ctx->base.base.destroy = amdgpu_renderer_destroy;
    ctx->base.base.attach_resource = amdgpu_renderer_attach_resource;
@@ -1195,6 +1198,8 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
    ctx->base.free_object = amdgpu_renderer_free_object;
 
    ctx->id_to_ctx = _mesa_hash_table_u64_create(NULL);
+   if (ctx->id_to_ctx == NULL)
+      goto fail_hash_table;
 
    /* Ring 0 is for CPU execution. */
    /* TODO: add a setting to control which queues are exposed to the
@@ -1229,10 +1234,13 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
 
 fail_context_deinit:
    _mesa_hash_table_u64_destroy(ctx->id_to_ctx, NULL);
+fail_hash_table:
    drm_context_deinit(&ctx->base);
+fail_init:
+   free((void*)ctx->debug_name);
 fail:
-   amdgpu_device_deinitialize(dev);
    free(ctx);
+   amdgpu_device_deinitialize(dev);
    close(fd);
    return NULL;
 }

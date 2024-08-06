@@ -1010,7 +1010,10 @@ msm_renderer_create(int fd, UNUSED size_t debug_len, UNUSED const char *debug_na
    if (!mctx)
       return NULL;
 
-   drm_context_init(&mctx->base, fd, ccmd_dispatch, ARRAY_SIZE(ccmd_dispatch));
+   if (!drm_context_init(&mctx->base, fd, ccmd_dispatch, ARRAY_SIZE(ccmd_dispatch))) {
+      free(mctx);
+      return NULL;
+   }
 
    /* Indexed by submitqueue-id: */
    mctx->sq_to_ring_idx_table = _mesa_hash_table_create_u32_keys(NULL);

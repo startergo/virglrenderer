@@ -223,15 +223,19 @@ drm_context_detach_resource(struct virgl_context *vctx, struct virgl_resource *r
    drm_context_free_object(dctx, obj);
 }
 
-void
+bool
 drm_context_init(struct drm_context *dctx, int fd,
                  const struct drm_ccmd *ccmd_dispatch, unsigned int dispatch_size)
 {
    /* Indexed by res_id: */
    dctx->resource_table = _mesa_hash_table_create_u32_keys(NULL);
+   if (dctx->resource_table == NULL)
+      return false;
 
    /* Indexed by blob_id, but only lower 32b of blob_id are used: */
    dctx->blob_table = _mesa_hash_table_create_u32_keys(NULL);
+   if (dctx->blob_table)
+      goto fail_blob_table;
 
    dctx->ccmd_dispatch = ccmd_dispatch;
    dctx->dispatch_size = dispatch_size;
@@ -246,6 +250,11 @@ drm_context_init(struct drm_context *dctx, int fd,
    dctx->base.get_fencing_fd = drm_context_get_fencing_fd;
    dctx->base.retire_fences = drm_context_retire_fences;
    dctx->base.detach_resource = drm_context_detach_resource;
+   return true;
+fail_blob_table:
+   _mesa_hash_table_destroy(dctx->resource_table, NULL);
+   dctx->resource_table = NULL;
+   return false;
 }
 
 static void
