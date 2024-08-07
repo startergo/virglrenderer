@@ -243,7 +243,7 @@ drm_context_init(struct drm_context *dctx, int fd,
 }
 
 static void
-free_blob(const void *blob_id, void *_obj, void *_dctx)
+free_blob(const void *blob_id, UNUSED void *_obj, void *_dctx)
 {
    struct drm_context *dctx = _dctx;
    struct drm_object *obj = drm_context_retrieve_object_from_blob_id(dctx,
@@ -256,7 +256,7 @@ free_blob(const void *blob_id, void *_obj, void *_dctx)
 }
 
 static void
-free_resource(const void *res_id, void *_obj, void *_dctx)
+free_resource(const void *res_id, UNUSED void *_obj, void *_dctx)
 {
    struct drm_context *dctx = _dctx;
    struct drm_object *obj = drm_context_get_object_from_res_id(dctx, (uintptr_t)res_id);
