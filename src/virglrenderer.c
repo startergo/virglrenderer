@@ -296,7 +296,10 @@ int virgl_renderer_submit_cmd(void *buffer,
    if (ndw < 0 || (unsigned)ndw > UINT32_MAX / sizeof(uint32_t))
       return EINVAL;
 
-   return ctx->submit_cmd(ctx, buffer, ndw * sizeof(uint32_t));
+   if (((uintptr_t)buffer & 3) != 0)
+      return EFAULT;
+
+   return ctx->submit_cmd(ctx, buffer, (uint32_t)ndw * sizeof(uint32_t));
 }
 
 int virgl_renderer_transfer_write_iov(uint32_t handle,
@@ -1465,6 +1468,9 @@ int virgl_renderer_submit_cmd2(void *buffer,
    if (!ctx)
       return EINVAL;
 
+   if (((uintptr_t)buffer & 3) != 0)
+      return EFAULT;
+
    if (ndw < 0 || (unsigned)ndw > UINT32_MAX / sizeof(uint32_t))
       return EINVAL;
 
@@ -1474,5 +1480,5 @@ int virgl_renderer_submit_cmd2(void *buffer,
          return err;
    }
 
-   return ctx->submit_cmd(ctx, buffer, ndw * sizeof(uint32_t));
+   return ctx->submit_cmd(ctx, buffer, (uint32_t)ndw * sizeof(uint32_t));
 }

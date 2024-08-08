@@ -285,6 +285,22 @@ VIRGL_EXPORT void *virgl_renderer_resource_get_priv(uint32_t res_handle);
 VIRGL_EXPORT int virgl_renderer_context_create(uint32_t handle, uint32_t nlen, const char *name);
 VIRGL_EXPORT void virgl_renderer_context_destroy(uint32_t handle);
 
+/* Submit a command buffer for execution.  ctx_id is the context ID.
+ * ndw is the length of the buffer in 4-byte words.
+ *
+ * The buffer must be at least 4-byte aligned.  Starting in 1.0.2, this
+ * is checked and violations result in EFAULT being returned.  In 1.0.1
+ * and below, a misaligned buffer caused undefined behavior.
+ *
+ * Some renderers require that the buffer is 8-byte aligned.  These
+ * renderers deal with less-aligned buffers by copying the input data.
+ * You can avoid the copy by passing a sufficiently-aligned buffer.
+ *
+ * This function will never mutate the buffer, and is secure against
+ * malicious buffer contents.  However, it is _not_ secure against
+ * concurrent modification of the buffer by other threads while it
+ * is running.
+ */
 VIRGL_EXPORT int virgl_renderer_submit_cmd(void *buffer,
                                            int ctx_id,
                                            int ndw);
@@ -456,6 +472,25 @@ virgl_renderer_export_fence(uint64_t client_fence_id, int *fd);
 VIRGL_EXPORT int
 virgl_renderer_export_signalled_fence(void);
 
+/* Submit a command buffer for execution.  ctx_id is the context ID.
+ * ndw is the length of the buffer in 4-byte words.
+ *
+ * The buffer must be at least 4-byte aligned.  Starting in 1.0.2, this
+ * is checked and violations result in EFAULT being returned.  In 1.0.1
+ * and below, a misaligned buffer caused undefined behavior.
+ *
+ * Some renderers require that the buffer is 8-byte aligned.  These
+ * renderers deal with less-aligned buffers by copying the input data.
+ * You can avoid the copy by passing a sufficiently-aligned buffer.
+ *
+ * This function will never mutate the buffer, and is secure against
+ * malicious buffer contents.  However, it is _not_ secure against
+ * concurrent modification of the buffer by other threads while it
+ * is running.
+ *
+ * Unlike virgl_renderer_submitt_cmd(), this function allows passing
+ * fences for explicit synchronization.
+ */
 VIRGL_EXPORT int
 virgl_renderer_submit_cmd2(void *buffer,
                            int ctx_id,
