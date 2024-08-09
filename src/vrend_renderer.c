@@ -13081,6 +13081,9 @@ vrend_renderer_resource_d3d11_texture2d(struct pipe_resource *pres, void **d3d_t
 #ifdef WIN32
    struct vrend_resource *res = (struct vrend_resource *)pres;
 
+   if (!vrend_state.d3d_share_texture)
+      return 0;
+
    if (!res->d3d_tex2d)
       return EINVAL;
 
