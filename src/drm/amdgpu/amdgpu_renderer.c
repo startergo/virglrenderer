@@ -761,7 +761,7 @@ static bool validate_chunk_inputs(size_t offset, size_t len, struct amdgpu_conte
       return false; /* misaligned */
    }
    size_t total_len = size_mul(size, count);
-   if (total_len > len) {
+   if (total_len != len) {
       print(0, "Length 0x%zx cannot hold 0x%zx entries of size 0x%zx",
             len, count, size);
       return false;
