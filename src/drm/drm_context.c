@@ -234,7 +234,7 @@ drm_context_init(struct drm_context *dctx, int fd,
 
    /* Indexed by blob_id, but only lower 32b of blob_id are used: */
    dctx->blob_table = _mesa_hash_table_create_u32_keys(NULL);
-   if (dctx->blob_table)
+   if (dctx->blob_table == NULL)
       goto fail_blob_table;
 
    dctx->ccmd_dispatch = ccmd_dispatch;
