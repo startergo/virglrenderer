@@ -840,6 +840,8 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
          r = -EINVAL;
          goto end;
       }
+      /* This macro must be used to validate the offset AND count.  Even if
+       * the count is trusted, the offset must still be validated! */
 #define validate_chunk_inputs(count, type) \
    validate_chunk_inputs(offset, len, ctx, count, sizeof(type), alignof(type))
 
@@ -847,6 +849,10 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
 
       if (chunk_id == AMDGPU_CHUNK_ID_BO_HANDLES) {
          uint32_t bo_count = len / sizeof(*bo_handles_in);
+         if (!validate_chunk_inputs(bo_count, typeof(*bo_handles_in))) {
+            r = -EINVAL;
+            goto end;
+         }
 
          if (bo_list != NULL) {
             print(0, "Refusing to allocate multiple BO lists");
