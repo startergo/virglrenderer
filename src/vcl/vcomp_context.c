@@ -123,6 +123,17 @@ vcomp_context_transfer_send_iov(UNUSED struct vcomp_context *vctx,
 }
 
 static int
+vcomp_context_transfer_write_iov(UNUSED struct vcomp_context *vctx,
+                                 struct vrend_resource *vres,
+                                 const struct iovec *iov,
+                                 int iov_count,
+                                 const struct vrend_transfer_info *info)
+{
+   vrend_read_from_iovec(iov, iov_count, info->offset, vres->ptr, info->box->width);
+   return 0;
+}
+
+static int
 vcomp_context_transfer_3d(struct virgl_context *ctx,
                           struct virgl_resource *res,
                           const struct vrend_transfer_info *info,
@@ -159,7 +170,7 @@ vcomp_context_transfer_3d(struct virgl_context *ctx,
    switch (transfer_mode)
    {
    case VIRGL_TRANSFER_TO_HOST:
-      return EINVAL;
+      return vcomp_context_transfer_write_iov(vctx, vres, iov, iov_count, info);
    case VIRGL_TRANSFER_FROM_HOST:
       return vcomp_context_transfer_send_iov(vctx, vres, iov, iov_count, info);
    default:
