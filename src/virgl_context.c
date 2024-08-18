@@ -26,7 +26,9 @@
 
 #include <errno.h>
 
+#ifndef WIN32
 #include "util/libsync.h"
+#endif
 #include "util/os_misc.h"
 #include "util/u_hash_table.h"
 #include "util/u_pointer.h"
