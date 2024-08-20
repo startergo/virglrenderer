@@ -4,6 +4,7 @@
  */
 
 #include <stdint.h>
+#include <unistd.h>
 
 int virgl_fence_table_init(void);
 void virgl_fence_table_cleanup(void);

@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #include "virglrenderer_hw.h"
 #include "virgl_resource.h"
