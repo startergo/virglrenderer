@@ -247,8 +247,15 @@ vkr_ring_thread(void *arg)
 
    snprintf(thread_name, ARRAY_SIZE(thread_name), "vkr-ring-%d", ctx->ctx_id);
    u_thread_setname(thread_name);
-   if (ring->prio_valid && setpriority(PRIO_PROCESS, 0, ring->prio))
+   if (ring->prio_valid && setpriority(PRIO_PROCESS, 0, ring->prio)) {
+#ifdef DEBUG
+      /* Currently venus doesn't forward the CAP_SYS_NICE request upon forking, so
+       * requesting a high priority outside of the normal range would be at the best
+       * effort. Thus only enable logging on debug build.
+       */
       vkr_log("failed to set ring thread priority to %d (%d)", ring->prio, errno);
+#endif
+   }
 
    uint64_t last_submit = vkr_ring_now();
    uint32_t relax_iter = 0;
