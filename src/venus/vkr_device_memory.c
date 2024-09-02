@@ -47,6 +47,93 @@ vkr_get_fd_info_from_resource_info(struct vkr_context *ctx,
    return true;
 }
 
+#ifdef HAVE_LINUX_UDMABUF_H
+#include <fcntl.h>
+#include <linux/udmabuf.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+
+static VkResult
+vkr_udmabuf_get_fd_info_from_allocation_info(struct vkr_physical_device *physical_dev,
+                                             const VkMemoryAllocateInfo *alloc_info,
+                                             int *out_udmabuf_fd,
+                                             VkImportMemoryFdInfoKHR *out_fd_info)
+{
+   int memfd = -1;
+   int udmabuf_fd = -1;
+   int fd = -1;
+
+   memfd = memfd_create("vkr-udmabuf", MFD_CLOEXEC | MFD_ALLOW_SEALING);
+   if (memfd < 0) {
+      vkr_log("memfd_create failed (%s)", strerror(errno));
+      goto fail;
+   }
+
+   const size_t size = align(alloc_info->allocationSize, 4096);
+   int ret = ftruncate(memfd, size);
+   if (ret) {
+      vkr_log("ftruncate failed (%s)", strerror(errno));
+      goto fail;
+   }
+
+   ret = fcntl(memfd, F_ADD_SEALS, F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW);
+   if (ret) {
+      vkr_log("fcntl F_ADD_SEALS failed (%s)", strerror(errno));
+      goto fail;
+   }
+
+   const struct udmabuf_create create = {
+      .memfd = memfd,
+      .flags = UDMABUF_FLAGS_CLOEXEC,
+      .size = size,
+   };
+   udmabuf_fd = ioctl(physical_dev->udmabuf_dev_fd, UDMABUF_CREATE, &create);
+   if (udmabuf_fd < 0) {
+      vkr_log("ioctl UDMABUF_CREATE failed (%s)", strerror(errno));
+      goto fail;
+   }
+
+   fd = os_dupfd_cloexec(udmabuf_fd);
+   if (fd < 0) {
+      vkr_log("os_dupfd_cloexec failed (%s)", strerror(errno));
+      goto fail;
+   }
+
+   close(memfd);
+
+   *out_udmabuf_fd = udmabuf_fd;
+   *out_fd_info = (VkImportMemoryFdInfoKHR){
+      .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
+      .pNext = alloc_info->pNext,
+      .fd = fd,
+      .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT,
+   };
+
+   return VK_SUCCESS;
+
+fail:
+   if (udmabuf_fd >= 0)
+      close(udmabuf_fd);
+   if (memfd >= 0)
+      close(memfd);
+   return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+}
+
+#else  /* HAVE_LINUX_UDMABUF_H */
+
+static inline VkResult
+vkr_udmabuf_get_fd_info_from_allocation_info(
+   UNUSED struct vkr_physical_device *physical_dev,
+   UNUSED const VkMemoryAllocateInfo *alloc_info,
+   UNUSED int *out_udmabuf_fd,
+   UNUSED VkImportMemoryFdInfoKHR *out_fd_info)
+{
+   vkr_log("udmabuf_allocation is not enabled");
+   return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+}
+
+#endif /* HAVE_LINUX_UDMABUF_H */
+
 #ifdef ENABLE_MINIGBM_ALLOCATION
 #include <gbm.h>
 
@@ -69,10 +156,10 @@ vkr_gbm_bo_destroy(void *gbm_bo)
 }
 
 static VkResult
-vkr_get_fd_info_from_allocation_info(struct vkr_physical_device *physical_dev,
-                                     const VkMemoryAllocateInfo *alloc_info,
-                                     void **out_gbm_bo,
-                                     VkImportMemoryFdInfoKHR *out_fd_info)
+vkr_gbm_get_fd_info_from_allocation_info(struct vkr_physical_device *physical_dev,
+                                         const VkMemoryAllocateInfo *alloc_info,
+                                         void **out_gbm_bo,
+                                         VkImportMemoryFdInfoKHR *out_fd_info)
 {
    const uint32_t gbm_bo_use_flags =
       GBM_BO_USE_LINEAR | GBM_BO_USE_SW_READ_RARELY | GBM_BO_USE_SW_WRITE_RARELY;
@@ -129,10 +216,10 @@ vkr_gbm_bo_destroy(ASSERTED void *gbm_bo)
 }
 
 static inline VkResult
-vkr_get_fd_info_from_allocation_info(UNUSED struct vkr_physical_device *physical_dev,
-                                     UNUSED const VkMemoryAllocateInfo *alloc_info,
-                                     UNUSED void **out_gbm_bo,
-                                     UNUSED VkImportMemoryFdInfoKHR *out_fd_info)
+vkr_gbm_get_fd_info_from_allocation_info(UNUSED struct vkr_physical_device *physical_dev,
+                                         UNUSED const VkMemoryAllocateInfo *alloc_info,
+                                         UNUSED void **out_gbm_bo,
+                                         UNUSED VkImportMemoryFdInfoKHR *out_fd_info)
 {
    vkr_log("minigbm_allocation is not enabled");
    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -185,6 +272,7 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
    const uint32_t property_flags =
       physical_dev->memory_properties.memoryTypes[mem_type_index].propertyFlags;
    uint32_t valid_fd_types = 0;
+   int udmabuf_fd = -1;
    void *gbm_bo = NULL;
    VkExportMemoryAllocateInfo local_export_info;
    VkExportMemoryAllocateInfo *export_info =
@@ -198,8 +286,10 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
       const bool no_dma_buf_export =
          !export_info ||
          !(export_info->handleTypes & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
-      if (physical_dev->is_dma_buf_fd_export_supported ||
-          (physical_dev->is_opaque_fd_export_supported && no_dma_buf_export)) {
+      const bool force_udmabuf_import = physical_dev->udmabuf_dev_fd >= 0;
+      if (!force_udmabuf_import &&
+          (physical_dev->is_dma_buf_fd_export_supported ||
+           (physical_dev->is_opaque_fd_export_supported && no_dma_buf_export))) {
          const VkExternalMemoryHandleTypeFlagBits handle_type =
             physical_dev->is_dma_buf_fd_export_supported
                ? VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT
@@ -216,7 +306,7 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
             alloc_info->pNext = &local_export_info;
          }
       } else if (physical_dev->EXT_external_memory_dma_buf) {
-         /* Allocate gbm bo to force dma_buf fd import. */
+         /* Allocate dma_buf externally and force to import. */
          if (export_info) {
             /* Strip export info since valid_fd_types can only be dma_buf here. */
             VkBaseInStructure *prev_of_export_info = vkr_find_prev_struct(
@@ -226,8 +316,17 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
             export_info = NULL;
          }
 
-         args->ret = vkr_get_fd_info_from_allocation_info(physical_dev, alloc_info,
-                                                          &gbm_bo, &local_import_info);
+         if (force_udmabuf_import) {
+            /* To be noted, there are 2 limits for udmabuf:
+             * - list_limit: udmabuf_create_list->count limit. Default is 1024.
+             * - size_limit_mb: Max size of a dmabuf, in megabytes. Default is 64.
+             */
+            args->ret = vkr_udmabuf_get_fd_info_from_allocation_info(
+               physical_dev, alloc_info, &udmabuf_fd, &local_import_info);
+         } else {
+            args->ret = vkr_gbm_get_fd_info_from_allocation_info(
+               physical_dev, alloc_info, &gbm_bo, &local_import_info);
+         }
          if (args->ret != VK_SUCCESS)
             return;
 
@@ -255,6 +354,7 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
    mem->device = dev;
    mem->property_flags = property_flags;
    mem->valid_fd_types = valid_fd_types;
+   mem->udmabuf_fd = udmabuf_fd;
    mem->gbm_bo = gbm_bo;
    mem->allocation_size = alloc_info->allocationSize;
    mem->memory_type_index = mem_type_index;
@@ -366,6 +466,8 @@ vkr_device_memory_release(struct vkr_device_memory *mem)
 {
    if (mem->gbm_bo)
       vkr_gbm_bo_destroy(mem->gbm_bo);
+   if (mem->udmabuf_fd >= 0)
+      close(mem->udmabuf_fd);
 }
 
 bool
@@ -436,7 +538,13 @@ vkr_device_memory_export_blob(struct vkr_device_memory *mem,
    }
 
    int fd;
-   if (mem->gbm_bo) {
+   if (mem->udmabuf_fd >= 0) {
+      fd = os_dupfd_cloexec(mem->udmabuf_fd);
+      if (fd < 0) {
+         vkr_log("mem udmabuf fd dup failed (%s)", strerror(errno));
+         return false;
+      }
+   } else if (mem->gbm_bo) {
       assert(handle_type == VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
       assert(can_export_dma_buf && !can_export_opaque);
 

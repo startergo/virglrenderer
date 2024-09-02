@@ -46,6 +46,7 @@
 #mesondefine RENDER_SERVER_EXEC_PATH
 #mesondefine HAVE_EVENTFD_H
 #mesondefine HAVE_DMABUF_H
+#mesondefine HAVE_LINUX_UDMABUF_H
 #mesondefine HAVE_DLFCN_H
 #mesondefine ENABLE_VIDEO
 #mesondefine ENABLE_TRACING

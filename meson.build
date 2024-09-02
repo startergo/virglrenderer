@@ -183,6 +183,10 @@ if cc.has_header('linux/dma-buf.h')
    conf_data.set('HAVE_DMABUF_H', 1)
 endif
 
+if cc.has_header('linux/udmabuf.h')
+   conf_data.set('HAVE_LINUX_UDMABUF_H', 1)
+endif
+
 foreach b : ['bswap32', 'bswap64', 'clz', 'clzll', 'expect', 'ffs', 'ffsll',
              'popcount', 'popcountll', 'types_compatible_p', 'unreachable']
   if cc.has_function(b)

@@ -32,6 +32,7 @@ struct vkr_physical_device {
    bool is_dma_buf_fd_export_supported;
    bool is_opaque_fd_export_supported;
    void *gbm_device;
+   int udmabuf_dev_fd;
 
    VkQueueFamilyProperties *queue_family_properties;
    uint32_t queue_family_property_count;

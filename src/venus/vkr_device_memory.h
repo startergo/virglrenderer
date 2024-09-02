@@ -20,6 +20,9 @@ struct vkr_device_memory {
    /* gbm bo backing non-external mappable memory */
    struct gbm_bo *gbm_bo;
 
+   /* udmabuf backing non-external mappable memory */
+   int udmabuf_fd;
+
    uint64_t allocation_size;
    uint32_t memory_type_index;
 

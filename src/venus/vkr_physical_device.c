@@ -11,6 +11,38 @@
 #include "vkr_device.h"
 #include "vkr_instance.h"
 
+#ifdef HAVE_LINUX_UDMABUF_H
+#include <fcntl.h>
+
+static int udmabuf_dev_fd = -1;
+
+static void
+vkr_udmabuf_init_once(void)
+{
+   udmabuf_dev_fd = open("/dev/udmabuf", O_RDWR);
+   if (udmabuf_dev_fd < 0) {
+      vkr_log("failed to open udmabuf device: %s", strerror(errno));
+   }
+}
+
+static inline int
+vkr_physical_device_get_udmabuf_dev_fd(void)
+{
+   static once_flag udmabuf_once_flag = ONCE_FLAG_INIT;
+   call_once(&udmabuf_once_flag, vkr_udmabuf_init_once);
+   return udmabuf_dev_fd;
+}
+
+#else /* HAVE_LINUX_UDMABUF_H */
+
+static inline int
+vkr_physical_device_get_udmabuf_dev_fd(void)
+{
+   return -1;
+}
+
+#endif /* HAVE_LINUX_UDMABUF_H */
+
 #ifdef ENABLE_MINIGBM_ALLOCATION
 #include <gbm.h>
 #ifdef MINIGBM
@@ -193,6 +225,9 @@ vkr_physical_device_init_memory_properties(struct vkr_physical_device *physical_
    if (!physical_dev->is_dma_buf_fd_export_supported &&
        !physical_dev->is_opaque_fd_export_supported)
       physical_dev->gbm_device = vkr_physical_device_get_gbm_device();
+
+   physical_dev->udmabuf_dev_fd =
+      VKR_DEBUG(UDMABUF) ? vkr_physical_device_get_udmabuf_dev_fd() : -1;
 }
 
 static void
