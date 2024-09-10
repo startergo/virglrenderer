@@ -23,7 +23,7 @@
 
 project(
    'virglrenderer', 'c',
-   version: '1.0.1',
+   version: '1.1.0',
    license : 'MIT',
    meson_version : '>= 0.55',
    default_options : ['buildtype=release', 'b_ndebug=if-release',
@@ -33,13 +33,14 @@ project(
 # To change only before doing a release:
 #
 # 1. Incrememnt the revision
-# 2. If the interface was changed in an compatible way increment the
-#    interface age
-# 3. If the ABI has changed in an incompatible way increment the binary_age
-#    and set revision and interface_age to zero
+# 2. If the interface was changed in a compatible way (i.e. interfaces
+#    were only added) increment "interface age" and set "revision" to zero 
+# 3. If the ABI has changed in an incompatible way increment "binary_age"
+#    and set "revision" and "interface_age" to zero
+
 binary_age    = 1
-interface_age = 8
-revision      = 9
+interface_age = 9
+revision      = 0
 
 virgl_version = meson.project_version()
 version_array = virgl_version.split('.')
