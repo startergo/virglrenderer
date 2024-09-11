@@ -657,11 +657,15 @@ amdgpu_ccmd_bo_query_info(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       return -1;
    }
 
+   /* NOTE: Current implementation of KMS support is incomplete and may result in
+    * guest passing vrend dumb buffer resource to native context. In this case, native
+    * context should error out the offending resource, but continue execution.
+    */
    struct amdgpu_object *obj = amdgpu_get_object_from_res_id(ctx, req->res_id, __FUNCTION__);
    if (!obj) {
       print(0, "Cannot find object");
       rsp->hdr.ret = -EINVAL;
-      return -1;
+      return 0;
    }
 
    struct amdgpu_bo_info info = {0};
