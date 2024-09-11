@@ -673,7 +673,7 @@ amdgpu_ccmd_bo_query_info(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
    if (rsp->hdr.ret) {
       print(0, "amdgpu_bo_query_info failed");
       rsp->hdr.ret = -EINVAL;
-      return -1;
+      return 0;
    }
 
    rsp->info.alloc_size = info.alloc_size;
@@ -714,7 +714,7 @@ amdgpu_ccmd_create_ctx(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       rsp->hdr.ret = r;
       if (r) {
          print(0, "amdgpu_cs_ctx_create2(prio=%d) failed (%s)", req->priority, strerror(errno));
-         return r;
+         return 0;
       }
 
       print(1, "amdgpu_cs_ctx_create2 dev: %p -> %p", (void*)ctx->dev, (void*)ctx_handle);
