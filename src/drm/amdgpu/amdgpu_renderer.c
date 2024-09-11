@@ -672,7 +672,6 @@ amdgpu_ccmd_bo_query_info(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
    rsp->hdr.ret = amdgpu_bo_query_info(obj->bo, &info);
    if (rsp->hdr.ret) {
       print(0, "amdgpu_bo_query_info failed");
-      rsp->hdr.ret = -EINVAL;
       return 0;
    }
 
