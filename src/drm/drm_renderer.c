@@ -140,6 +140,14 @@ drm_renderer_create(size_t debug_len, const char *debug_name)
       if (fd < 0)
          return NULL;
 
+      if (debug_len && debug_name) {
+         struct drm_set_client_name n = {
+            .name_len = debug_len,
+            .name = (uint64_t) debug_name
+         };
+         drmIoctl(fd, DRM_IOCTL_SET_CLIENT_NAME, &n);
+      }
+
       return b->create(fd, debug_len, debug_name);
    }
 
