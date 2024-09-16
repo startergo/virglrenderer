@@ -3112,3 +3112,6 @@ spec@nv_copy_image@nv_copy_image-formats --samples=2@Source: GL_ALPHA/Destinatio
 spec@nv_copy_image@nv_copy_image-formats --samples=4,Fail
 spec@nv_copy_image@nv_copy_image-formats --samples=4@Source: GL_ALPHA/Destination: GL_ALPHA,Fail
 
+# Fails since Mesa commit 9f5af689952e9b71082e8b1ff4dec77512909fbf
+spec@arb_multi_draw_indirect@arb_draw_elements_base_vertex-multidrawelements -indirect,Crash
+spec@arb_multi_draw_indirect@gl-3.0-multidrawarrays-vertexid -indirect,Crash

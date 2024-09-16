@@ -181,3 +181,7 @@ KHR-GL32.transform_feedback_overflow_query_ARB.multiple-streams-multiple-buffers
 KHR-GL32.transform_feedback_overflow_query_ARB.multiple-streams-one-buffer-per-stream
 
 spec@arb_texture_multisample@arb_texture_multisample-dsa-texelfetch@Texture type: GL_RGB9_E5
+
+# Makes the host crash since Mesa commit 9f5af689952e9b71082e8b1ff4dec77512909fbf
+spec@arb_multi_draw_indirect@arb_draw_elements_base_vertex-multidrawelements -indirect
+spec@arb_multi_draw_indirect@gl-3.0-multidrawarrays-vertexid -indirect
