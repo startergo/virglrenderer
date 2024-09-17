@@ -619,7 +619,7 @@ amdgpu_ccmd_set_metadata(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       size_t requested_size = size_add(req->size_metadata,
                                        offsetof(struct amdgpu_ccmd_set_metadata_req,
                                                 umd_metadata));
-      if (requested_size > hdr->len || requested_size == SIZE_MAX) {
+      if (requested_size > hdr->len) {
          print(0, "Metadata size is too large for source buffer: %zu > %" PRIu32,
                requested_size, hdr->len);
          rsp->ret = -EINVAL;
@@ -750,7 +750,8 @@ amdgpu_ccmd_create_ctx(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
 
 /* Check that 'offset + len' fits in buffer of size 'max_len', that
  * 'len' is correct for 'count' objects of size 'size',
- * and that 'offset' is aligned to 'align'.
+ * and that 'offset' is aligned to 'align'.  'len' is assumed to not
+ * be SIZE_MAX, which is guaranteed at all call-sites.
  */
 static bool validate_chunk_inputs(size_t offset, size_t len, struct amdgpu_context *ctx,
                                   size_t count, size_t size, size_t align)
@@ -760,7 +761,7 @@ static bool validate_chunk_inputs(size_t offset, size_t len, struct amdgpu_conte
       return false; /* misaligned */
    }
    size_t total_len = size_mul(size, count);
-   if (total_len == SIZE_MAX || total_len > len) {
+   if (total_len > len) {
       print(0, "Length 0x%zx cannot hold 0x%zx entries of size 0x%zx",
             len, count, size);
       return false;
@@ -821,7 +822,7 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
    };
    size_t descriptors_len = size_add(offsetof(struct amdgpu_ccmd_cs_submit_req, payload),
                                      size_mul(req->num_chunks, sizeof(struct desc)));
-   if (descriptors_len == SIZE_MAX || descriptors_len > hdr->len) {
+   if (descriptors_len > hdr->len) {
       print(0, "Descriptors are out of bounds: %zu + %zu * %" PRIu32 " > %" PRIu32,
             offsetof(struct amdgpu_ccmd_cs_submit_req, payload),
             sizeof(struct desc), req->num_chunks, hdr->len);
@@ -838,7 +839,7 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
 
       chunks[num_chunks].chunk_id = chunk_id;
       /* Validate input. */
-      if (end == SIZE_MAX || end > hdr->len) {
+      if (end > hdr->len) {
          print(0, "Descriptors are out of bounds: %zu > %" PRIu32, end, hdr->len);
          r = -EINVAL;
          goto end;
