@@ -126,7 +126,6 @@ os_log_message(const char *message)
 #  include <ctype.h>
 #  include "hash_table.h"
 #  include "ralloc.h"
-#  include "simple_mtx.h"
 
 static struct hash_table *options_tbl;
 
