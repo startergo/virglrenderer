@@ -47,7 +47,7 @@
 #include <OS.h>
 #endif
 
-#if DETECT_OS_LINUX && !defined(ANDROID)
+#if DETECT_OS_LINUX && !defined(__ANDROID__)
 #include <sched.h>
 #elif defined(_WIN32) && !defined(__CYGWIN__) && _WIN32_WINNT >= 0x0600
 #include <windows.h>
@@ -77,7 +77,7 @@
  */
 #ifdef _MSC_VER
 #define __THREAD_INITIAL_EXEC __declspec(thread)
-#elif defined(ANDROID)
+#elif defined(__ANDROID__)
 /* Android 29 gained ELF TLS support, but it doesn't support initial-exec and
  * it will throw:
  *
@@ -93,7 +93,7 @@
 static inline int
 util_get_current_cpu(void)
 {
-#if DETECT_OS_LINUX && !defined(ANDROID)
+#if DETECT_OS_LINUX && !defined(__ANDROID__)
    return sched_getcpu();
 
 #elif defined(_WIN32) && !defined(__CYGWIN__) && _WIN32_WINNT >= 0x0600

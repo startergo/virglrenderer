@@ -36,14 +36,14 @@
 
 #if defined(HAVE_MEMFD_CREATE) || defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <sys/mman.h>
-#elif defined(ANDROID)
+#elif defined(__ANDROID__)
 #include <sys/syscall.h>
 #include <linux/memfd.h>
 #else
 #include <stdio.h>
 #endif
 
-#if !(defined(__FreeBSD__) || defined(HAVE_MEMFD_CREATE) || defined(HAVE_MKOSTEMP) || defined(ANDROID))
+#if !(defined(__FreeBSD__) || defined(HAVE_MEMFD_CREATE) || defined(HAVE_MKOSTEMP) || defined(__ANDROID__))
 static int
 set_cloexec_or_close(int fd)
 {
@@ -67,7 +67,7 @@ err:
 }
 #endif
 
-#if !(defined(__FreeBSD__) || defined(HAVE_MEMFD_CREATE) || defined(ANDROID))
+#if !(defined(__FreeBSD__) || defined(HAVE_MEMFD_CREATE) || defined(__ANDROID__))
 static int
 create_tmpfile_cloexec(char *tmpname)
 {
@@ -118,7 +118,7 @@ os_create_anonymous_file(off_t size, const char *debug_name)
    if (!debug_name)
       debug_name = "mesa-shared";
    fd = memfd_create(debug_name, MFD_CLOEXEC | MFD_ALLOW_SEALING);
-#elif defined(ANDROID)
+#elif defined(__ANDROID__)
    if (!debug_name)
       debug_name = "mesa-shared";
    fd = syscall(SYS_memfd_create, debug_name, MFD_CLOEXEC | MFD_ALLOW_SEALING);
