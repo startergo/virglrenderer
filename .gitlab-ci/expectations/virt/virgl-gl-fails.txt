@@ -527,5 +527,6 @@ spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_yvyu,Fail
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_vyuy,Fail
 
 # uprev Mesa in Virglrenderer
+spec@egl_ext_surface_compression@create,Crash
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-refcount-multithread,Fail
 
