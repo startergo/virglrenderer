@@ -245,6 +245,7 @@ struct dump_ctx {
    struct vrend_shader_image images[32];
    uint32_t images_used_mask;
    int32_t image_last_binding;
+   uint32_t image_readonly_addition;
 
    struct vrend_array *image_arrays;
    uint32_t num_image_arrays;
@@ -3907,7 +3908,8 @@ translate_load(const struct dump_ctx *ctx,
                struct dest_info *dinfo,
                const char *srcs[4],
                const char *dst,
-               const char *writemask)
+               const char *writemask,
+               uint32_t *image_readonly_addition)
 {
    const struct tgsi_full_src_register *src = &inst->Src[0];
    if (src->Register.File == TGSI_FILE_IMAGE) {
@@ -3929,6 +3931,7 @@ translate_load(const struct dump_ctx *ctx,
       enum tgsi_return_type itype;
       get_internalformat_string(ctx->images[sinfo->sreg_index].decl.Format, &itype);
       char ms_str[32] = "";
+      const char *readonly_suffix = "";
       const char *wm = dinfo->dst_override_no_wm[0] ? "" : writemask;
       if (is_ms) {
          snprintf(ms_str, 32, ", int(%s.w)", srcs[1]);
@@ -3953,13 +3956,15 @@ translate_load(const struct dump_ctx *ctx,
       if (ctx->cfg->use_gles && ctx->images[sinfo->sreg_index].decl.Writable &&
           (ctx->images[sinfo->sreg_index].decl.Format != PIPE_FORMAT_R32_FLOAT) &&
           (ctx->images[sinfo->sreg_index].decl.Format != PIPE_FORMAT_R32_SINT) &&
-          (ctx->images[sinfo->sreg_index].decl.Format != PIPE_FORMAT_R32_UINT))
-         images[sinfo->sreg_index].decl.Writable = 0;
+          (ctx->images[sinfo->sreg_index].decl.Format != PIPE_FORMAT_R32_UINT)) {
+         *image_readonly_addition |= 1u << sinfo->sreg_index;
+         readonly_suffix = "_read";
+      }
 
       if (!ctx->cfg->use_gles || !inst->Src[0].Register.Indirect) {
-         emit_buff(glsl_strbufs, "%s = %s(imageLoad(%s, %s(%s(%s))%s)%s);\n",
+         emit_buff(glsl_strbufs, "%s = %s(imageLoad(%s%s, %s(%s(%s))%s)%s);\n",
                dst, get_string(dtypeprefix),
-               srcs[0], get_string(coord_prefix), conversion, srcs[1],
+               srcs[0], readonly_suffix, get_string(coord_prefix), conversion, srcs[1],
                ms_str, wm);
       } else {
          char src[32] = "";
@@ -3972,9 +3977,9 @@ translate_load(const struct dump_ctx *ctx,
 
             for (int i = 0; i < array_size; ++i) {
                snprintf(src, 32, "%simg%d[%d]", cname, basearrayidx, i);
-               emit_buff(glsl_strbufs, "case %d: %s = %s(imageLoad(%s, %s(%s(%s))%s)%s);break;\n",
+               emit_buff(glsl_strbufs, "case %d: %s = %s(imageLoad(%s%s, %s(%s(%s))%s)%s);break;\n",
                          i, dst, get_string(dtypeprefix),
-                         src, get_string(coord_prefix), conversion, srcs[1],
+                         src, readonly_suffix, get_string(coord_prefix), conversion, srcs[1],
                          ms_str, wm);
             }
             emit_buff(glsl_strbufs, "}\n");
@@ -6106,7 +6111,7 @@ iter_instruction(struct tgsi_iterate_context *iter,
       /* Replace an obvious out-of-bounds load with loading zero. */
       if (sinfo.sreg_index < 0 ||
           !translate_load(ctx, &ctx->glsl_strbufs, ctx->ssbo_memory_qualifier, ctx->images,
-                          inst, &sinfo, &dinfo, srcs, dsts[0], writemask)) {
+                          inst, &sinfo, &dinfo, srcs, dsts[0], writemask, &ctx->image_readonly_addition)) {
          emit_buff(&ctx->glsl_strbufs, "%s = vec4(0.0, 0.0, 0.0, 0.0)%s;\n", dsts[0], writemask);
       }
       break;
@@ -6577,7 +6582,8 @@ const char *get_internalformat_string(int virgl_format, enum tgsi_return_type *s
 static void emit_image_decl(const struct dump_ctx *ctx,
                             struct vrend_glsl_strbufs *glsl_strbufs,
                             uint32_t i, uint32_t range,
-                            const struct vrend_shader_image *image)
+                            const struct vrend_shader_image *image,
+                            bool forced_readonly)
 {
    char ptc;
    const char *sname, *stc, *formatstr;
@@ -6600,7 +6606,7 @@ static void emit_image_decl(const struct dump_ctx *ctx,
       image stores need not include a format layout qualifier, but any declared
       qualifier must match the image unit format to avoid a format mismatch. */
    bool require_format_specifer = true;
-   if (!image->decl.Writable) {
+   if (!image->decl.Writable || forced_readonly) {
       access = "readonly ";
    } else if (!image->decl.Format ||
             (ctx->cfg->use_gles &&
@@ -6621,11 +6627,11 @@ static void emit_image_decl(const struct dump_ctx *ctx,
                i + ctx->key->image_binding_offset, formatstr[0] != '\0' ? ", ": ", rgba32f", formatstr);
 
    if (range)
-      emit_hdrf(glsl_strbufs, "%s%s%suniform %s%cimage%s %simg%d[%d];\n",
-               access, volatile_str, coherent_str, precision, ptc, stc, sname, i, range);
+      emit_hdrf(glsl_strbufs, "%s%s%suniform %s%cimage%s %simg%d%s[%d];\n",
+               access, volatile_str, coherent_str, precision, ptc, stc, sname, i, forced_readonly ? "_read" : "", range);
    else
-      emit_hdrf(glsl_strbufs, "%s%s%suniform %s%cimage%s %simg%d;\n",
-               access, volatile_str, coherent_str, precision, ptc, stc, sname, i);
+      emit_hdrf(glsl_strbufs, "%s%s%suniform %s%cimage%s %simg%d%s;\n",
+               access, volatile_str, coherent_str, precision, ptc, stc, sname, i, forced_readonly ? "_read" : "");
 }
 
 static int emit_ios_common(const struct dump_ctx *ctx,
@@ -6719,13 +6725,17 @@ static int emit_ios_common(const struct dump_ctx *ctx,
       for (i = 0; i < ctx->num_image_arrays; i++) {
          uint32_t first = ctx->image_arrays[i].first;
          uint32_t range = ctx->image_arrays[i].array_size;
-         emit_image_decl(ctx, glsl_strbufs, first, range, ctx->images + first);
+         emit_image_decl(ctx, glsl_strbufs, first, range, ctx->images + first, false);
+         if (ctx->image_readonly_addition & 1u << first)
+            emit_image_decl(ctx, glsl_strbufs, first, range, ctx->images + first, true);
       }
    } else {
       uint32_t mask = ctx->images_used_mask;
       while (mask) {
          i = u_bit_scan(&mask);
-         emit_image_decl(ctx, glsl_strbufs, i, 0, ctx->images + i);
+         emit_image_decl(ctx, glsl_strbufs, i, 0, ctx->images + i, false);
+         if (ctx->image_readonly_addition & 1u << i)
+            emit_image_decl(ctx, glsl_strbufs, i, 0, ctx->images + i, true);
       }
    }
 
