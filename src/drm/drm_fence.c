@@ -160,6 +160,9 @@ drm_timeline_submit_fence(struct drm_timeline *timeline, uint32_t flags,
    cnd_signal(&timeline->fence_cond);
    mtx_unlock(&timeline->fence_mutex);
 
+   close(timeline->last_fence_fd);
+   timeline->last_fence_fd = -1;
+
    return 0;
 }
 
