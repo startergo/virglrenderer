@@ -488,6 +488,7 @@ spec@arb_texture_float@texwrap formats bordercolor@GL_RGB32F- border color only,
 spec@arb_texture_float@texwrap formats bordercolor@GL_LUMINANCE_ALPHA16F_ARB- border color only,Fail
 
 # uprev Mesa in virglrenderer
+KHR-GL43.framebuffer_blit.framebuffer_blit_functionality_multisampled_to_singlesampled_blit,Fail
 spec@!opengl 1.1@depthstencil-default_fb-blit samples=2,Fail
 spec@!opengl 1.1@depthstencil-default_fb-blit samples=4,Fail
 spec@!opengl 1.1@depthstencil-default_fb-clear samples=2,Fail

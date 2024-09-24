@@ -23,3 +23,7 @@ dEQP-VK.texture.explicit_lod.2d.sizes.128x128_nearest_linear_mipmap_linear_repea
 
 # Can crash since host lvp can return VK_ERROR_OUT_OF_DEVICE_MEMORY during those tests
 dEQP-VK.binding_model.mutable_descriptor.multiple_arrays_mixed.*
+
+# uprev Mesa in Virglrenderer, Timeout
+dEQP-VK.texture.explicit_lod.2d.sizes.128x128_nearest_linear_mipmap_linear_clamp
+

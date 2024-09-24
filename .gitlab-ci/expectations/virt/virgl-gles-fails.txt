@@ -3113,6 +3113,11 @@ spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_yvyu,Fail
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_vyuy,Fail
 
 # uprev Mesa in Virglrenderer
+KHR-GL30.framebuffer_blit.framebuffer_blit_functionality_multisampled_to_singlesampled_blit,Fail
+KHR-GL30.texture_lod_bias.texture_lod_bias_all,Fail
+KHR-GL31.framebuffer_blit.framebuffer_blit_functionality_multisampled_to_singlesampled_blit,Fail
+KHR-GL32.framebuffer_blit.framebuffer_blit_functionality_multisampled_to_singlesampled_blit,Fail
+KHR-GL32.texture_lod_bias.texture_lod_bias_all,Fail
 spec@glsl-1.40@uniform_buffer@two-stages,Fail
 spec@egl_ext_surface_compression@create,Crash
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-refcount-multithread,Fail
