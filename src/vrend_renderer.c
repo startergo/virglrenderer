@@ -1226,7 +1226,7 @@ static void buffered_logger(const char *fmt,
 static void vrend_dump_tgsi(const struct tgsi_token *tokens,
                             unsigned flags)
 {
-   struct vrend_strbuf logger_buffer = { NULL, };
+   struct vrend_strbuf logger_buffer = {0};
    strbuf_alloc(&logger_buffer, STRBUF_MIN_MALLOC);
 
    tgsi_dump_with_logger(tokens, flags, buffered_logger, &logger_buffer);
