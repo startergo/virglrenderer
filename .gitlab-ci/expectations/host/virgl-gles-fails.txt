@@ -3102,7 +3102,6 @@ spec@arb_texture_cube_map@copyteximage cube samples=2,Fail
 spec@arb_texture_cube_map@copyteximage cube samples=4,Fail
 spec@arb_texture_rectangle@copyteximage rect samples=2,Fail
 spec@arb_texture_rectangle@copyteximage rect samples=4,Fail
-spec@egl_ext_surface_compression@create,Crash
 spec@ext_texture_array@copyteximage 1d_array samples=2,Fail
 spec@ext_texture_array@copyteximage 1d_array samples=4,Fail
 spec@ext_texture_array@copyteximage 2d_array samples=2,Fail
