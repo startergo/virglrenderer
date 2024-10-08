@@ -361,7 +361,7 @@ struct virgl_egl *virgl_egl_init(EGLNativeDisplayType display_id, bool surfacele
 #ifdef ENABLE_GBM
       else
          egl->egl_display = egl->funcs.eglGetPlatformDisplay(EGL_PLATFORM_GBM_KHR,
-                                                             (EGLNativeDisplayType)egl->gbm->device, NULL);
+                                                             (EGLNativeDisplayType*)egl->gbm->device, NULL);
 #endif
    } else {
 #ifdef ENABLE_GBM
