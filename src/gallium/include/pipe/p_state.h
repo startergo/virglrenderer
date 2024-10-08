@@ -325,6 +325,7 @@ struct pipe_sampler_state
    unsigned compare_func:3;      /**< PIPE_FUNC_x */
    unsigned max_anisotropy:5;
    unsigned seamless_cube_map:1;
+   unsigned pad:9;               /**< take bits from this for new members */
    float lod_bias;               /**< LOD/lambda bias */
    float min_lod, max_lod;       /**< LOD clamp range, after bias */
    union pipe_color_union border_color;
