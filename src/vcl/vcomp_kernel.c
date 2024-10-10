@@ -216,12 +216,12 @@ vcomp_dispatch_clGetKernelWorkGroupInfo(UNUSED struct vcl_dispatch_context *disp
 }
 
 static void
-vcomp_dispatch_clEnqueueNDRangeKernel(struct vcl_dispatch_context *dispatch,
-                                      struct vcl_command_clEnqueueNDRangeKernel *args)
+vcomp_dispatch_clEnqueueNDRangeKernelMESA(struct vcl_dispatch_context *dispatch,
+                                      struct vcl_command_clEnqueueNDRangeKernelMESA *args)
 {
    struct vcomp_context *vctx = dispatch->data;
 
-   vcl_replace_clEnqueueNDRangeKernel_args_handle(args);
+   vcl_replace_clEnqueueNDRangeKernelMESA_args_handle(args);
 
    cl_event host_event = NULL;
    args->ret = clEnqueueNDRangeKernel(args->command_queue,
@@ -399,7 +399,7 @@ void vcomp_context_init_kernel_dispatch(struct vcomp_context *vctx)
    dispatch->dispatch_clSetKernelArg = vcomp_dispatch_clSetKernelArg;
    dispatch->dispatch_clGetKernelInfo = vcomp_dispatch_clGetKernelInfo;
    dispatch->dispatch_clGetKernelWorkGroupInfo = vcomp_dispatch_clGetKernelWorkGroupInfo;
-   dispatch->dispatch_clEnqueueNDRangeKernel = vcomp_dispatch_clEnqueueNDRangeKernel;
+   dispatch->dispatch_clEnqueueNDRangeKernelMESA = vcomp_dispatch_clEnqueueNDRangeKernelMESA;
    dispatch->dispatch_clEnqueueTask = vcomp_dispatch_clEnqueueTask;
    dispatch->dispatch_clGetKernelArgInfo = vcomp_dispatch_clGetKernelArgInfo;
    dispatch->dispatch_clSetKernelArgSVMPointer = vcomp_dispatch_clSetKernelArgSVMPointer;
