@@ -1238,13 +1238,14 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
          res->map_size = map_size;
    } else {
       enum virgl_resource_fd_type fd_type = res->fd_type;
+      enum virgl_resource_fd_type export_fd_type = res->fd_type;
       int fd = res->fd;
 
       /* Create a transient dmabuf. */
       if (fd_type == VIRGL_RESOURCE_OPAQUE_HANDLE)
-         fd_type = virgl_resource_export_fd(res, &fd);
+         export_fd_type = virgl_resource_export_fd(res, &fd);
 
-      switch (fd_type) {
+      switch (export_fd_type) {
       case VIRGL_RESOURCE_FD_DMABUF:
       case VIRGL_RESOURCE_FD_SHM:
          map = mmap(NULL, res->map_size, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
@@ -1261,7 +1262,7 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
          break;
       }
 
-      if (fd_type != res->fd_type)
+      if (export_fd_type != fd_type)
          close(fd);
    }
 
