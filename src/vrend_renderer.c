@@ -718,7 +718,6 @@ struct vrend_sub_context {
    struct vrend_vertex_buffer vbo[PIPE_MAX_ATTRIBS];
 
    struct pipe_index_buffer ib;
-   uint32_t index_buffer_res_id;
 
    bool vbo_dirty;
    bool shader_dirty;
@@ -3566,20 +3565,17 @@ void vrend_set_index_buffer(struct vrend_context *ctx,
    ctx->sub->ib.index_size = index_size;
    ctx->sub->ib.offset = offset;
    if (res_handle) {
-      if (ctx->sub->index_buffer_res_id != res_handle) {
-         res = vrend_renderer_ctx_res_lookup(ctx, res_handle);
+      res = vrend_renderer_ctx_res_lookup(ctx, res_handle);
+      if ((struct vrend_resource *)ctx->sub->ib.buffer != res) {
          if (!res || !res->gl_id) {
             vrend_resource_reference((struct vrend_resource **)&ctx->sub->ib.buffer, NULL);
-            ctx->sub->index_buffer_res_id = 0;
             vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, res_handle);
             return;
          }
          vrend_resource_reference((struct vrend_resource **)&ctx->sub->ib.buffer, res);
-         ctx->sub->index_buffer_res_id = res_handle;
       }
    } else {
       vrend_resource_reference((struct vrend_resource **)&ctx->sub->ib.buffer, NULL);
-      ctx->sub->index_buffer_res_id = 0;
    }
 }
 
@@ -12366,7 +12362,7 @@ static void vrend_renderer_fill_caps_v2(int gl_ver, int gles_ver,  union virgl_c
     * this value to avoid regressions when a guest with a new mesa version is
     * run on an old virgl host. Use it also to indicate non-cap fixes on the
     * host that help enable features in the guest. */
-   caps->v2.host_feature_check_version = 22;
+   caps->v2.host_feature_check_version = 23;
 
    /* Forward host GL_RENDERER to the guest. */
    strncpy(caps->v2.renderer, renderer, sizeof(caps->v2.renderer) - 1);
