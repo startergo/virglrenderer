@@ -645,8 +645,10 @@ static bool
 proxy_context_init(struct proxy_context *ctx, uint32_t ctx_flags)
 {
    if (!proxy_context_init_shmem(ctx) || !proxy_context_init_timelines(ctx) ||
-       !proxy_context_init_fencing(ctx) || !proxy_context_resource_table_init(ctx))
+       !proxy_context_init_fencing(ctx) || !proxy_context_resource_table_init(ctx)) {
+      proxy_log("failed to pre-initialize context");
       return false;
+   }
 
    const struct render_context_op_init_request req = {
       .header.op = RENDER_CONTEXT_OP_INIT,
