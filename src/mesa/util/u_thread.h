@@ -210,6 +210,10 @@ util_set_thread_affinity(thrd_t thread,
 
    return true;
 #else
+   (void)thread;
+   (void)mask;
+   (void)old_mask;
+   (void)num_mask_bits;
    return false;
 #endif
 }
@@ -229,6 +233,9 @@ util_set_current_thread_affinity(const uint32_t *mask,
                                    num_mask_bits);
 
 #else
+   (void)mask;
+   (void)old_mask;
+   (void)num_mask_bits;
    return false;
 #endif
 }
