@@ -366,12 +366,14 @@ drm_context_get_shmem_blob(struct drm_context *dctx,
       return -ENOMEM;
    }
 
+#if defined(HAVE_MEMFD_CREATE)
    int ret = fcntl(fd, F_ADD_SEALS, F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW);
    if (ret) {
       drm_err("fcntl failed: %s", strerror(errno));
       close(fd);
       return -ENOMEM;
    }
+#endif
 
    dctx->shmem = mmap(NULL, blob_size, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
    if (dctx->shmem == MAP_FAILED) {

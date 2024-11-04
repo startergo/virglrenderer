@@ -47,7 +47,7 @@ vkr_get_fd_info_from_resource_info(struct vkr_context *ctx,
    return true;
 }
 
-#ifdef HAVE_LINUX_UDMABUF_H
+#if defined(HAVE_LINUX_UDMABUF_H) && defined(HAVE_MEMFD_CREATE)
 #include <fcntl.h>
 #include <linux/udmabuf.h>
 #include <sys/ioctl.h>
@@ -119,7 +119,7 @@ fail:
    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 }
 
-#else  /* HAVE_LINUX_UDMABUF_H */
+#else  /* HAVE_LINUX_UDMABUF_H && HAVE_MEMFD_CREATE */
 
 static inline VkResult
 vkr_udmabuf_get_fd_info_from_allocation_info(
@@ -132,7 +132,7 @@ vkr_udmabuf_get_fd_info_from_allocation_info(
    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 }
 
-#endif /* HAVE_LINUX_UDMABUF_H */
+#endif /* HAVE_LINUX_UDMABUF_H && HAVE_MEMFD_CREATE */
 
 #ifdef ENABLE_MINIGBM_ALLOCATION
 #include <gbm.h>
