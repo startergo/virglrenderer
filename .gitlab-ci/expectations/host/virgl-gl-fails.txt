@@ -119,7 +119,6 @@ spec@arb_shader_texture_image_samples@builtin-image@rgba8ui/Compute/image2DMSArr
 spec@arb_shader_texture_image_samples@builtin-image@rgba8ui/Fragment/image2DMS samples test/2x8x96x1,Fail
 spec@arb_shader_texture_image_samples@builtin-image@rgba8ui/Fragment/image2DMSArray samples test/2x8x16x6,Fail
 spec@arb_shader_texture_lod@execution@arb_shader_texture_lod-texgrad,Fail
-spec@arb_tessellation_shader@execution@gs-primitiveid-instanced,Fail
 spec@arb_texture_compression_bptc@texwrap formats bordercolor,Fail
 spec@arb_texture_compression_bptc@texwrap formats bordercolor@GL_COMPRESSED_RGBA_BPTC_UNORM- border color only,Fail
 spec@arb_texture_compression_bptc@texwrap formats bordercolor@GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT- border color only,Fail
