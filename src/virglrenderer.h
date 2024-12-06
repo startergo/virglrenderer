@@ -159,6 +159,8 @@ struct virgl_renderer_callbacks {
 /* Video encode/decode */
 #define VIRGL_RENDERER_USE_VIDEO     (1 << 11)
 
+/* Enable libhsakmt */
+#define VIRGL_RENDERER_USE_HSAKMT     (1 << 12)
 
 #endif /* VIRGL_RENDERER_UNSTABLE_APIS */
 
