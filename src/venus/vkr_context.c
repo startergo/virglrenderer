@@ -128,8 +128,8 @@ vkr_context_init_dispatch(struct vkr_context *ctx)
 static inline void
 vkr_context_init_proc_table(struct vkr_context *ctx)
 {
-   /* TODO dlsym vkGetInstanceProcAddr directly from libvulkan */
-   ctx->get_proc_addr = vkGetInstanceProcAddr;
+   /* Get vkGetInstanceProcAddr from libvulkan */
+   ctx->get_proc_addr = ctx->vulkan_library.GetInstanceProcAddr;
    vn_util_init_global_proc_table(ctx->get_proc_addr, &ctx->proc_table);
 }
 
@@ -634,6 +634,8 @@ vkr_context_destroy(struct vkr_context *ctx)
    vkr_cs_encoder_fini(&ctx->encoder);
    vkr_cs_decoder_fini(&ctx->decoder);
 
+   vkr_library_unload(&ctx->vulkan_library);
+
    free(ctx->debug_name);
    free(ctx);
 }
@@ -666,6 +668,12 @@ vkr_context_create(uint32_t ctx_id,
    struct vkr_context *ctx = calloc(1, sizeof(*ctx));
    if (!ctx)
       return NULL;
+
+   bool ret = vkr_library_load(&ctx->vulkan_library);
+   if (!ret) {
+      free(ctx);
+      return false;
+   }
 
    ctx->ctx_id = ctx_id;
    ctx->retire_fence = cb;

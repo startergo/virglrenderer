@@ -225,8 +225,8 @@ render_client_dispatch_init(struct render_client *client,
 {
    client->init_flags = req->init.flags;
 
-   /* TODO dlsym vkGetInstanceProcAddr directly from libvulkan */
-   PFN_vkGetInstanceProcAddr get_proc_addr = vkGetInstanceProcAddr;
+   /* Get vkGetInstanceProcAddr from libvulkan */
+   PFN_vkGetInstanceProcAddr get_proc_addr = client->vulkan_library.GetInstanceProcAddr;
 
    PFN_vkEnumerateInstanceExtensionProperties enumerate_inst_ext_props =
       (PFN_vkEnumerateInstanceExtensionProperties)get_proc_addr(
@@ -305,6 +305,9 @@ render_client_destroy(struct render_client *client)
    }
 
    render_socket_fini(&client->socket);
+
+   vkr_library_unload(&client->vulkan_library);
+
    free(client);
 }
 
@@ -315,6 +318,12 @@ render_client_create(struct render_server *srv, int client_fd)
 
    if (!client)
       return NULL;
+
+   bool ret = vkr_library_load(&client->vulkan_library);
+   if (!ret) {
+      free(client);
+      return NULL;
+   }
 
    client->server = srv;
    render_socket_init(&client->socket, client_fd);

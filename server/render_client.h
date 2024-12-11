@@ -8,6 +8,8 @@
 
 #include "render_common.h"
 
+#include "vkr_library.h"
+
 struct render_client {
    struct render_server *server;
    struct render_socket socket;
@@ -15,6 +17,7 @@ struct render_client {
    uint32_t init_flags;
 
    struct list_head context_records;
+   struct vulkan_library vulkan_library;
 };
 
 struct render_client *

@@ -7,6 +7,7 @@
 #define VKR_CONTEXT_H
 
 #include "vkr_common.h"
+#include "vkr_library.h"
 
 #include "venus-protocol/vn_protocol_renderer_defines.h"
 #include "venus-protocol/vn_protocol_renderer_util.h"
@@ -101,6 +102,7 @@ struct vkr_context {
    char *instance_name;
 
    struct list_head head;
+   struct vulkan_library vulkan_library;
 };
 
 struct vkr_context *

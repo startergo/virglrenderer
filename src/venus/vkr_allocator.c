@@ -23,6 +23,7 @@
  **************************************************************************/
 
 #include "vkr_allocator.h"
+#include "vkr_library.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -81,6 +82,7 @@ static struct vkr_allocator {
    uint32_t device_count;
 
    struct list_head memories;
+   struct vulkan_library vulkan_library;
 } vkr_allocator;
 
 static bool vkr_allocator_initialized;
@@ -173,6 +175,8 @@ vkr_allocator_fini(void)
    struct vkr_inst_proc_table *vk = &vkr_allocator.proc_table;
    vk->DestroyInstance(vkr_allocator.instance, NULL);
 
+   vkr_library_unload(&vkr_allocator.vulkan_library);
+
    memset(&vkr_allocator, 0, sizeof(vkr_allocator));
 
    vkr_allocator_initialized = false;
@@ -212,8 +216,13 @@ vkr_allocator_init(void)
    struct vkr_inst_proc_table *vk = &vkr_allocator.proc_table;
    VkResult res;
 
-   /* TODO dlsym vkGetInstanceProcAddr directly from libvulkan */
-   PFN_vkGetInstanceProcAddr get_proc_addr = vkGetInstanceProcAddr;
+   bool ret = vkr_library_load(&vkr_allocator.vulkan_library);
+   if (!ret) {
+      return -1;
+   }
+
+   /* Get vkGetInstanceProcAddr from libvulkan */
+   PFN_vkGetInstanceProcAddr get_proc_addr = vkr_allocator.vulkan_library.GetInstanceProcAddr;
 
    VkApplicationInfo app_info = {
       .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -290,6 +299,8 @@ fail:
    vk->DestroyInstance(vkr_allocator.instance, NULL);
 
    memset(&vkr_allocator, 0, sizeof(vkr_allocator));
+
+   vkr_library_unload(&vkr_allocator.vulkan_library);
 
    return -1;
 }

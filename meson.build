@@ -330,7 +330,13 @@ if with_venus
    if with_minigbm_allocation
       gbm_dep = dependency('gbm')
    endif
-   venus_dep = dependency('vulkan')
+
+   venus_dep = []
+   if get_option('vulkan-dload')
+      conf_data.set('ENABLE_VULKAN_DLOAD', 1)
+   else
+      venus_dep = dependency('vulkan')
+   endif
 
    conf_data.set('ENABLE_VENUS', 1)
 
