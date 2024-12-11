@@ -52,12 +52,20 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, UN8]
   swizzles: [Z, Y, X, W]
+  little_endian:
+    alias: BGRA8888_UNORM
+  big_endian:
+    alias: ARGB8888_UNORM
 - name: B8G8R8X8_UNORM
   layout: plain
   colorspace: RGB
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, X8]
   swizzles: [Z, Y, X, 1]
+  little_endian:
+    alias: BGRX8888_UNORM
+  big_endian:
+    alias: XRGB8888_UNORM
 - name: B8G8R8X8_SNORM
   layout: plain
   colorspace: RGB
@@ -82,6 +90,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, UN8]
   swizzles: [Y, Z, W, X]
+  little_endian:
+    alias: ARGB8888_UNORM
+  big_endian:
+    alias: BGRA8888_UNORM
 - name: A8R8G8B8_SNORM
   layout: plain
   colorspace: RGB
@@ -100,6 +112,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [X8, UN8, UN8, UN8]
   swizzles: [Y, Z, W, 1]
+  little_endian:
+    alias: XRGB8888_UNORM
+  big_endian:
+    alias: BGRX8888_UNORM
 - name: X8R8G8B8_SNORM
   layout: plain
   colorspace: RGB
@@ -118,12 +134,20 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, UN8]
   swizzles: [W, Z, Y, X]
+  little_endian:
+    alias: ABGR8888_UNORM
+  big_endian:
+    alias: RGBA8888_UNORM
 - name: X8B8G8R8_UNORM
   layout: plain
   colorspace: RGB
   block: {width: 1, height: 1, depth: 1}
   channels: [X8, UN8, UN8, UN8]
   swizzles: [W, Z, Y, 1]
+  little_endian:
+    alias: XBGR8888_UNORM
+  big_endian:
+    alias: RGBX8888_UNORM
 # PIPE_FORMAT_R8G8B8A8_UNORM is below
 - name: R8G8B8X8_UNORM
   layout: plain
@@ -131,6 +155,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, X8]
   swizzles: [X, Y, Z, 1]
+  little_endian:
+    alias: RGBX8888_UNORM
+  big_endian:
+    alias: XBGR8888_UNORM
 - name: R5G5B5A1_UNORM
   layout: plain
   colorspace: RGB
@@ -467,42 +495,70 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, UN8]
   swizzles: [X, Y, Z, W]
+  little_endian:
+    alias: RGBA8888_SRGB
+  big_endian:
+    alias: ABGR8888_SRGB
 - name: A8B8G8R8_SRGB
   layout: plain
   colorspace: SRGB
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, UN8]
   swizzles: [W, Z, Y, X]
+  little_endian:
+    alias: ABGR8888_SRGB
+  big_endian:
+    alias: RGBA8888_SRGB
 - name: X8B8G8R8_SRGB
   layout: plain
   colorspace: SRGB
   block: {width: 1, height: 1, depth: 1}
   channels: [X8, UN8, UN8, UN8]
   swizzles: [W, Z, Y, 1]
+  little_endian:
+    alias: XBGR8888_SRGB
+  big_endian:
+    alias: RGBX8888_SRGB
 - name: B8G8R8A8_SRGB
   layout: plain
   colorspace: SRGB
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, UN8]
   swizzles: [Z, Y, X, W]
+  little_endian:
+    alias: BGRA8888_SRGB
+  big_endian:
+    alias: ARGB8888_SRGB
 - name: B8G8R8X8_SRGB
   layout: plain
   colorspace: SRGB
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, X8]
   swizzles: [Z, Y, X, 1]
+  little_endian:
+    alias: BGRX8888_SRGB
+  big_endian:
+    alias: XRGB8888_SRGB
 - name: A8R8G8B8_SRGB
   layout: plain
   colorspace: SRGB
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, UN8]
   swizzles: [Y, Z, W, X]
+  little_endian:
+    alias: ARGB8888_SRGB
+  big_endian:
+    alias: BGRA8888_SRGB
 - name: X8R8G8B8_SRGB
   layout: plain
   colorspace: SRGB
   block: {width: 1, height: 1, depth: 1}
   channels: [X8, UN8, UN8, UN8]
   swizzles: [Y, Z, W, 1]
+  little_endian:
+    alias: XRGB8888_SRGB
+  big_endian:
+    alias: BGRX8888_SRGB
 
 
 # Mixed-sign formats (typically used for bump map textures)
@@ -757,48 +813,56 @@
 # - http://msdn.microsoft.com/en-us/library/bb694531.aspx
 - name: DXT1_RGB
   layout: s3tc
+  sublayout: dxt1
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
   swizzles: [X, Y, Z, 1]
 - name: DXT1_RGBA
   layout: s3tc
+  sublayout: dxt1
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
   swizzles: [X, Y, Z, W]
 - name: DXT3_RGBA
   layout: s3tc
+  sublayout: dxt3
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X128]
   swizzles: [X, Y, Z, W]
 - name: DXT5_RGBA
   layout: s3tc
+  sublayout: dxt5
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X128]
   swizzles: [X, Y, Z, W]
 - name: DXT1_SRGB
   layout: s3tc
+  sublayout: dxt1
   colorspace: SRGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
   swizzles: [X, Y, Z, 1]
 - name: DXT1_SRGBA
   layout: s3tc
+  sublayout: dxt1
   colorspace: SRGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
   swizzles: [X, Y, Z, W]
 - name: DXT3_SRGBA
   layout: s3tc
+  sublayout: dxt3
   colorspace: SRGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X128]
   swizzles: [X, Y, Z, W]
 - name: DXT5_SRGBA
   layout: s3tc
+  sublayout: dxt5
   colorspace: SRGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X128]
@@ -874,6 +938,7 @@
 
 - name: ETC1_RGB8
   layout: etc
+  sublayout: etc1
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
@@ -881,60 +946,70 @@
 
 - name: ETC2_RGB8
   layout: etc
+  sublayout: etc2
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
   swizzles: [X, Y, Z, 1]
 - name: ETC2_SRGB8
   layout: etc
+  sublayout: etc2
   colorspace: SRGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
   swizzles: [X, Y, Z, 1]
 - name: ETC2_RGB8A1
   layout: etc
+  sublayout: etc2
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
   swizzles: [X, Y, Z, W]
 - name: ETC2_SRGB8A1
   layout: etc
+  sublayout: etc2
   colorspace: SRGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
   swizzles: [X, Y, Z, W]
 - name: ETC2_RGBA8
   layout: etc
+  sublayout: etc2
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X128]
   swizzles: [X, Y, Z, W]
 - name: ETC2_SRGBA8
   layout: etc
+  sublayout: etc2
   colorspace: SRGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X128]
   swizzles: [X, Y, Z, W]
 - name: ETC2_R11_UNORM
   layout: etc
+  sublayout: etc2
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
   swizzles: [X, 0, 0, 1]
 - name: ETC2_R11_SNORM
   layout: etc
+  sublayout: etc2
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X64]
   swizzles: [X, 0, 0, 1]
 - name: ETC2_RG11_UNORM
   layout: etc
+  sublayout: etc2
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X128]
   swizzles: [X, Y, 0, 1]
 - name: ETC2_RG11_SNORM
   layout: etc
+  sublayout: etc2
   colorspace: RGB
   block: {width: 4, height: 4, depth: 1}
   channels: [X128]
@@ -1468,6 +1543,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN16, UN16]
   swizzles: [X, Y, 0, 1]
+  little_endian:
+    alias: RG1616_UNORM
+  big_endian:
+    alias: GR1616_UNORM
 - name: R16G16B16_UNORM
   layout: plain
   colorspace: RGB
@@ -1516,6 +1595,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [SN16, SN16]
   swizzles: [X, Y, 0, 1]
+  little_endian:
+    alias: RG1616_SNORM
+  big_endian:
+    alias: GR1616_SNORM
 - name: R16G16B16_SNORM
   layout: plain
   colorspace: RGB
@@ -1564,6 +1647,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8]
   swizzles: [X, Y, 0, 1]
+  little_endian:
+    alias: RG88_UNORM
+  big_endian:
+    alias: GR88_UNORM
 - name: R8G8B8_UNORM
   layout: plain
   colorspace: RGB
@@ -1582,6 +1669,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, UN8]
   swizzles: [X, Y, Z, W]
+  little_endian:
+    alias: RGBA8888_UNORM
+  big_endian:
+    alias: ABGR8888_UNORM
 - name: R8_USCALED
   layout: plain
   colorspace: RGB
@@ -1612,6 +1703,8 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [U8, U8, U8, U8]
   swizzles: [X, Y, Z, W]
+  little_endian:
+    alias: RGBA8888_USCALED
 - name: B8G8R8A8_USCALED
   layout: plain
   colorspace: RGB
@@ -1624,6 +1717,8 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [U8, U8, U8, U8]
   swizzles: [W, Z, Y, X]
+  big_endian:
+    alias: RGBA8888_USCALED
 - name: R8_SNORM
   layout: plain
   colorspace: RGB
@@ -1636,6 +1731,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [SN8, SN8]
   swizzles: [X, Y, 0, 1]
+  little_endian:
+    alias: RG88_SNORM
+  big_endian:
+    alias: GR88_SNORM
 - name: R8G8B8_SNORM
   layout: plain
   colorspace: RGB
@@ -1654,6 +1753,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [SN8, SN8, SN8, SN8]
   swizzles: [X, Y, Z, W]
+  little_endian:
+    alias: RGBA8888_SNORM
+  big_endian:
+    alias: ABGR8888_SNORM
 - name: B8G8R8A8_SNORM
   layout: plain
   colorspace: RGB
@@ -1690,6 +1793,8 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [S8, S8, S8, S8]
   swizzles: [X, Y, Z, W]
+  little_endian:
+    alias: RGBA8888_SSCALED
 - name: B8G8R8A8_SSCALED
   layout: plain
   colorspace: RGB
@@ -1702,6 +1807,8 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [S8, S8, S8, S8]
   swizzles: [W, Z, Y, X]
+  big_endian:
+    alias: RGBA8888_SSCALED
 
 
 # GL-specific vertex buffer element formats
@@ -1793,7 +1900,18 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8]
   swizzles: [X, 0, 0, 1]
-
+- name: NV15
+  layout: planar2
+  colorspace: YUV
+  block: {width: 1, height: 1, depth: 1}
+  channels: []
+  swizzles: [X, Y, Z, W]
+- name: NV20
+  layout: planar2
+  colorspace: YUV
+  block: {width: 1, height: 1, depth: 1}
+  channels: []
+  swizzles: [X, Y, Z, W]
 
 # RGB versions of NV12, YV12, P010, and P012 for hardware that supports sampling
 # from multiplane textures but needs color-space conversion in the shader.
@@ -1814,6 +1932,24 @@
   colorspace: RGB
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8]
+  swizzles: [X, Y, Z, W]
+- name: R8_G8B8_422_UNORM
+  layout: planar2
+  colorspace: RGB
+  block: {width: 1, height: 1, depth: 1}
+  channels: [UN8]
+  swizzles: [X, Y, Z, W]
+- name: R10_G10B10_420_UNORM
+  layout: planar2
+  colorspace: RGB
+  block: {width: 4, height: 1, depth: 1}
+  channels: [UN40]
+  swizzles: [X, Y, Z, W]
+- name: R10_G10B10_422_UNORM
+  layout: planar2
+  colorspace: RGB
+  block: {width: 4, height: 1, depth: 1}
+  channels: [UN40]
   swizzles: [X, Y, Z, W]
 - name: R8_G8_B8_420_UNORM
   layout: planar3
@@ -1839,6 +1975,18 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8]
   swizzles: [X, Y, Z, W]
+- name: X6G10_X6B10X6R10_420_UNORM
+  layout: planar2
+  colorspace: RGB
+  block: {width: 1, height: 1, depth: 1}
+  channels: [X6, UN10]
+  swizzles: [X, Y, Z, W]
+- name: X4G12_X4B12X4R12_420_UNORM
+  layout: planar2
+  colorspace: RGB
+  block: {width: 1, height: 1, depth: 1}
+  channels: [X4, UN12]
+  swizzles: [X, Y, Z, W]
 
 # While most of Mesa uses R8 for Y, U, and V planes, freedreno requires
 # distinguishing between tiled Y8 data and tiled R8 data.
@@ -1849,6 +1997,34 @@
   channels: [UN8]
   swizzles: [X, 0, 0, 1]
 
+# Formats for plane 0/plane 1 of P010
+- name: X6R10_UNORM
+  layout: plain
+  colorspace: RGB
+  block: {width: 1, height: 1, depth: 1}
+  channels: [X6, UN10]
+  swizzles: [Y, 0, 0, 1]
+- name: X6R10X6G10_UNORM
+  layout: plain
+  colorspace: RGB
+  block: {width: 1, height: 1, depth: 1}
+  channels: [X6, UN10, X6, UN10]
+  swizzles: [Y, W, 0, 1]
+
+# Formats for plane 0/plane 1 of P012
+- name: X4R12_UNORM
+  layout: plain
+  colorspace: RGB
+  block: {width: 1, height: 1, depth: 1}
+  channels: [X4, UN12]
+  swizzles: [Y, 0, 0, 1]
+- name: X4R12X4G12_UNORM
+  layout: plain
+  colorspace: RGB
+  block: {width: 1, height: 1, depth: 1}
+  channels: [X4, UN12, X4, UN12]
+  swizzles: [Y, W, 0, 1]
+
 
 - name: Y8_U8_V8_422_UNORM
   layout: planar3
@@ -1856,13 +2032,19 @@
   block: {width: 1, height: 1, depth: 1}
   channels: []
   swizzles: [X, Y, Z, W]
-- name: Y8_U8V8_422_UNORM
+- name: NV16
   layout: planar2
   colorspace: YUV
   block: {width: 1, height: 1, depth: 1}
   channels: []
   swizzles: [X, Y, Z, W]
 - name: Y8_U8_V8_444_UNORM
+  layout: planar3
+  colorspace: YUV
+  block: {width: 1, height: 1, depth: 1}
+  channels: []
+  swizzles: [X, Y, Z, W]
+- name: Y8_U8_V8_440_UNORM
   layout: planar3
   colorspace: YUV
   block: {width: 1, height: 1, depth: 1}
@@ -1940,6 +2122,8 @@
   block: {width: 2, height: 1, depth: 1}
   channels: [X64]
   swizzles: [X, Y, Z, 1]
+
+
 - name: Y410
   layout: other
   colorspace: YUV
@@ -2050,6 +2234,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UP8, UP8, UP8, UP8]
   swizzles: [X, Y, Z, W]
+  little_endian:
+    alias: RGBA8888_UINT
+  big_endian:
+    alias: ABGR8888_UINT
 
 
 - name: R8_SINT
@@ -2076,6 +2264,8 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [SP8, SP8, SP8, SP8]
   swizzles: [X, Y, Z, W]
+  little_endian:
+    alias: RGBA8888_SINT
 
 
 - name: R16_UINT
@@ -2311,7 +2501,6 @@
   channels: [UP16, UP16]
   swizzles: [X, X, X, Y]
 
-
 - name: A16_SINT
   layout: plain
   colorspace: RGB
@@ -2402,6 +2591,10 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UP8, UP8, UP8, UP8]
   swizzles: [Z, Y, X, W]
+  little_endian:
+    alias: BGRA8888_UINT
+  big_endian:
+    alias: ARGB8888_UINT
 
 
 - name: B8G8R8_SINT
@@ -2424,12 +2617,20 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UP8, UP8, UP8, UP8]
   swizzles: [Y, Z, W, X]
+  little_endian:
+    alias: ARGB8888_UINT
+  big_endian:
+    alias: BGRA8888_UINT
 - name: A8B8G8R8_UINT
   layout: plain
   colorspace: RGB
   block: {width: 1, height: 1, depth: 1}
   channels: [UP8, UP8, UP8, UP8]
   swizzles: [W, Z, Y, X]
+  little_endian:
+    alias: ABGR8888_UINT
+  big_endian:
+    alias: RGBA8888_UINT
 - name: A2R10G10B10_UINT
   layout: plain
   colorspace: RGB
@@ -2534,12 +2735,20 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [SN8, SN8, SN8, X8]
   swizzles: [X, Y, Z, 1]
+  little_endian:
+    alias: RGBX8888_SNORM
+  big_endian:
+    alias: XBGR8888_SNORM
 - name: R8G8B8X8_SRGB
   layout: plain
   colorspace: SRGB
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8, UN8, X8]
   swizzles: [X, Y, Z, 1]
+  little_endian:
+    alias: RGBX8888_SRGB
+  big_endian:
+    alias: XBGR8888_SRGB
 - name: R8G8B8X8_UINT
   layout: plain
   colorspace: RGB
@@ -2720,12 +2929,20 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN8, UN8]
   swizzles: [Y, X, 0, 1]
+  little_endian:
+    alias: GR88_UNORM
+  big_endian:
+    alias: RG88_UNORM
 - name: G8R8_SNORM
   layout: plain
   colorspace: RGB
   block: {width: 1, height: 1, depth: 1}
   channels: [SN8, SN8]
   swizzles: [Y, X, 0, 1]
+  little_endian:
+    alias: GR88_SNORM
+  big_endian:
+    alias: RG88_SNORM
 - name: G8R8_SINT
   layout: plain
   colorspace: RGB
@@ -2738,12 +2955,20 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [UN16, UN16]
   swizzles: [Y, X, 0, 1]
+  little_endian:
+    alias: GR1616_UNORM
+  big_endian:
+    alias: RG1616_UNORM
 - name: G16R16_SNORM
   layout: plain
   colorspace: RGB
   block: {width: 1, height: 1, depth: 1}
   channels: [SN16, SN16]
   swizzles: [Y, X, 0, 1]
+  little_endian:
+    alias: GR1616_SNORM
+  big_endian:
+    alias: RG1616_SNORM
 - name: G16R16_SINT
   layout: plain
   colorspace: RGB
@@ -2758,18 +2983,28 @@
   block: {width: 1, height: 1, depth: 1}
   channels: [SN8, SN8, SN8, SN8]
   swizzles: [W, Z, Y, X]
+  little_endian:
+    alias: ABGR8888_SNORM
+  big_endian:
+    alias: RGBA8888_SNORM
 - name: A8B8G8R8_SINT
   layout: plain
   colorspace: RGB
   block: {width: 1, height: 1, depth: 1}
   channels: [SP8, SP8, SP8, SP8]
   swizzles: [W, Z, Y, X]
+  big_endian:
+    alias: RGBA8888_SINT
 - name: X8B8G8R8_SNORM
   layout: plain
   colorspace: RGB
   block: {width: 1, height: 1, depth: 1}
   channels: [X8, SN8, SN8, SN8]
   swizzles: [W, Z, Y, 1]
+  little_endian:
+    alias: XBGR8888_SNORM
+  big_endian:
+    alias: RGBX8888_SNORM
 - name: X8B8G8R8_SINT
   layout: plain
   colorspace: RGB

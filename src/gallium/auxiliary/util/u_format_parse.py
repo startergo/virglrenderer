@@ -234,6 +234,8 @@ class Format:
         self.block_depth = consume_int(self, source, 'block', 'depth')
         consumed(self, source, 'block')
         self.colorspace = consume_str(self, source, 'colorspace')
+        self.srgb_equivalent = None
+        self.linear_equivalent = None
 
         # Formats with no endian-dependent swizzling declare their channel and
         # swizzle layout at the top level. Else they can declare an
@@ -580,10 +582,14 @@ def parse(filename):
                 if equiv.colorspace != SRGB or not mostly_equivalent(fmt, equiv) or \
                    should_ignore_for_mapping(equiv):
                     continue
+                assert(fmt.srgb_equivalent == None)
+                fmt.srgb_equivalent = equiv
         elif fmt.colorspace == SRGB:
             for equiv in ret:
                 if equiv.colorspace != RGB or not mostly_equivalent(fmt, equiv) or \
                    should_ignore_for_mapping(equiv):
                     continue
+                assert(fmt.linear_equivalent == None)
+                fmt.linear_equivalent = equiv
 
     return ret
