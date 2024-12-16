@@ -235,7 +235,7 @@ extern const struct util_format_description
 util_format_description_table[];
 
 
-const struct util_format_description *
+ATTRIBUTE_RETURNS_NONNULL const struct util_format_description *
 util_format_description(enum pipe_format format);
 
 
@@ -243,24 +243,26 @@ util_format_description(enum pipe_format format);
  * Format query functions.
  */
 
-static inline const char *
+ATTRIBUTE_RETURNS_NONNULL static inline const char *
 util_format_name(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
 
-   if (!desc) {
+   assert(desc);
+   if (unlikely(!desc || !desc->name)) {
       return "PIPE_FORMAT_???";
    }
 
    return desc->name;
 }
 
-static inline const char *
+ATTRIBUTE_RETURNS_NONNULL static inline const char *
 util_format_short_name(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
 
-   if (!desc) {
+   assert(desc);
+   if (unlikely(!desc || !desc->short_name)) {
       return "???";
    }
 
@@ -275,7 +277,8 @@ util_format_is_plain(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
 
-   if (!format) {
+   assert(desc);
+   if (unlikely(!desc)) {
       return false;
    }
 
@@ -287,7 +290,8 @@ util_format_is_compressed(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
 
-   if (!desc) {
+   assert(desc);
+   if (unlikely(!desc)) {
       return false;
    }
 
@@ -310,6 +314,12 @@ static inline bool
 util_format_is_srgb(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
+
+   assert(desc);
+   if (unlikely(!desc)) {
+      return false;
+   }
+
    return desc->colorspace == UTIL_FORMAT_COLORSPACE_SRGB;
 }
 
@@ -332,7 +342,8 @@ util_format_is_depth_or_stencil(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
 
-   if (!desc) {
+   assert(desc);
+   if (unlikely(!desc)) {
       return false;
    }
 
@@ -345,7 +356,8 @@ util_format_is_depth_and_stencil(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
 
-   if (!desc) {
+   assert(desc);
+   if (unlikely(!desc)) {
       return false;
    }
 
@@ -390,8 +402,10 @@ util_format_get_mask(enum pipe_format format)
    const struct util_format_description *desc =
       util_format_description(format);
 
-   if (!desc)
+   assert(desc);
+   if (unlikely(!desc)) {
       return 0;
+   }
 
    if (util_format_has_depth(desc)) {
       if (util_format_has_stencil(desc)) {
@@ -486,7 +500,8 @@ util_format_get_blocksizebits(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
 
-   if (!desc) {
+   assert(desc);
+   if (unlikely(!desc)) {
       return 0;
    }
 
@@ -516,7 +531,8 @@ util_format_get_blockwidth(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
 
-   if (!desc) {
+   assert(desc);
+   if (unlikely(!desc)) {
       return 1;
    }
 
@@ -528,7 +544,8 @@ util_format_get_blockheight(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
 
-   if (!desc) {
+   assert(desc);
+   if (unlikely(!desc)) {
       return 1;
    }
 
@@ -541,7 +558,7 @@ util_format_get_blockdepth(enum pipe_format format)
    const struct util_format_description *desc = util_format_description(format);
 
    assert(desc);
-   if (!desc) {
+   if (unlikely(!desc)) {
       return 1;
    }
 
