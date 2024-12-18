@@ -686,44 +686,12 @@ util_format_srgb(enum pipe_format format)
    if (util_format_is_srgb(format))
       return format;
 
-   switch (format) {
-   case PIPE_FORMAT_L8_UNORM:
-      return PIPE_FORMAT_L8_SRGB;
-   case PIPE_FORMAT_L8A8_UNORM:
-      return PIPE_FORMAT_L8A8_SRGB;
-   case PIPE_FORMAT_R8G8B8_UNORM:
-      return PIPE_FORMAT_R8G8B8_SRGB;
-   case PIPE_FORMAT_A8B8G8R8_UNORM:
-      return PIPE_FORMAT_A8B8G8R8_SRGB;
-   case PIPE_FORMAT_X8B8G8R8_UNORM:
-      return PIPE_FORMAT_X8B8G8R8_SRGB;
-   case PIPE_FORMAT_B8G8R8A8_UNORM:
-      return PIPE_FORMAT_B8G8R8A8_SRGB;
-   case PIPE_FORMAT_B8G8R8X8_UNORM:
-      return PIPE_FORMAT_B8G8R8X8_SRGB;
-   case PIPE_FORMAT_A8R8G8B8_UNORM:
-      return PIPE_FORMAT_A8R8G8B8_SRGB;
-   case PIPE_FORMAT_X8R8G8B8_UNORM:
-      return PIPE_FORMAT_X8R8G8B8_SRGB;
-   case PIPE_FORMAT_R8G8B8A8_UNORM:
-      return PIPE_FORMAT_R8G8B8A8_SRGB;
-   case PIPE_FORMAT_R8G8B8X8_UNORM:
-      return PIPE_FORMAT_R8G8B8X8_SRGB;
-   case PIPE_FORMAT_DXT1_RGB:
-      return PIPE_FORMAT_DXT1_SRGB;
-   case PIPE_FORMAT_DXT1_RGBA:
-      return PIPE_FORMAT_DXT1_SRGBA;
-   case PIPE_FORMAT_DXT3_RGBA:
-      return PIPE_FORMAT_DXT3_SRGBA;
-   case PIPE_FORMAT_DXT5_RGBA:
-      return PIPE_FORMAT_DXT5_SRGBA;
-   case PIPE_FORMAT_B5G6R5_UNORM:
-      return PIPE_FORMAT_B5G6R5_SRGB;
-   case PIPE_FORMAT_BPTC_RGBA_UNORM:
-      return PIPE_FORMAT_BPTC_SRGBA;
-   default:
-      return PIPE_FORMAT_NONE;
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
+      return format;
    }
+
+   return util_format_description(format)->srgb_equivalent;
 }
 
 /**
@@ -733,44 +701,15 @@ util_format_srgb(enum pipe_format format)
 static inline enum pipe_format
 util_format_linear(enum pipe_format format)
 {
-   switch (format) {
-   case PIPE_FORMAT_L8_SRGB:
-      return PIPE_FORMAT_L8_UNORM;
-   case PIPE_FORMAT_L8A8_SRGB:
-      return PIPE_FORMAT_L8A8_UNORM;
-   case PIPE_FORMAT_R8G8B8_SRGB:
-      return PIPE_FORMAT_R8G8B8_UNORM;
-   case PIPE_FORMAT_A8B8G8R8_SRGB:
-      return PIPE_FORMAT_A8B8G8R8_UNORM;
-   case PIPE_FORMAT_X8B8G8R8_SRGB:
-      return PIPE_FORMAT_X8B8G8R8_UNORM;
-   case PIPE_FORMAT_B8G8R8A8_SRGB:
-      return PIPE_FORMAT_B8G8R8A8_UNORM;
-   case PIPE_FORMAT_B8G8R8X8_SRGB:
-      return PIPE_FORMAT_B8G8R8X8_UNORM;
-   case PIPE_FORMAT_A8R8G8B8_SRGB:
-      return PIPE_FORMAT_A8R8G8B8_UNORM;
-   case PIPE_FORMAT_X8R8G8B8_SRGB:
-      return PIPE_FORMAT_X8R8G8B8_UNORM;
-   case PIPE_FORMAT_R8G8B8A8_SRGB:
-      return PIPE_FORMAT_R8G8B8A8_UNORM;
-   case PIPE_FORMAT_R8G8B8X8_SRGB:
-      return PIPE_FORMAT_R8G8B8X8_UNORM;
-   case PIPE_FORMAT_DXT1_SRGB:
-      return PIPE_FORMAT_DXT1_RGB;
-   case PIPE_FORMAT_DXT1_SRGBA:
-      return PIPE_FORMAT_DXT1_RGBA;
-   case PIPE_FORMAT_DXT3_SRGBA:
-      return PIPE_FORMAT_DXT3_RGBA;
-   case PIPE_FORMAT_DXT5_SRGBA:
-      return PIPE_FORMAT_DXT5_RGBA;
-   case PIPE_FORMAT_B5G6R5_SRGB:
-      return PIPE_FORMAT_B5G6R5_UNORM;
-   case PIPE_FORMAT_BPTC_SRGBA:
-      return PIPE_FORMAT_BPTC_RGBA_UNORM;
-   default:
+   if (!util_format_is_srgb(format))
+      return format;
+
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
       return format;
    }
+
+   return util_format_description(format)->linear_equivalent;
 }
 
 /**
@@ -925,6 +864,8 @@ static inline unsigned
 util_format_get_nr_components(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
+   assert(desc->nr_channels <= 4);
+
    return desc->nr_channels;
 }
 

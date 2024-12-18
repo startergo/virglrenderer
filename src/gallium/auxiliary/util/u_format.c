@@ -158,23 +158,13 @@ bool
 util_format_is_snorm(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
-   int i;
 
    assert(format < PIPE_FORMAT_COUNT);
    if (unlikely(format >= PIPE_FORMAT_COUNT)) {
       return false;
    }
 
-   if (desc->is_mixed)
-      return false;
-
-   i = util_format_get_first_non_void_channel(format);
-   if (i == -1)
-      return false;
-
-   return desc->channel[i].type == UTIL_FORMAT_TYPE_SIGNED &&
-          !desc->channel[i].pure_integer &&
-          desc->channel[i].normalized;
+   return desc->is_snorm;
 }
 
 bool
