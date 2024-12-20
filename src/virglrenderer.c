@@ -1504,3 +1504,16 @@ int virgl_renderer_submit_cmd2(void *buffer,
 
    return ctx->submit_cmd(ctx, buffer, (uint32_t)ndw * sizeof(uint32_t));
 }
+
+int virgl_renderer_resource_get_vulkaninfo(uint32_t res_handle,
+                                           struct virgl_renderer_resource_vulkan_info *vk_info)
+{
+   struct virgl_resource *res = virgl_resource_lookup(res_handle);
+   if (!res)
+      return EINVAL;
+
+   vk_info->memory_type_index = res->vulkan_info.memory_type_index;
+   memcpy(vk_info->device_uuid, res->vulkan_info.device_uuid, sizeof(vk_info->device_uuid));
+   memcpy(vk_info->driver_uuid, res->vulkan_info.driver_uuid, sizeof(vk_info->driver_uuid));
+   return 0;
+}

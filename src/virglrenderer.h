@@ -460,6 +460,16 @@ VIRGL_EXPORT int virgl_renderer_context_create_fence(uint32_t ctx_id,
 VIRGL_EXPORT void virgl_renderer_context_poll(uint32_t ctx_id); /* force fences */
 VIRGL_EXPORT int virgl_renderer_context_get_poll_fd(uint32_t ctx_id);
 
+struct virgl_renderer_resource_vulkan_info {
+   uint32_t memory_type_index;
+   uint8_t device_uuid[16];
+   uint8_t driver_uuid[16];
+};
+
+VIRGL_EXPORT int
+virgl_renderer_resource_get_vulkaninfo(uint32_t res_handle,
+                                       struct virgl_renderer_resource_vulkan_info *vk_info);
+
 /*
  * These are unstable APIs for development only. Use these for development/testing purposes
  * only, not in production
