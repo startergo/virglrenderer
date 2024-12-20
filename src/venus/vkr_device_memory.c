@@ -287,11 +287,14 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
          !export_info ||
          !(export_info->handleTypes & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
       const bool force_udmabuf_import = physical_dev->udmabuf_dev_fd >= 0;
+      const bool dma_buf_export_req =
+         export_info &&
+         (export_info->handleTypes & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
       if (!force_udmabuf_import &&
           (physical_dev->is_dma_buf_fd_export_supported ||
            (physical_dev->is_opaque_fd_export_supported && no_dma_buf_export))) {
          const VkExternalMemoryHandleTypeFlagBits handle_type =
-            physical_dev->is_dma_buf_fd_export_supported
+            dma_buf_export_req && physical_dev->is_dma_buf_fd_export_supported
                ? VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT
                : VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
          if (export_info) {
@@ -305,6 +308,9 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
             export_info = &local_export_info;
             alloc_info->pNext = &local_export_info;
          }
+
+         if (handle_type == VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+            alloc_info->allocationSize = align64(alloc_info->allocationSize, 4096);
       } else if (physical_dev->EXT_external_memory_dma_buf) {
          /* Allocate dma_buf externally and force to import. */
          if (export_info) {
