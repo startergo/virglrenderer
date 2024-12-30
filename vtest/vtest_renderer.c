@@ -1196,7 +1196,8 @@ int vtest_resource_create_blob(UNUSED uint32_t length_dw)
          return report_failed_call("virgl_renderer_resource_export_blob", ret);
       }
       if (fd_type != VIRGL_RENDERER_BLOB_FD_TYPE_DMABUF &&
-          fd_type != VIRGL_RENDERER_BLOB_FD_TYPE_SHM) {
+          fd_type != VIRGL_RENDERER_BLOB_FD_TYPE_SHM &&
+          fd_type != VIRGL_RENDERER_BLOB_FD_TYPE_OPAQUE) {
          close(fd);
          vtest_unref_resource(res);
          return report_failed_call("virgl_renderer_resource_export_blob", -EINVAL);
