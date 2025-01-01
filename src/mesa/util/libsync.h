@@ -40,6 +40,12 @@
 
 #include "util/detect_os.h"
 
+#if defined(__FreeBSD__)
+#ifndef ETIME
+#define ETIME ETIMEDOUT
+#endif
+#endif
+
 #if defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"

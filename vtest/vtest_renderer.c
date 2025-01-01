@@ -43,6 +43,9 @@
 #ifdef HAVE_EVENTFD_H
 #include <sys/eventfd.h>
 #endif
+#if defined (__FreeBSD__)
+#include <sys/stat.h>
+#endif
 
 #include "vtest.h"
 #include "vtest_shm.h"
@@ -367,8 +370,14 @@ int vtest_block_read(struct vtest_input *input, void *buf, int size)
 
    if (getenv("VTEST_SAVE")) {
       if (savefd == -1) {
-         savefd = open(getenv("VTEST_SAVE"),
-                       O_CLOEXEC|O_CREAT|O_WRONLY|O_TRUNC|O_DSYNC, S_IRUSR|S_IWUSR);
+#if defined (__FreeBSD__)
+        savefd = open(getenv("VTEST_SAVE"),
+                      O_CLOEXEC | O_CREAT | O_WRONLY | O_TRUNC | O_SYNC, S_IRUSR | S_IWUSR);
+
+#else
+        savefd = open(getenv("VTEST_SAVE"),
+                      O_CLOEXEC | O_CREAT | O_WRONLY | O_TRUNC | O_DSYNC, S_IRUSR | S_IWUSR);
+#endif
          if (savefd == -1) {
             perror("error opening save file");
             exit(1);
