@@ -2684,7 +2684,8 @@ int vrend_create_sampler_view(struct vrend_context *ctx,
    int ret_handle;
    enum pipe_swizzle swizzle[4];
 
-   if (unlikely(!util_format_description(format))) {
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
       vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_FORMAT, format);
       return EINVAL;
    }
@@ -3373,12 +3374,12 @@ int vrend_create_vertex_elements_state(struct vrend_context *ctx,
    for (i = 0; i < num_elements; i++) {
       memcpy(&v->elements[i].base, &elements[i], sizeof(struct pipe_vertex_element));
 
-      desc = util_format_description(elements[i].src_format);
-      if (!desc) {
+      if (unlikely(elements[i].src_format >= PIPE_FORMAT_COUNT)) {
          FREE(v);
          return EINVAL;
       }
 
+      desc = util_format_description(elements[i].src_format);
       type = GL_FALSE;
       switch (desc->channel[0].type) {
       case UTIL_FORMAT_TYPE_FLOAT:

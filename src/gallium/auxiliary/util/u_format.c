@@ -46,6 +46,11 @@ util_format_has_alpha(enum pipe_format format)
    const struct util_format_description *desc =
       util_format_description(format);
 
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
+      return false;
+   }
+
    return (desc->colorspace == UTIL_FORMAT_COLORSPACE_RGB ||
            desc->colorspace == UTIL_FORMAT_COLORSPACE_SRGB) &&
           desc->swizzle[3] != PIPE_SWIZZLE_1;
@@ -57,6 +62,11 @@ util_format_is_luminance(enum pipe_format format)
 {
    const struct util_format_description *desc =
       util_format_description(format);
+
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
+      return false;
+   }
 
    if ((desc->colorspace == UTIL_FORMAT_COLORSPACE_RGB ||
         desc->colorspace == UTIL_FORMAT_COLORSPACE_SRGB) &&
@@ -74,6 +84,11 @@ util_format_is_alpha(enum pipe_format format)
 {
    const struct util_format_description *desc =
       util_format_description(format);
+
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
+      return false;
+   }
 
    if ((desc->colorspace == UTIL_FORMAT_COLORSPACE_RGB ||
         desc->colorspace == UTIL_FORMAT_COLORSPACE_SRGB) &&
@@ -106,6 +121,11 @@ util_format_is_pure_sint(enum pipe_format format)
    const struct util_format_description *desc = util_format_description(format);
    int i;
 
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
+      return false;
+   }
+
    i = util_format_get_first_non_void_channel(format);
    if (i == -1)
       return false;
@@ -118,6 +138,11 @@ util_format_is_pure_uint(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
    int i;
+
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
+      return false;
+   }
 
    i = util_format_get_first_non_void_channel(format);
    if (i == -1)
@@ -134,6 +159,11 @@ util_format_is_snorm(enum pipe_format format)
 {
    const struct util_format_description *desc = util_format_description(format);
    int i;
+
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
+      return false;
+   }
 
    if (desc->is_mixed)
       return false;
@@ -153,6 +183,11 @@ util_format_is_luminance_alpha(enum pipe_format format)
    const struct util_format_description *desc =
       util_format_description(format);
 
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
+      return false;
+   }
+
    if ((desc->colorspace == UTIL_FORMAT_COLORSPACE_RGB ||
         desc->colorspace == UTIL_FORMAT_COLORSPACE_SRGB) &&
        desc->swizzle[0] == PIPE_SWIZZLE_X &&
@@ -170,6 +205,11 @@ util_format_is_intensity(enum pipe_format format)
 {
    const struct util_format_description *desc =
       util_format_description(format);
+
+   assert(format < PIPE_FORMAT_COUNT);
+   if (unlikely(format >= PIPE_FORMAT_COUNT)) {
+      return false;
+   }
 
    if ((desc->colorspace == UTIL_FORMAT_COLORSPACE_RGB ||
         desc->colorspace == UTIL_FORMAT_COLORSPACE_SRGB) &&
