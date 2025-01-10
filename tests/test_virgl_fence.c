@@ -29,6 +29,11 @@
 
 #include <check.h>
 #include <errno.h>
+#if defined(__FreeBSD__)
+#ifndef ETIME
+#define ETIME ETIMEDOUT
+#endif
+#endif
 #ifndef _WIN32
 #include <poll.h>
 #endif
