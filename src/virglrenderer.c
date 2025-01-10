@@ -1531,3 +1531,15 @@ int virgl_renderer_submit_cmd2(void *buffer,
 
    return ctx->submit_cmd(ctx, buffer, (uint32_t)ndw * sizeof(uint32_t));
 }
+
+int virgl_renderer_get_dev_fd(int ctx_id)
+{
+   struct virgl_context *ctx = virgl_context_lookup(ctx_id);
+   if (!ctx)
+      return -EINVAL;
+
+   if (!ctx->get_device_fd)
+      return -ENODEV;
+
+   return ctx->get_device_fd(ctx);
+}

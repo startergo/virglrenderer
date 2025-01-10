@@ -501,6 +501,7 @@ virgl_renderer_submit_cmd2(void *buffer,
 /* vtest semi-private APIs: */
 VIRGL_EXPORT int virgl_renderer_attach_fence(int ctx_id, int fence_fd);
 VIRGL_EXPORT int virgl_renderer_get_fence_fd(uint64_t fence_id);
+VIRGL_EXPORT int virgl_renderer_get_dev_fd(int ctx_id);
 
 #endif /* VIRGL_RENDERER_UNSTABLE_APIS */
 

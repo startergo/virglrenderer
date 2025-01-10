@@ -129,6 +129,9 @@ struct virgl_context {
                        uint32_t flags,
                        uint32_t ring_idx,
                        uint64_t fence_id);
+
+   /* For DRM native contexts, return the device fd: */
+   int (*get_device_fd)(struct virgl_context *ctx);
 };
 
 struct virgl_context_foreach_args {

@@ -222,6 +222,14 @@ drm_context_detach_resource(struct virgl_context *vctx, struct virgl_resource *r
    drm_context_free_object(dctx, obj);
 }
 
+static int
+drm_context_get_device_fd(struct virgl_context *vctx)
+{
+   struct drm_context *dctx = to_drm_context(vctx);
+
+   return dctx->fd;
+}
+
 bool
 drm_context_init(struct drm_context *dctx, int fd,
                  const struct drm_ccmd *ccmd_dispatch, unsigned int dispatch_size)
@@ -248,6 +256,8 @@ drm_context_init(struct drm_context *dctx, int fd,
    dctx->base.get_fencing_fd = drm_context_get_fencing_fd;
    dctx->base.retire_fences = drm_context_retire_fences;
    dctx->base.detach_resource = drm_context_detach_resource;
+   dctx->base.get_device_fd = drm_context_get_device_fd;
+
    return true;
 fail_blob_table:
    _mesa_hash_table_destroy(dctx->resource_table, NULL);
