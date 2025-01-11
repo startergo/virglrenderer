@@ -170,6 +170,9 @@ if thread_dep.found() and not with_host_windows
       args : '-D_GNU_SOURCE')
     conf_data.set('HAVE_PTHREAD_SETAFFINITY', 1)
   endif
+  if cc.has_header('pthread_np.h')
+     conf_data.set('HAVE_PTHREAD_NP_H', 1)
+  endif
 endif
 
 if cc.has_header('sys/eventfd.h')
