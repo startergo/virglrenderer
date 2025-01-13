@@ -761,8 +761,6 @@ msm_ccmd_gem_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       .queueid = req->queue_id,
    };
 
-   close(in_fence_fd);
-
    int ret = drmCommandWriteRead(dctx->fd, DRM_MSM_GEM_SUBMIT, &args, sizeof(args));
    drm_dbg("fence=%u, ret=%d", args.fence, ret);
 
@@ -786,6 +784,8 @@ msm_ccmd_gem_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
    }
 
 out:
+   if (in_fence_fd >= 0)
+      close(in_fence_fd);
    if (!bos_on_stack)
       free(bos);
    return 0;
