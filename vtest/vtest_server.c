@@ -47,6 +47,7 @@
 #include "vtest_protocol.h"
 #include "virglrenderer.h"
 #include "vtest_server.h"
+#include "virgl_util.h"
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
@@ -668,44 +669,45 @@ static void vtest_server_run(void)
 }
 
 static const struct vtest_command {
+   const char *name;
    int (*dispatch)(uint32_t);
    bool init_context;
 } vtest_commands[] = {
-   /* CMD ids starts at 1 */
-   [0]                          = { NULL,                        false },
-   [VCMD_GET_CAPS]              = { vtest_send_caps,             false },
-   [VCMD_RESOURCE_CREATE]       = { vtest_create_resource,       true  },
-   [VCMD_RESOURCE_UNREF]        = { vtest_resource_unref,        true  },
-   [VCMD_TRANSFER_GET]          = { vtest_transfer_get,          true  },
-   [VCMD_TRANSFER_PUT]          = { vtest_transfer_put,          true  },
-   [VCMD_SUBMIT_CMD]            = { vtest_submit_cmd,            true  },
-   [VCMD_RESOURCE_BUSY_WAIT]    = { vtest_resource_busy_wait,    false },
+#define HANDLER(N, n, init_context) \
+   [VCMD_##N] = { #N, vtest_##n, init_context }
+
+   HANDLER(GET_CAPS,                send_caps,             false),
+   HANDLER(RESOURCE_CREATE,         create_resource,       true ),
+   HANDLER(RESOURCE_UNREF,          resource_unref,        true ),
+   HANDLER(TRANSFER_GET,            transfer_get,          true ),
+   HANDLER(TRANSFER_PUT,            transfer_put,          true ),
+   HANDLER(SUBMIT_CMD,              submit_cmd,            true ),
+   HANDLER(RESOURCE_BUSY_WAIT,      resource_busy_wait,    false),
    /* VCMD_CREATE_RENDERER is a special case */
-   [VCMD_CREATE_RENDERER]       = { NULL,                        false },
-   [VCMD_GET_CAPS2]             = { vtest_send_caps2,            false },
-   [VCMD_PING_PROTOCOL_VERSION] = { vtest_ping_protocol_version, false },
-   [VCMD_PROTOCOL_VERSION]      = { vtest_protocol_version,      false },
+   HANDLER(GET_CAPS2,               send_caps2,            false),
+   HANDLER(PING_PROTOCOL_VERSION,   ping_protocol_version, false),
+   HANDLER(PROTOCOL_VERSION,        protocol_version,      false),
 
    /* since protocol version 2 */
-   [VCMD_RESOURCE_CREATE2]      = { vtest_create_resource2,      true  },
-   [VCMD_TRANSFER_GET2]         = { vtest_transfer_get2,         true  },
-   [VCMD_TRANSFER_PUT2]         = { vtest_transfer_put2,         true  },
-
+   HANDLER(RESOURCE_CREATE2,        create_resource2,      true ),
+   HANDLER(TRANSFER_GET2,           transfer_get2,         true ),
+   HANDLER(TRANSFER_PUT2,           transfer_put2,         true ),
    /* since protocol version 3 */
-   [VCMD_GET_PARAM]             = { vtest_get_param,             false },
-   [VCMD_GET_CAPSET]            = { vtest_get_capset,            false },
-   [VCMD_CONTEXT_INIT]          = { vtest_context_init,          false },
-   [VCMD_RESOURCE_CREATE_BLOB]  = { vtest_resource_create_blob,  true  },
-   [VCMD_SYNC_CREATE]           = { vtest_sync_create,           true },
-   [VCMD_SYNC_UNREF]            = { vtest_sync_unref,            true },
-   [VCMD_SYNC_READ]             = { vtest_sync_read,             true },
-   [VCMD_SYNC_WRITE]            = { vtest_sync_write,            true },
-   [VCMD_SYNC_WAIT]             = { vtest_sync_wait,             true },
-   [VCMD_SUBMIT_CMD2]           = { vtest_submit_cmd2,           true },
+   HANDLER(GET_PARAM,               get_param,             false),
+   HANDLER(GET_CAPSET,              get_capset,            false),
+   HANDLER(CONTEXT_INIT,            context_init,          false),
+   HANDLER(RESOURCE_CREATE_BLOB,    resource_create_blob,  true ),
+   HANDLER(SYNC_CREATE,             sync_create,           true ),
+   HANDLER(SYNC_UNREF,              sync_unref,            true ),
+   HANDLER(SYNC_READ,               sync_read,             true ),
+   HANDLER(SYNC_WRITE,              sync_write,            true ),
+   HANDLER(SYNC_WAIT,               sync_wait,             true ),
+   HANDLER(SUBMIT_CMD2,             submit_cmd2,           true ),
 };
 
 static int vtest_client_dispatch_commands(struct vtest_client *client)
 {
+   TRACE_FUNC();
    const struct vtest_command *cmd;
    int ret;
    uint32_t header[VTEST_HDR_SIZE];
@@ -754,7 +756,10 @@ static int vtest_client_dispatch_commands(struct vtest_client *client)
 
    vtest_set_current_context(client->context);
 
+   void *trace_scope = TRACE_SCOPE_BEGIN(cmd->name);
    ret = cmd->dispatch(header[0]);
+   TRACE_SCOPE_END(trace_scope);
+
    if (ret < 0) {
       return VTEST_CLIENT_ERROR_COMMAND_DISPATCH;
    }

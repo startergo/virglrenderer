@@ -435,6 +435,7 @@ int virgl_renderer_context_create_fence(uint32_t ctx_id,
 
 void virgl_renderer_context_poll(uint32_t ctx_id)
 {
+   TRACE_FUNC();
    struct virgl_context *ctx = virgl_context_lookup(ctx_id);
    if (!ctx)
       return;
