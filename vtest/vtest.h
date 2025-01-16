@@ -97,6 +97,22 @@ int vtest_sync_wait(uint32_t length_dw);
 
 int vtest_submit_cmd2(uint32_t length_dw);
 
+/* since protocol version 4 */
+int vtest_drm_sync_create(uint32_t length_dw);
+int vtest_drm_sync_destroy(uint32_t length_dw);
+int vtest_drm_sync_handle_to_fd(uint32_t length_dw);
+int vtest_drm_sync_fd_to_handle(uint32_t length_dw);
+int vtest_drm_sync_import_sync_file(uint32_t length_dw);
+int vtest_drm_sync_export_sync_file(uint32_t length_dw);
+int vtest_drm_sync_wait(uint32_t length_dw);
+int vtest_drm_sync_reset(uint32_t length_dw);
+int vtest_drm_sync_signal(uint32_t length_dw);
+int vtest_drm_sync_timeline_signal(uint32_t length_dw);
+int vtest_drm_sync_timeline_wait(uint32_t length_dw);
+int vtest_drm_sync_query(uint32_t length_dw);
+int vtest_drm_sync_transfer(uint32_t length_dw);
+int vtest_resource_export_fd(uint32_t length_dw);
+
 void vtest_set_max_length(uint32_t length);
 
 #endif

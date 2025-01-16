@@ -712,6 +712,24 @@ static const struct vtest_command {
    HANDLER(SYNC_WRITE,              sync_write,            true ),
    HANDLER(SYNC_WAIT,               sync_wait,             true ),
    HANDLER(SUBMIT_CMD2,             submit_cmd2,           true ),
+
+   /* since protocol version 4 */
+#ifdef ENABLE_DRM
+   HANDLER(DRM_SYNC_CREATE,             drm_sync_create,           true   ),
+   HANDLER(DRM_SYNC_DESTROY,            drm_sync_destroy,          true   ),
+   HANDLER(DRM_SYNC_HANDLE_TO_FD,       drm_sync_handle_to_fd,     true   ),
+   HANDLER(DRM_SYNC_FD_TO_HANDLE,       drm_sync_fd_to_handle,     true   ),
+   HANDLER(DRM_SYNC_IMPORT_SYNC_FILE,   drm_sync_import_sync_file, true   ),
+   HANDLER(DRM_SYNC_EXPORT_SYNC_FILE,   drm_sync_export_sync_file, true   ),
+   HANDLER(DRM_SYNC_WAIT,               drm_sync_wait,             true   ),
+   HANDLER(DRM_SYNC_RESET,              drm_sync_reset,            true   ),
+   HANDLER(DRM_SYNC_SIGNAL,             drm_sync_signal,           true   ),
+   HANDLER(DRM_SYNC_TIMELINE_SIGNAL,    drm_sync_timeline_signal,  true   ),
+   HANDLER(DRM_SYNC_TIMELINE_WAIT,      drm_sync_timeline_wait,    true   ),
+   HANDLER(DRM_SYNC_QUERY,              drm_sync_query,            true   ),
+   HANDLER(DRM_SYNC_TRANSFER,           drm_sync_transfer,         true   ),
+#endif /* ENABLE_DRM */
+   HANDLER(RESOURCE_EXPORT_FD,          resource_export_fd,        true   ),
 };
 
 static int vtest_client_dispatch_commands(struct vtest_client *client)

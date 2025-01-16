@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <c11/threads.h>
 
 #include "virgl_hw.h"
 #include "virglrenderer.h"
@@ -53,6 +54,7 @@
 #include "vtest.h"
 #include "vtest_shm.h"
 #include "vtest_protocol.h"
+#include "threadpool.h"
 
 #include "util.h"
 #include "util/list.h"
@@ -64,6 +66,11 @@
 
 #ifndef WIN32
 #include "util/libsync.h"
+#endif
+
+#ifdef ENABLE_DRM
+#include "../src/drm/drm-uapi/drm.h"
+#include <xf86drm.h>
 #endif
 
 #define VTEST_MAX_TIMELINE_COUNT 64
@@ -115,6 +122,27 @@ struct vtest_sync_wait {
    uint32_t signaled_count;
 };
 
+struct vtest_drm_sync_wait {
+   int pipe_fd; /* write end of response pipe */
+   int drm_fd;
+
+   uint32_t num_handles;
+   uint32_t flags;
+   uint32_t first_signaled;
+
+   /* NOTE, non-zero timeout should be handled on the client side.
+    * The only thing we use it to is to realize when we can give
+    * up on a wait, and cleanup.
+    */
+   uint64_t timeout;
+
+   uint64_t *points;
+
+   int ret;
+
+   uint32_t handles[];
+};
+
 struct vtest_context {
    struct list_head head;
 
@@ -135,6 +163,15 @@ struct vtest_context {
    struct vtest_timeline timelines[VTEST_MAX_TIMELINE_COUNT];
 
    struct list_head sync_waits;
+
+#ifdef ENABLE_DRM
+   /* A threadpool for blocking syncobj waits.  We don't want to serialize
+    * waits, because the wakeups could be out of order.  But we dont' want
+    * to have to spawn a thread for each wait.  So use a threadpool that
+    * can add new threads on demand.
+    */
+   struct threadpool drm_sync_wait_pool;
+#endif
 };
 
 struct vtest_renderer {
@@ -487,6 +524,81 @@ int vtest_buf_read(struct vtest_input *input, void *buf, int size)
    return size;
 }
 
+#ifdef ENABLE_DRM
+static void vtest_free_drm_sync_wait(struct vtest_drm_sync_wait *wait)
+{
+   close(wait->pipe_fd);
+   free(wait->points);
+   free(wait);
+}
+
+static struct vtest_drm_sync_wait *
+vtest_new_drm_sync_wait(struct vtest_context *ctx,
+                        uint32_t num_handles,
+                        uint64_t timeout,
+                        uint32_t flags,
+                        bool timeline,
+                        int *ret_fd)
+{
+   struct vtest_drm_sync_wait *wait = malloc(sizeof(*wait) + (num_handles * sizeof(uint32_t)));
+
+   wait->drm_fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+
+   wait->num_handles = num_handles;
+   wait->flags = flags;
+   wait->first_signaled = ~0;
+   wait->timeout = timeout;
+   wait->ret = 0;
+
+   if (timeline) {
+      wait->points = malloc(num_handles * sizeof(uint64_t));
+   } else {
+      wait->points = NULL;
+   }
+
+   if (flags & DRM_SYNCOBJ_WAIT_FLAGS_WAIT_FD) {
+      int pipefd[2];
+      pipe(pipefd);
+
+      *ret_fd = pipefd[0];  /* read end of pipe */
+      wait->pipe_fd = pipefd[1]; /* write end of pipe */
+   } else {
+      *ret_fd = -1;
+      wait->pipe_fd = -1;
+   }
+
+   return wait;
+}
+
+static void vtest_call_drm_sync_wait(struct vtest_drm_sync_wait *wait)
+{
+   /* Note, DRM_SYNCOBJ_WAIT_FLAGS_WAIT_FD is only used within vtest proto */
+   unsigned flags = wait->flags & ~DRM_SYNCOBJ_WAIT_FLAGS_WAIT_FD;
+
+   if (wait->points) {
+      wait->ret = drmSyncobjTimelineWait(wait->drm_fd, wait->handles, wait->points,
+                                         wait->num_handles, wait->timeout,
+                                         flags, &wait->first_signaled);
+   } else {
+      wait->ret = drmSyncobjWait(wait->drm_fd, wait->handles, wait->num_handles,
+                                 wait->timeout, flags, &wait->first_signaled);
+   }
+}
+
+static void
+drm_sync_wait_run(void *job)
+{
+   struct vtest_drm_sync_wait *wait = job;
+
+   vtest_call_drm_sync_wait(wait);
+
+   uint32_t resp[2] = { wait->first_signaled, wait->ret };
+   vtest_block_write(wait->pipe_fd, resp, sizeof(resp));
+
+   vtest_free_drm_sync_wait(wait);
+}
+#endif /* ENABLE_DRM */
+
 int vtest_init_renderer(bool multi_clients,
                         int ctx_flags,
                         const char *render_device)
@@ -596,6 +708,10 @@ static struct vtest_context *vtest_new_context(struct vtest_input *input,
 
       list_inithead(&ctx->sync_waits);
 
+#ifdef ENABLE_DRM
+      threadpool_init(&ctx->drm_sync_wait_pool);
+#endif
+
       ctx->ctx_id = renderer.next_context_id++;
    } else {
       ctx = LIST_ENTRY(struct vtest_context, renderer.free_contexts.next, head);
@@ -694,6 +810,7 @@ int vtest_lazy_init_context(struct vtest_context *ctx)
 void vtest_destroy_context(struct vtest_context *ctx)
 {
    struct vtest_sync_wait *wait, *wait_tmp;
+   UNUSED struct vtest_drm_sync_wait *drm_wait, *drm_wait_tmp;
    uint32_t i;
 
    if (renderer.current_context == ctx) {
@@ -715,6 +832,10 @@ void vtest_destroy_context(struct vtest_context *ctx)
       vtest_free_sync_wait(wait);
    }
    list_inithead(&ctx->sync_waits);
+
+#ifdef ENABLE_DRM
+   threadpool_fini(&ctx->drm_sync_wait_pool);
+#endif
 
    free(ctx->debug_name);
    if (ctx->context_initialized)
@@ -832,6 +953,10 @@ int vtest_get_param(UNUSED uint32_t length_dw)
    resp_buf[VTEST_CMD_LEN] = 2;
    resp_buf[VTEST_CMD_ID] = VCMD_GET_PARAM;
    resp = &resp_buf[VTEST_CMD_DATA_START];
+
+   resp[0] = false;
+   resp[1] = 0;
+
    switch (param) {
    case VCMD_PARAM_MAX_TIMELINE_COUNT:
       resp[0] = true;
@@ -839,15 +964,51 @@ int vtest_get_param(UNUSED uint32_t length_dw)
 #ifdef HAVE_EVENTFD_H
       if (!getenv("VIRGL_DISABLE_MT"))
          resp[1] = VTEST_MAX_TIMELINE_COUNT;
-      else
-         resp[1] = 0;
-#else
-      resp[1] = 0;
 #endif
       break;
+   case VCMD_PARAM_HAS_TIMELINE_SYNCOBJ: {
+#ifdef ENABLE_DRM
+      int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+      bool has_syncobj = false;
+      bool has_syncobj_timeline = false;
+      uint64_t value;
+
+      if (fd < 0)
+         break;
+
+      if (!drmGetCap(fd, DRM_CAP_SYNCOBJ, &value))
+         has_syncobj = value;
+
+      if (has_syncobj && !drmGetCap(fd, DRM_CAP_SYNCOBJ_TIMELINE, &value))
+         has_syncobj_timeline = value;
+
+      if (has_syncobj_timeline) {
+         struct drm_syncobj_handle args = {
+            .handle = 0,   /* invalid handle */
+            .flags = DRM_SYNCOBJ_HANDLE_TO_FD_FLAGS_EXPORT_SYNC_FILE |
+                     DRM_SYNCOBJ_HANDLE_TO_FD_FLAGS_TIMELINE,
+            .fd = -1,
+            .point = 1,
+         };
+
+         errno = 0;
+         ret = drmIoctl(fd, DRM_IOCTL_SYNCOBJ_HANDLE_TO_FD, &args);
+
+         /* ENOENT means the kernel supports DRM_SYNCOBJ_HANDLE_TO_FD_FLAGS_TIMELINE
+          * but that we didn't provide a valid handle.  EINVAL means the kernel
+          * does not support DRM_SYNCOBJ_HANDLE_TO_FD_FLAGS_TIMELINE.  Without
+          * that support, we cannot convert between dma_fence fd's and timeline
+          * points, so we cannot support syncobj timeline.
+          */
+         if (errno != ENOENT)
+            has_syncobj_timeline = false;
+      }
+
+      resp[0] = has_syncobj;
+      resp[1] = has_syncobj_timeline;
+#endif
+   }
    default:
-      resp[0] = false;
-      resp[1] = 0;
       break;
    }
 
@@ -2059,40 +2220,97 @@ int vtest_sync_wait(uint32_t length_dw)
    return ret;
 }
 
+// HACK
+#define VIRTGPU_EXECBUF_SYNCOBJ_RESET		0x01
+#define VIRTGPU_EXECBUF_SYNCOBJ_FLAGS ( \
+		VIRTGPU_EXECBUF_SYNCOBJ_RESET | \
+		0)
+struct drm_virtgpu_execbuffer_syncobj {
+	__u32 handle;
+	__u32 flags;
+	__u64 point;
+};
+
 static int vtest_submit_cmd2_batch(struct vtest_context *ctx,
                                    const struct vcmd_submit_cmd2_batch *batch,
                                    const uint32_t *cmds,
                                    const uint32_t *syncs)
 {
    struct vtest_timeline_submit *submit = NULL;
+   struct drm_virtgpu_execbuffer_syncobj *in_syncobj = NULL, *out_syncobj = NULL;
+   int drm_fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
    uint32_t i;
-   int ret;
+   int ret = 0;
+
+   if (batch->num_in_syncobj > 0) {
+      ssize_t sz = batch->num_in_syncobj * sizeof(struct drm_virtgpu_execbuffer_syncobj);
+      in_syncobj = malloc(sz);
+      ret = ctx->input->read(ctx->input, in_syncobj, sz);
+      if (ret != sz) {
+         ret = -1;
+         goto out;
+      }
+
+      for (unsigned i = 0; i < batch->num_in_syncobj; i++) {
+         struct drm_syncobj_handle args = {
+            .handle = in_syncobj[i].handle,
+            .flags = DRM_SYNCOBJ_HANDLE_TO_FD_FLAGS_EXPORT_SYNC_FILE,
+            .fd = -1,
+            .point = in_syncobj[i].point,
+         };
+
+         if (in_syncobj[i].point)
+            args.flags |= DRM_SYNCOBJ_HANDLE_TO_FD_FLAGS_TIMELINE;
+
+         ret = drmIoctl(drm_fd, DRM_IOCTL_SYNCOBJ_HANDLE_TO_FD, &args);
+         if (ret)
+            goto out;
+
+         ret = virgl_renderer_attach_fence(ctx->ctx_id, args.fd);
+         if (ret)
+            goto out;
+      }
+   }
+
+   if (batch->num_out_syncobj > 0) {
+      ssize_t sz = batch->num_out_syncobj * sizeof(struct drm_virtgpu_execbuffer_syncobj);
+      out_syncobj = malloc(sz);
+      ret = ctx->input->read(ctx->input, out_syncobj, sz);
+      if (ret != sz) {
+         ret = -1;
+         goto out;
+      }
+   }
 
    if (batch->flags & VCMD_SUBMIT_CMD2_FLAG_IN_FENCE_FD) {
       int fd = vtest_receive_fd(ctx->input->data.fd);
-      if (fd < 0)
-         return fd;
+      if (fd < 0) {
+         ret = fd;
+         goto out;
+      }
       ret = virgl_renderer_attach_fence(ctx->ctx_id, fd);
       if (ret)
-         return ret;
+         goto out;
    }
 
    ret = virgl_renderer_submit_cmd((void *)cmds, ctx->ctx_id, batch->cmd_size);
    if (ret)
-      return -EINVAL;
+      goto out;
 
-   if (batch->flags & VCMD_SUBMIT_CMD2_FLAG_OUT_FENCE_FD) {
+   if ((batch->flags & VCMD_SUBMIT_CMD2_FLAG_OUT_FENCE_FD) || batch->num_out_syncobj) {
       assert(batch->flags & VCMD_SUBMIT_CMD2_FLAG_RING_IDX);
    } else if (!batch->sync_count) {
-      return 0;
+      goto out;
    }
 
    if (batch->flags & VCMD_SUBMIT_CMD2_FLAG_RING_IDX) {
       submit = malloc(sizeof(*submit) +
                       sizeof(*submit->syncs) * batch->sync_count +
                       sizeof(*submit->values) * batch->sync_count);
-      if (!submit)
-         return -ENOMEM;
+      if (!submit) {
+         ret = -ENOMEM;
+         goto out;
+      }
 
       submit->count = batch->sync_count;
       submit->syncs = (void *)&submit[1];
@@ -2137,21 +2355,46 @@ static int vtest_submit_cmd2_batch(struct vtest_context *ctx,
                                                 fence_id);
       if (ret) {
          vtest_free_timeline_submit(submit);
-         return ret;
+         goto out;
       }
 
       list_addtail(&submit->head, &timeline->submits);
 
-      if (batch->flags & VCMD_SUBMIT_CMD2_FLAG_OUT_FENCE_FD) {
-         int fd = virgl_renderer_get_fence_fd(fence_id);
-         if (fd < 0)
-            fd = virgl_renderer_export_signalled_fence();
-         vtest_send_fd(ctx->out_fd, fd);
-         close(fd);
+      if ((batch->flags & VCMD_SUBMIT_CMD2_FLAG_OUT_FENCE_FD) || batch->num_out_syncobj) {
+         int fence_fd = virgl_renderer_get_fence_fd(fence_id);
+         if (fence_fd < 0)
+            fence_fd = virgl_renderer_export_signalled_fence();
+         if (batch->flags & VCMD_SUBMIT_CMD2_FLAG_OUT_FENCE_FD)
+            vtest_send_fd(ctx->out_fd, fence_fd);
+         for (unsigned i = 0; i < batch->num_out_syncobj; i++) {
+            struct drm_syncobj_handle args = {
+               .handle = out_syncobj[i].handle,
+               .flags = DRM_SYNCOBJ_FD_TO_HANDLE_FLAGS_IMPORT_SYNC_FILE,
+               .fd = fence_fd,
+               .point = out_syncobj[i].point,
+            };
+
+            if (out_syncobj[i].point)
+               args.flags |= DRM_SYNCOBJ_HANDLE_TO_FD_FLAGS_TIMELINE;
+            ret = drmIoctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &args);
+            if (ret)
+               goto out;
+         }
+         close(fence_fd);
+      }
+
+      for (unsigned i = 0; i < batch->num_in_syncobj; i++) {
+         if (in_syncobj[i].flags & VIRTGPU_EXECBUF_SYNCOBJ_RESET) {
+            drmSyncobjReset(drm_fd, &in_syncobj[i].handle, 1);
+         }
       }
    }
 
-   return 0;
+out:
+   free(out_syncobj);
+   free(in_syncobj);
+
+   return ret;
 }
 
 int vtest_submit_cmd2(uint32_t length_dw)
@@ -2189,6 +2432,9 @@ int vtest_submit_cmd2(uint32_t length_dw)
          .sync_offset = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_SYNC_OFFSET(i)],
          .sync_count = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_SYNC_COUNT(i)],
          .ring_idx = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_RING_IDX(i)],
+         // TODO check batch length:
+         .num_in_syncobj = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_NUM_IN_SYNCOBJ(i)],
+         .num_out_syncobj = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_NUM_OUT_SYNCOBJ(i)],
       };
       const uint32_t *cmds = &submit_cmd2_buf[batch.cmd_offset];
       const uint32_t *syncs = &submit_cmd2_buf[batch.sync_offset];
@@ -2210,6 +2456,587 @@ int vtest_submit_cmd2(uint32_t length_dw)
    free(submit_cmd2_buf);
 
    return 0;
+}
+
+#ifdef ENABLE_DRM
+
+int vtest_drm_sync_create(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t resp_buf[VTEST_HDR_SIZE + 1];
+   uint32_t vcmd_drm_sync_create[VCMD_DRM_SYNC_CREATE_SIZE];
+   uint32_t flags, handle;
+   int ret;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_create,
+                          sizeof(vcmd_drm_sync_create));
+   if (ret != sizeof(vcmd_drm_sync_create))
+      return -1;
+
+   flags = vcmd_drm_sync_create[VCMD_DRM_SYNC_CREATE_FLAGS];
+
+   ret = drmSyncobjCreate(fd, flags, &handle);
+   if (ret)
+      return ret;
+
+   resp_buf[VTEST_CMD_LEN] = 1;
+   resp_buf[VTEST_CMD_ID] = VCMD_DRM_SYNC_CREATE;
+   resp_buf[VTEST_CMD_DATA_START] = handle;
+
+   ret = vtest_block_write(ctx->out_fd, resp_buf, sizeof(resp_buf));
+   if (ret < 0)
+      return ret;
+
+   return 0;
+}
+
+int vtest_drm_sync_destroy(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t vcmd_drm_sync_destroy[VCMD_DRM_SYNC_DESTROY_SIZE];
+   uint32_t handle;
+   int ret;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_destroy,
+                          sizeof(vcmd_drm_sync_destroy));
+   if (ret != sizeof(vcmd_drm_sync_destroy))
+      return -1;
+
+   handle = vcmd_drm_sync_destroy[VCMD_DRM_SYNC_DESTROY_HANDLE];
+
+   ret = drmSyncobjDestroy(fd, handle);
+   if (ret)
+      return ret;
+
+   return 0;
+}
+
+int vtest_drm_sync_handle_to_fd(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t resp_buf[VTEST_HDR_SIZE];
+   uint32_t vcmd_drm_sync_handle_to_fd[VCMD_DRM_SYNC_HANDLE_TO_FD_SIZE];
+   uint32_t handle;
+   int obj_fd, ret;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_handle_to_fd,
+                          sizeof(vcmd_drm_sync_handle_to_fd));
+   if (ret != sizeof(vcmd_drm_sync_handle_to_fd))
+      return -1;
+
+   handle = vcmd_drm_sync_handle_to_fd[VCMD_DRM_SYNC_HANDLE_TO_FD_HANDLE];
+
+   ret = drmSyncobjHandleToFD(fd, handle, &obj_fd);
+   if (ret)
+      return ret;
+
+   resp_buf[VTEST_CMD_LEN] = 0;
+   resp_buf[VTEST_CMD_ID] = VCMD_DRM_SYNC_HANDLE_TO_FD;
+
+   ret = vtest_block_write(ctx->out_fd, resp_buf, sizeof(resp_buf));
+   if (ret < 0)
+      return ret;
+
+   ret = vtest_send_fd(ctx->out_fd, obj_fd);
+
+   close (obj_fd);
+
+   return ret;
+}
+
+int vtest_drm_sync_fd_to_handle(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t resp_buf[VTEST_HDR_SIZE + 1];
+   uint32_t handle;
+   int obj_fd, ret;
+
+   if (fd < 0)
+      return fd;
+
+   obj_fd = vtest_receive_fd(ctx->input->data.fd);
+   if (obj_fd < 0)
+      return obj_fd;
+
+   ret = drmSyncobjFDToHandle(fd, obj_fd, &handle);
+   close(obj_fd);
+   if (ret)
+      return ret;
+
+   resp_buf[VTEST_CMD_LEN] = 1;
+   resp_buf[VTEST_CMD_ID] = VCMD_DRM_SYNC_HANDLE_TO_FD;
+   resp_buf[VTEST_CMD_DATA_START] = handle;
+
+   ret = vtest_block_write(ctx->out_fd, resp_buf, sizeof(resp_buf));
+   if (ret < 0)
+      return ret;
+
+   return 0;
+}
+
+int vtest_drm_sync_import_sync_file(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t vcmd_drm_sync_import_sync_file[VCMD_DRM_SYNC_IMPORT_SYNC_FILE_SIZE];
+   uint32_t handle;
+   int obj_fd, ret;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_import_sync_file,
+                          sizeof(vcmd_drm_sync_import_sync_file));
+   if (ret != sizeof(vcmd_drm_sync_import_sync_file))
+      return -1;
+
+   handle = vcmd_drm_sync_import_sync_file[VCMD_DRM_SYNC_IMPORT_SYNC_FILE_HANDLE];
+
+   obj_fd = vtest_receive_fd(ctx->input->data.fd);
+   if (obj_fd < 0)
+      return obj_fd;
+
+   ret = drmSyncobjImportSyncFile(fd, handle, obj_fd);
+
+   close(obj_fd);
+
+   return ret;
+}
+
+int vtest_drm_sync_export_sync_file(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t resp_buf[VTEST_HDR_SIZE];
+   uint32_t vcmd_drm_sync_export_sync_file[VCMD_DRM_SYNC_EXPORT_SYNC_FILE_SIZE];
+   uint32_t handle;
+   int obj_fd, ret;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_export_sync_file,
+                          sizeof(vcmd_drm_sync_export_sync_file));
+   if (ret != sizeof(vcmd_drm_sync_export_sync_file))
+      return -1;
+
+   handle = vcmd_drm_sync_export_sync_file[VCMD_DRM_SYNC_EXPORT_SYNC_FILE_HANDLE];
+
+   ret = drmSyncobjExportSyncFile(fd, handle, &obj_fd);
+   if (ret)
+      return ret;
+
+   resp_buf[VTEST_CMD_LEN] = 0;
+   resp_buf[VTEST_CMD_ID] = VCMD_DRM_SYNC_EXPORT_SYNC_FILE;
+
+   ret = vtest_block_write(ctx->out_fd, resp_buf, sizeof(resp_buf));
+   if (ret < 0)
+      return ret;
+
+   ret = vtest_send_fd(ctx->out_fd, obj_fd);
+
+   close(obj_fd);
+
+   return ret;
+}
+
+int vtest_drm_sync_wait(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t vcmd_drm_sync_wait[VCMD_DRM_SYNC_WAIT_SIZE];
+   struct vtest_drm_sync_wait *wait;
+   int ret, ret_fd;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_wait,
+                          sizeof(vcmd_drm_sync_wait));
+   if (ret != sizeof(vcmd_drm_sync_wait))
+      return -1;
+
+   wait = vtest_new_drm_sync_wait(
+      ctx,
+      vcmd_drm_sync_wait[VCMD_DRM_SYNC_WAIT_NUM_HANDLES],
+      vcmd_drm_sync_wait[VCMD_DRM_SYNC_WAIT_TIMEOUT_LO] |
+         (uint64_t)vcmd_drm_sync_wait[VCMD_DRM_SYNC_WAIT_TIMEOUT_HI] << 32,
+      vcmd_drm_sync_wait[VCMD_DRM_SYNC_WAIT_FLAGS],
+      false,
+      &ret_fd
+   );
+
+   ret = ctx->input->read(ctx->input, wait->handles, (wait->num_handles * sizeof(uint32_t)));
+   if ((size_t)ret != (wait->num_handles * sizeof(uint32_t))) {
+      ret = -1;
+      goto out;
+   }
+
+   if (wait->flags & DRM_SYNCOBJ_WAIT_FLAGS_WAIT_FD) {
+      uint32_t resp_buf[VTEST_HDR_SIZE];
+
+      resp_buf[VTEST_CMD_LEN] = 0;
+      resp_buf[VTEST_CMD_ID] = VCMD_DRM_SYNC_WAIT;
+
+      ret = vtest_block_write(ctx->out_fd, resp_buf, sizeof(resp_buf));
+      if (ret < 0) {
+         close(ret_fd);
+         goto out;
+      }
+
+      ret = vtest_send_fd(ctx->out_fd, ret_fd);
+
+      threadpool_run(&ctx->drm_sync_wait_pool, drm_sync_wait_run, wait);
+
+      close(ret_fd);
+
+      return 0;
+   } else {
+      uint32_t resp_buf[VTEST_HDR_SIZE + 2];
+
+      assert(ret_fd == -1);
+
+      vtest_call_drm_sync_wait(wait);
+
+      resp_buf[VTEST_CMD_LEN] = 2;
+      resp_buf[VTEST_CMD_ID] = VCMD_DRM_SYNC_WAIT;
+      resp_buf[VTEST_CMD_DATA_START] = wait->first_signaled;
+      resp_buf[VTEST_CMD_DATA_START + 1] = wait->ret;
+
+      ret = vtest_block_write(ctx->out_fd, resp_buf, sizeof(resp_buf));
+   }
+
+out:
+   vtest_free_drm_sync_wait(wait);
+   return ret;
+}
+
+int vtest_drm_sync_reset(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t vcmd_drm_sync_reset[VCMD_DRM_SYNC_RESET_SIZE];
+   uint32_t num_handles;
+   uint32_t *handles;
+   int ret, handles_sz;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_reset,
+                          sizeof(vcmd_drm_sync_reset));
+   if (ret != sizeof(vcmd_drm_sync_reset))
+      return -1;
+
+   num_handles = vcmd_drm_sync_reset[VCMD_DRM_SYNC_WAIT_NUM_HANDLES];
+
+   handles_sz = num_handles * sizeof(uint32_t);
+   handles = malloc(handles_sz);
+
+   ret = ctx->input->read(ctx->input, handles, handles_sz);
+   if (ret != handles_sz) {
+      ret = -1;
+      goto out;
+   }
+
+   ret = drmSyncobjReset(fd, handles, num_handles);
+
+out:
+   free(handles);
+   return ret;
+}
+
+int vtest_drm_sync_signal(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t vcmd_drm_sync_signal[VCMD_DRM_SYNC_SIGNAL_SIZE];
+   uint32_t num_handles;
+   uint32_t *handles;
+   int ret, handles_sz;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_signal,
+                          sizeof(vcmd_drm_sync_signal));
+   if (ret != sizeof(vcmd_drm_sync_signal))
+      return -1;
+
+   num_handles = vcmd_drm_sync_signal[VCMD_DRM_SYNC_SIGNAL_NUM_HANDLES];
+
+   handles_sz = num_handles * sizeof(uint32_t);
+   handles = malloc(handles_sz);
+
+   ret = ctx->input->read(ctx->input, handles, handles_sz);
+   if (ret != handles_sz) {
+      ret = -1;
+      goto out;
+   }
+
+   ret = drmSyncobjSignal(fd, handles, num_handles);
+
+out:
+   free(handles);
+   return ret;
+}
+
+int vtest_drm_sync_timeline_signal(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t vcmd_drm_sync_timeline_signal[VCMD_DRM_SYNC_SIGNAL_SIZE];
+   uint32_t num_handles;
+   uint32_t *handles;
+   uint64_t *points;
+   int ret, handles_sz, points_sz;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_timeline_signal,
+                          sizeof(vcmd_drm_sync_timeline_signal));
+   if (ret != sizeof(vcmd_drm_sync_timeline_signal))
+      return -1;
+
+   num_handles = vcmd_drm_sync_timeline_signal[VCMD_DRM_SYNC_SIGNAL_NUM_HANDLES];
+
+   points_sz = num_handles * sizeof(uint64_t);
+   points = malloc(points_sz);
+
+   handles_sz = num_handles * sizeof(uint32_t);
+   handles = malloc(handles_sz);
+
+   ret = ctx->input->read(ctx->input, points, points_sz);
+   if (ret != points_sz) {
+      ret = -1;
+      goto out;
+   }
+
+   ret = ctx->input->read(ctx->input, handles, handles_sz);
+   if (ret != handles_sz) {
+      ret = -1;
+      goto out;
+   }
+
+   ret = drmSyncobjTimelineSignal(fd, handles, points, num_handles);
+
+out:
+   free(points);
+   free(handles);
+   return ret;
+}
+
+int vtest_drm_sync_timeline_wait(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t vcmd_drm_sync_timeline_wait[VCMD_DRM_SYNC_WAIT_SIZE];
+   struct vtest_drm_sync_wait *wait;
+   int ret, ret_fd;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_timeline_wait,
+                          sizeof(vcmd_drm_sync_timeline_wait));
+   if (ret != sizeof(vcmd_drm_sync_timeline_wait))
+      return -1;
+
+   wait = vtest_new_drm_sync_wait(
+      ctx,
+      vcmd_drm_sync_timeline_wait[VCMD_DRM_SYNC_WAIT_NUM_HANDLES],
+      vcmd_drm_sync_timeline_wait[VCMD_DRM_SYNC_WAIT_TIMEOUT_LO] |
+         (uint64_t)vcmd_drm_sync_timeline_wait[VCMD_DRM_SYNC_WAIT_TIMEOUT_HI] << 32,
+      vcmd_drm_sync_timeline_wait[VCMD_DRM_SYNC_WAIT_FLAGS],
+      true,
+      &ret_fd
+   );
+
+   ret = ctx->input->read(ctx->input, wait->points, (wait->num_handles * sizeof(uint64_t)));
+   if ((size_t)ret != (wait->num_handles * sizeof(uint64_t))) {
+      ret = -1;
+      goto out;
+   }
+
+   ret = ctx->input->read(ctx->input, wait->handles, (wait->num_handles * sizeof(uint32_t)));
+   if ((size_t)ret != (wait->num_handles * sizeof(uint32_t))) {
+      ret = -1;
+      goto out;
+   }
+
+   if (wait->flags & DRM_SYNCOBJ_WAIT_FLAGS_WAIT_FD) {
+      uint32_t resp_buf[VTEST_HDR_SIZE];
+
+      resp_buf[VTEST_CMD_LEN] = 0;
+      resp_buf[VTEST_CMD_ID] = VCMD_DRM_SYNC_WAIT;
+
+      ret = vtest_block_write(ctx->out_fd, resp_buf, sizeof(resp_buf));
+      if (ret < 0) {
+         close(ret_fd);
+         goto out;
+      }
+
+      ret = vtest_send_fd(ctx->out_fd, ret_fd);
+
+      threadpool_run(&ctx->drm_sync_wait_pool, drm_sync_wait_run, wait);
+
+      close(ret_fd);
+
+      return 0;
+   } else {
+      uint32_t resp_buf[VTEST_HDR_SIZE + 2];
+
+      assert(ret_fd == -1);
+
+      vtest_call_drm_sync_wait(wait);
+
+      resp_buf[VTEST_CMD_LEN] = 2;
+      resp_buf[VTEST_CMD_ID] = VCMD_DRM_SYNC_WAIT;
+      resp_buf[VTEST_CMD_DATA_START] = wait->first_signaled;
+      resp_buf[VTEST_CMD_DATA_START + 1] = wait->ret;
+
+      ret = vtest_block_write(ctx->out_fd, resp_buf, sizeof(resp_buf));
+   }
+
+out:
+   vtest_free_drm_sync_wait(wait);
+   return ret;
+}
+
+int vtest_drm_sync_query(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t resp_buf[VTEST_HDR_SIZE];
+   uint32_t vcmd_drm_sync_query[VCMD_DRM_SYNC_QUERY_SIZE];
+   uint32_t num_handles, flags;
+   uint64_t *points = NULL;
+   uint32_t *handles;
+   int ret, handles_sz, points_sz;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_query,
+                          sizeof(vcmd_drm_sync_query));
+   if (ret != sizeof(vcmd_drm_sync_query))
+      return -1;
+
+   num_handles = vcmd_drm_sync_query[VCMD_DRM_SYNC_QUERY_NUM_HANDLES];
+   flags = vcmd_drm_sync_query[VCMD_DRM_SYNC_QUERY_FLAGS];
+
+   handles_sz = num_handles * sizeof(uint32_t);
+   handles = malloc(handles_sz);
+
+   ret = ctx->input->read(ctx->input, handles, handles_sz);
+   if (ret != handles_sz) {
+      ret = -1;
+      goto out;
+   }
+
+   points_sz = num_handles * sizeof(uint64_t);
+   points = malloc(points_sz);
+
+   ret = drmSyncobjQuery2(fd, handles, points, num_handles, flags);
+   if (ret)
+      goto out;
+
+   resp_buf[VTEST_CMD_LEN] = 0;
+   resp_buf[VTEST_CMD_ID] = VCMD_DRM_SYNC_QUERY;
+
+   ret = vtest_block_write(ctx->out_fd, resp_buf, sizeof(resp_buf));
+   if (ret < 0)
+      goto out;
+
+   ret = vtest_block_write(ctx->out_fd, points, points_sz);
+   if (ret < 0)
+      goto out;
+
+   ret = 0;
+
+out:
+   free(points);
+   free(handles);
+   return ret;
+}
+
+int vtest_drm_sync_transfer(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   int fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+   uint32_t vcmd_drm_sync_transfer[VCMD_DRM_SYNC_TRANSFER_SIZE];
+   uint32_t dst_handle, src_handle, flags;
+   uint64_t dst_point, src_point;
+   int ret;
+
+   if (fd < 0)
+      return fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_drm_sync_transfer,
+                          sizeof(vcmd_drm_sync_transfer));
+   if (ret != sizeof(vcmd_drm_sync_transfer))
+      return -1;
+
+   dst_handle = vcmd_drm_sync_transfer[VCMD_DRM_SYNC_TRANSFER_DST_HANDLE];
+   dst_point  = vcmd_drm_sync_transfer[VCMD_DRM_SYNC_TRANSFER_DST_POINT_LO];
+   dst_point |= (uint64_t)vcmd_drm_sync_transfer[VCMD_DRM_SYNC_TRANSFER_DST_POINT_HI] << 32;
+   src_handle = vcmd_drm_sync_transfer[VCMD_DRM_SYNC_TRANSFER_SRC_HANDLE];
+   src_point  = vcmd_drm_sync_transfer[VCMD_DRM_SYNC_TRANSFER_SRC_POINT_LO];
+   src_point |= (uint64_t)vcmd_drm_sync_transfer[VCMD_DRM_SYNC_TRANSFER_SRC_POINT_HI] << 32;
+   flags      = vcmd_drm_sync_transfer[VCMD_DRM_SYNC_TRANSFER_FLAGS];
+
+   return drmSyncobjTransfer(fd, dst_handle, dst_point, src_handle, src_point, flags);
+}
+
+#endif /* ENABLE_DRM */
+
+int vtest_resource_export_fd(UNUSED uint32_t length_dw)
+{
+   struct vtest_context *ctx = vtest_get_current_context();
+   uint32_t vcmd_resource_export_fd[VCMD_RESOURCE_EXPORT_FD_SIZE];
+   uint32_t resp_buf[VTEST_HDR_SIZE];
+   uint32_t res_id;
+   int ret, fd;
+
+   ret = ctx->input->read(ctx->input, &vcmd_resource_export_fd,
+                          sizeof(vcmd_resource_export_fd));
+   if (ret != sizeof(vcmd_resource_export_fd))
+      return -1;
+
+   res_id = vcmd_resource_export_fd[VCMD_RESOURCE_EXPORT_FD_RES_HANDLE];
+
+   uint32_t fd_type;
+   ret = virgl_renderer_resource_export_blob(res_id, &fd_type, &fd);
+   if (ret)
+      return ret;
+
+   resp_buf[VTEST_CMD_LEN] = 0;
+   resp_buf[VTEST_CMD_ID] = VCMD_RESOURCE_EXPORT_FD;
+
+   ret = vtest_block_write(ctx->out_fd, resp_buf, sizeof(resp_buf));
+   if (ret < 0)
+      goto out;
+
+   ret = vtest_send_fd(ctx->out_fd, fd);
+
+out:
+   close(fd);
+
+   return ret;
 }
 
 void vtest_set_max_length(uint32_t length)

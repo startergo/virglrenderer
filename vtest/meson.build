@@ -37,12 +37,13 @@ vtest_depends = [
    libvirglrenderer_dep,
    gallium_dep,
    thread_dep,
+   libdrm_dep,
+   mesa_dep,
 ]
 
 if with_tracing == 'percetto'
    vtest_depends += [percetto_dep]
 endif
-
 libvtest = static_library(
    'vtest',
    vtest_sources,
