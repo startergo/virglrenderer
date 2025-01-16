@@ -24,11 +24,10 @@
 #include "drm_util.h"
 
 static int
-drm_context_get_fencing_fd(struct virgl_context *vctx)
+drm_context_get_fencing_fd(UNUSED struct virgl_context *vctx)
 {
-   struct drm_context *dctx = to_drm_context(vctx);
-
-   return dctx->eventfd;
+   /* VIRGL_RENDERER_ASYNC_FENCE_CB is required */
+   return -1;
 }
 
 static void
@@ -239,7 +238,6 @@ drm_context_init(struct drm_context *dctx, int fd,
 
    dctx->ccmd_dispatch = ccmd_dispatch;
    dctx->dispatch_size = dispatch_size;
-   dctx->eventfd = create_eventfd(0);
    dctx->fd = fd;
 
    /* 8 bytes by default */
@@ -299,7 +297,6 @@ drm_context_deinit(struct drm_context *dctx)
    _mesa_hash_table_destroy(dctx->resource_table, NULL);
    _mesa_hash_table_destroy(dctx->blob_table, NULL);
 
-   close(dctx->eventfd);
    close(dctx->fd);
 }
 

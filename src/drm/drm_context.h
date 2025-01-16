@@ -51,8 +51,6 @@ struct drm_context {
 
    int fd;
 
-   int eventfd;
-
    const struct drm_ccmd *ccmd_dispatch;
    unsigned int dispatch_size;
    unsigned int ccmd_alignment;

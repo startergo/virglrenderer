@@ -1230,8 +1230,7 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
          if (asprintf(&name, "a-%s-%d", ctx->debug_name, ring_idx) < 0)
             goto fail_context_deinit;
          drm_timeline_init(&ctx->timelines[ring_idx - 1], &ctx->base.base,
-                           name,
-                           ctx->base.eventfd, ring_idx,
+                           name, ring_idx,
                            drm_context_fence_retire);
          ring_idx += 1;
       }

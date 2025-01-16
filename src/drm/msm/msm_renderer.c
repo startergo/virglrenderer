@@ -1065,7 +1065,7 @@ msm_renderer_create(int fd, UNUSED size_t debug_len, UNUSED const char *debug_na
    for (unsigned i = 0; i < nr_timelines; i++) {
       unsigned ring_idx = i + 1; /* ring_idx 0 is host CPU */
       drm_timeline_init(&mctx->timelines[i], &mctx->base.base, "msm-sync",
-                        mctx->base.eventfd, ring_idx, msm_renderer_fence_retire);
+                        ring_idx, msm_renderer_fence_retire);
    }
 
    mctx->base.base.destroy = msm_renderer_destroy;
