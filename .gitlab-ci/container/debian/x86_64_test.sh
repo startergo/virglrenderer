@@ -12,7 +12,7 @@ MESA_ARCHITECTURE="x86_64"
 MESA_CONFIGURATION="default"
 MESA_BUILDTYPE="debugoptimized"
 MESA_TARBALL="mesa-${MESA_ARCHITECTURE}-${MESA_CONFIGURATION}-${MESA_BUILDTYPE}.tar.zst"
-MESA_CI_ARTIFACTS_URL="https://${STORAGE_HOST}/artifacts/${MESA_PROJECT_PATH}/${MESA_PIPELINE_ID}/${MESA_TARBALL}"
+MESA_CI_ARTIFACTS_URL="https://${S3_HOST}/${S3_ARTIFACTS_BUCKET}/${MESA_PROJECT_PATH}/${MESA_PIPELINE_ID}/${MESA_TARBALL}"
 if curl -s -I ${MESA_CI_ARTIFACTS_URL}; then
     curl ${MESA_CI_ARTIFACTS_URL} -o - | tar -xv --zstd
 else
@@ -42,6 +42,9 @@ fi
 # Directory used by crosvm-runner.sh
 export SCRIPTS_DIR=$(pwd)/install
 . ${SCRIPTS_DIR}/setup-test-env.sh
+export RESULTS_DIR=${CI_PROJECT_DIR}/results
+mkdir -p ${RESULTS_DIR}
+awk '/export SCRIPTS_DIR/ { print; print "echo \"export RESULTS_DIR=${RESULTS_DIR}\" >> ${VM_TEMP_DIR}/crosvm-script.sh"; next }1' install/crosvm-runner.sh
 
 # Overwrite Mesa CI's virglrenderer binaries with self built versions
 cp -a ${CI_PROJECT_DIR}/install/bin/virgl_test_server /usr/local/bin/
@@ -52,8 +55,12 @@ if [ "${VK_DRIVER}" = "virtio" ] || [ "${GALLIUM_DRIVER}" = "virgl" ]; then
     #
     # Run the tests on virtual platform (virgl/crosvm)
     #
-    cp -a ${CI_PROJECT_DIR}/.gitlab-ci/expectations/virt/*.txt install/
-    cp -a ${CI_PROJECT_DIR}/.gitlab-ci/expectations/virt/*.toml install/
+    if [ -z "${PIGLIT_TRACES_FILE}" ]; then
+        cp -a ${CI_PROJECT_DIR}/.gitlab-ci/expectations/virt/*.txt install/
+        cp -a ${CI_PROJECT_DIR}/.gitlab-ci/expectations/virt/*.toml install/
+    else
+        cp -a ${CI_PROJECT_DIR}/.gitlab-ci/expectations/virt/${PIGLIT_TRACES_FILE} install/
+    fi
 
     #
     # crosvm-runner.sh depends on resources from ${CI_PROJECT_DIR}/install,
@@ -111,5 +118,5 @@ else
     RET=$?
 fi
 
-mv -f results ${CI_PROJECT_DIR}/
+mv -f /results ${CI_PROJECT_DIR}/results
 exit ${RET}
