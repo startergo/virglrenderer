@@ -113,6 +113,7 @@ debian/x86_64_build:
     EXTRA_OPTION: >
       -D werror=true
   script:
+    - if [ -n ${AUTO_LLVM_VERSION+x} ]; then export LLVM_VERSION=$(ls /usr/bin/llvm-config-[0-9]* | sed -e 's./usr/bin/llvm-config-..'); export CC=clang-${LLVM_VERSION}; fi
     - .gitlab-ci/meson/build.sh
   artifacts:
     name: "virgl_${CI_JOB_NAME}"
@@ -309,8 +310,7 @@ make check clang-fuzzer:
   extends: .make_check_base
   variables:
     TEST_SUITE: make-check-clang-fuzzer
-    LLVM_VERSION: 15
-    CC: clang-${LLVM_VERSION}
+    AUTO_LLVM_VERSION: true
     EXTRA_OPTION: "-D fuzzer=true"
 
 make check trace-stderr:
