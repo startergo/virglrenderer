@@ -176,6 +176,25 @@ has_cached_coherent(int fd)
    return false;
 }
 
+static bool
+has_preemption(int fd, uint32_t priorities)
+{
+   struct drm_msm_submitqueue req = {
+      .flags = MSM_SUBMITQUEUE_ALLOW_PREEMPT,
+      .prio = priorities / 2,
+   };
+
+   /* Attempt to create a submitqueue with preemption is enabled, to see
+    * if preemption is supported:
+    */
+   if (!drmCommandWriteRead(fd, DRM_MSM_SUBMITQUEUE_NEW, &req, sizeof(req))) {
+      drmCommandWrite(fd, DRM_MSM_SUBMITQUEUE_CLOSE, &req.id, sizeof(req.id));
+      return true;
+   }
+
+   return false;
+}
+
 static int
 get_param64(int fd, uint32_t param, uint64_t *value)
 {
@@ -205,6 +224,12 @@ get_param32(int fd, uint32_t param, uint32_t *value)
    return ret;
 }
 
+static void
+opt_cap_bool(uint32_t *val)
+{
+   *val = *val ? VIRTGPU_CAP_BOOL_TRUE : VIRTGPU_CAP_BOOL_FALSE;
+}
+
 /**
  * Probe capset params.
  */
@@ -220,7 +245,6 @@ msm_renderer_probe(int fd, struct virgl_renderer_capset_drm *capset)
    }
 
    capset->wire_format_version = 2;
-   capset->u.msm.has_cached_coherent = has_cached_coherent(fd);
 
    get_param32(fd, MSM_PARAM_PRIORITIES, &capset->u.msm.priorities);
    get_param64(fd, MSM_PARAM_VA_START,   &capset->u.msm.va_start);
@@ -231,6 +255,21 @@ msm_renderer_probe(int fd, struct virgl_renderer_capset_drm *capset)
    get_param64(fd, MSM_PARAM_CHIP_ID,    &capset->u.msm.chip_id);
    get_param32(fd, MSM_PARAM_MAX_FREQ,   &capset->u.msm.max_freq);
    get_param32(fd, MSM_PARAM_HIGHEST_BANK_BIT, &capset->u.msm.highest_bank_bit);
+   get_param64(fd, MSM_PARAM_UBWC_SWIZZLE, &capset->u.msm.ubwc_swizzle);
+   get_param64(fd, MSM_PARAM_MACROTILE_MODE, &capset->u.msm.macrotile_mode);
+   get_param32(fd, MSM_PARAM_RAYTRACING, &capset->u.msm.has_raytracing);
+   get_param64(fd, MSM_PARAM_UCHE_TRAP_BASE, &capset->u.msm.uche_trap_base);
+
+   capset->u.msm.has_cached_coherent = has_cached_coherent(fd);
+   capset->u.msm.has_preemption = has_preemption(fd, capset->u.msm.priorities);
+
+   /* NOTE: on the guest side, with new guest userspace and old host
+    * virglrenderer, zero means "cap not supported".  So use 1 vs ~0
+    * to indicate true vs false.  The exception is bool caps that are
+    * present since the first version of the protocol.
+    */
+   opt_cap_bool(&capset->u.msm.has_preemption);
+   opt_cap_bool(&capset->u.msm.has_raytracing);
 
    nr_timelines = capset->u.msm.priorities;
    uabi_version = capset->version_minor;
@@ -249,6 +288,11 @@ msm_renderer_probe(int fd, struct virgl_renderer_capset_drm *capset)
    drm_log("chip_id:             0x%0" PRIx64, capset->u.msm.chip_id);
    drm_log("max_freq:            %u", capset->u.msm.max_freq);
    drm_log("highest_bank_bit:    %u", capset->u.msm.highest_bank_bit);
+   drm_log("ubwc_swizzle:        0x%" PRIx64, capset->u.msm.ubwc_swizzle);
+   drm_log("macrotile_mode:      %" PRIu64, capset->u.msm.macrotile_mode);
+   drm_log("has_raytracing:      %x", capset->u.msm.has_raytracing);
+   drm_log("has_preemption:      %d", capset->u.msm.has_preemption);
+   drm_log("uche_trap_base:      0x%" PRIx64, capset->u.msm.uche_trap_base);
 
    if (!capset->u.msm.va_size) {
       drm_log("Host kernel does not support userspace allocated IOVA");
