@@ -439,7 +439,7 @@ msm_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t blob
 
       ret = drmPrimeHandleToFD(dctx->fd, obj->base.handle, DRM_CLOEXEC | DRM_RDWR, &fd);
       if (ret) {
-         drm_err("Export to fd failed");
+         drm_err("Export to fd failed: %s", strerror(errno));
          return -EINVAL;
       }
 
