@@ -7,7 +7,7 @@ workflow:
 
 variables:
   FDO_UPSTREAM_REPO: "virgl/virglrenderer"
-  MESA_TEMPLATES_COMMIT: &ci-templates-commit e195d80f35b45cc73668be3767b923fd76c70ed5
+  MESA_TEMPLATES_COMMIT: &ci-templates-commit 48e4b6c9a2015f969fbe648999d16d5fb3eef6c4
   #
   # IMPORTANT!
   #
@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1355464
+  MESA_PIPELINE_ID: 1365912
 
   MESA_PROJECT_PATH: mesa/mesa
   S3_JWT_FILE: /s3_jwt
@@ -56,7 +56,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: d73642d9ff045eeeb3f9f69e5f37db2eabf2f9c3
+    ref: 8741be3365ea0e69aaed86b62ab8bda61d93fca6
     file:
       - '/.gitlab-ci/image-tags.yml'
 
