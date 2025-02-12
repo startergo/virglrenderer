@@ -730,6 +730,20 @@ vkr_dispatch_vkGetPhysicalDeviceFragmentShadingRatesKHR(
       args->physicalDevice, args->pFragmentShadingRateCount, args->pFragmentShadingRates);
 }
 
+static void
+vkr_dispatch_vkGetPhysicalDeviceMultisamplePropertiesEXT(
+   UNUSED struct vn_dispatch_context *ctx,
+   struct vn_command_vkGetPhysicalDeviceMultisamplePropertiesEXT *args)
+{
+   struct vkr_physical_device *physical_dev =
+      vkr_physical_device_from_handle(args->physicalDevice);
+   struct vn_physical_device_proc_table *vk = &physical_dev->proc_table;
+
+   vn_replace_vkGetPhysicalDeviceMultisamplePropertiesEXT_args_handle(args);
+   vk->GetPhysicalDeviceMultisamplePropertiesEXT(args->physicalDevice, args->samples,
+                                                 args->pMultisampleProperties);
+}
+
 void
 vkr_context_init_physical_device_dispatch(struct vkr_context *ctx)
 {
@@ -785,4 +799,8 @@ vkr_context_init_physical_device_dispatch(struct vkr_context *ctx)
    /* VK_KHR_fragment_shading_rate */
    dispatch->dispatch_vkGetPhysicalDeviceFragmentShadingRatesKHR =
       vkr_dispatch_vkGetPhysicalDeviceFragmentShadingRatesKHR;
+
+   /* VK_EXT_sample_locations */
+   dispatch->dispatch_vkGetPhysicalDeviceMultisamplePropertiesEXT =
+      vkr_dispatch_vkGetPhysicalDeviceMultisamplePropertiesEXT;
 }

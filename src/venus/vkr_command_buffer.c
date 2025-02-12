@@ -1064,6 +1064,13 @@ vkr_dispatch_vkCmdSetFragmentShadingRateKHR(
                 args->combinerOps);
 }
 
+static void
+vkr_dispatch_vkCmdSetSampleLocationsEXT(UNUSED struct vn_dispatch_context *dispatch,
+                                        struct vn_command_vkCmdSetSampleLocationsEXT *args)
+{
+   VKR_CMD_CALL(CmdSetSampleLocationsEXT, args, args->pSampleLocationsInfo);
+}
+
 void
 vkr_context_init_command_pool_dispatch(struct vkr_context *ctx)
 {
@@ -1261,4 +1268,8 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
    /* VK_KHR_fragment_shading_rate */
    dispatch->dispatch_vkCmdSetFragmentShadingRateKHR =
       vkr_dispatch_vkCmdSetFragmentShadingRateKHR;
+
+   /* VK_EXT_sample_locations */
+   dispatch->dispatch_vkCmdSetSampleLocationsEXT =
+      vkr_dispatch_vkCmdSetSampleLocationsEXT;
 }

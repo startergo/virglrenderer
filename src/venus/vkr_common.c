@@ -135,6 +135,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .EXT_queue_family_foreign = true,
    .EXT_rasterization_order_attachment_access = true,
    .EXT_robustness2 = true,
+   .EXT_sample_locations = true,
    .EXT_shader_stencil_export = true,
    .EXT_shader_subgroup_ballot = true,
    .EXT_transform_feedback = true,
