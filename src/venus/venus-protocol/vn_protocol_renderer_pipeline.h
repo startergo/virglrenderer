@@ -1295,15 +1295,94 @@ vn_replace_VkPipelineRasterizationStateCreateInfo_handle(VkPipelineRasterization
     } while (pnext);
 }
 
-/* struct VkPipelineMultisampleStateCreateInfo chain */
+/* struct VkPipelineSampleLocationsStateCreateInfoEXT chain */
 
 static inline void *
-vn_decode_VkPipelineMultisampleStateCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
+vn_decode_VkPipelineSampleLocationsStateCreateInfoEXT_pnext_temp(struct vn_cs_decoder *dec)
 {
     /* no known/supported struct */
     if (vn_decode_simple_pointer(dec))
         vn_cs_decoder_set_fatal(dec);
     return NULL;
+}
+
+static inline void
+vn_decode_VkPipelineSampleLocationsStateCreateInfoEXT_self_temp(struct vn_cs_decoder *dec, VkPipelineSampleLocationsStateCreateInfoEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->sampleLocationsEnable);
+    vn_decode_VkSampleLocationsInfoEXT_temp(dec, &val->sampleLocationsInfo);
+}
+
+static inline void
+vn_decode_VkPipelineSampleLocationsStateCreateInfoEXT_temp(struct vn_cs_decoder *dec, VkPipelineSampleLocationsStateCreateInfoEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPipelineSampleLocationsStateCreateInfoEXT_pnext_temp(dec);
+    vn_decode_VkPipelineSampleLocationsStateCreateInfoEXT_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPipelineSampleLocationsStateCreateInfoEXT_handle_self(VkPipelineSampleLocationsStateCreateInfoEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->sampleLocationsEnable */
+    vn_replace_VkSampleLocationsInfoEXT_handle(&val->sampleLocationsInfo);
+}
+
+static inline void
+vn_replace_VkPipelineSampleLocationsStateCreateInfoEXT_handle(VkPipelineSampleLocationsStateCreateInfoEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT:
+            vn_replace_VkPipelineSampleLocationsStateCreateInfoEXT_handle_self((VkPipelineSampleLocationsStateCreateInfoEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPipelineMultisampleStateCreateInfo chain */
+
+static inline void *
+vn_decode_VkPipelineMultisampleStateCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
+{
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineSampleLocationsStateCreateInfoEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPipelineMultisampleStateCreateInfo_pnext_temp(dec);
+            vn_decode_VkPipelineSampleLocationsStateCreateInfoEXT_self_temp(dec, (VkPipelineSampleLocationsStateCreateInfoEXT *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
+        vn_cs_decoder_set_fatal(dec);
+        break;
+    }
+
+    return pnext;
 }
 
 static inline void
@@ -1363,6 +1442,9 @@ vn_replace_VkPipelineMultisampleStateCreateInfo_handle(VkPipelineMultisampleStat
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO:
             vn_replace_VkPipelineMultisampleStateCreateInfo_handle_self((VkPipelineMultisampleStateCreateInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT:
+            vn_replace_VkPipelineSampleLocationsStateCreateInfoEXT_handle_self((VkPipelineSampleLocationsStateCreateInfoEXT *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -1501,6 +1583,67 @@ vn_replace_VkPipelineColorBlendAttachmentState_handle(VkPipelineColorBlendAttach
     /* skip val->colorWriteMask */
 }
 
+/* struct VkPipelineColorBlendAdvancedStateCreateInfoEXT chain */
+
+static inline void *
+vn_decode_VkPipelineColorBlendAdvancedStateCreateInfoEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPipelineColorBlendAdvancedStateCreateInfoEXT_self_temp(struct vn_cs_decoder *dec, VkPipelineColorBlendAdvancedStateCreateInfoEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->srcPremultiplied);
+    vn_decode_VkBool32(dec, &val->dstPremultiplied);
+    vn_decode_VkBlendOverlapEXT(dec, &val->blendOverlap);
+}
+
+static inline void
+vn_decode_VkPipelineColorBlendAdvancedStateCreateInfoEXT_temp(struct vn_cs_decoder *dec, VkPipelineColorBlendAdvancedStateCreateInfoEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPipelineColorBlendAdvancedStateCreateInfoEXT_pnext_temp(dec);
+    vn_decode_VkPipelineColorBlendAdvancedStateCreateInfoEXT_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPipelineColorBlendAdvancedStateCreateInfoEXT_handle_self(VkPipelineColorBlendAdvancedStateCreateInfoEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->srcPremultiplied */
+    /* skip val->dstPremultiplied */
+    /* skip val->blendOverlap */
+}
+
+static inline void
+vn_replace_VkPipelineColorBlendAdvancedStateCreateInfoEXT_handle(VkPipelineColorBlendAdvancedStateCreateInfoEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT:
+            vn_replace_VkPipelineColorBlendAdvancedStateCreateInfoEXT_handle_self((VkPipelineColorBlendAdvancedStateCreateInfoEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkPipelineColorWriteCreateInfoEXT chain */
 
 static inline void *
@@ -1581,6 +1724,14 @@ vn_decode_VkPipelineColorBlendStateCreateInfo_pnext_temp(struct vn_cs_decoder *d
 
     vn_decode_VkStructureType(dec, &stype);
     switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineColorBlendAdvancedStateCreateInfoEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPipelineColorBlendStateCreateInfo_pnext_temp(dec);
+            vn_decode_VkPipelineColorBlendAdvancedStateCreateInfoEXT_self_temp(dec, (VkPipelineColorBlendAdvancedStateCreateInfoEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineColorWriteCreateInfoEXT));
         if (pnext) {
@@ -1661,6 +1812,9 @@ vn_replace_VkPipelineColorBlendStateCreateInfo_handle(VkPipelineColorBlendStateC
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO:
             vn_replace_VkPipelineColorBlendStateCreateInfo_handle_self((VkPipelineColorBlendStateCreateInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT:
+            vn_replace_VkPipelineColorBlendAdvancedStateCreateInfoEXT_handle_self((VkPipelineColorBlendAdvancedStateCreateInfoEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT:
             vn_replace_VkPipelineColorWriteCreateInfoEXT_handle_self((VkPipelineColorWriteCreateInfoEXT *)pnext);

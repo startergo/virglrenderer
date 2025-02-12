@@ -338,6 +338,8 @@ typedef enum VkCommandTypeEXT {
     VK_COMMAND_TYPE_vkCmdEndConditionalRenderingEXT_EXT = 241,
     VK_COMMAND_TYPE_vkImportFenceFdKHR_EXT = 238,
     VK_COMMAND_TYPE_vkGetFenceFdKHR_EXT = 239,
+    VK_COMMAND_TYPE_vkCmdSetSampleLocationsEXT_EXT = 283,
+    VK_COMMAND_TYPE_vkGetPhysicalDeviceMultisamplePropertiesEXT_EXT = 284,
     VK_COMMAND_TYPE_vkGetImageDrmFormatModifierPropertiesEXT_EXT = 187,
     VK_COMMAND_TYPE_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT_EXT = 235,
     VK_COMMAND_TYPE_vkGetCalibratedTimestampsEXT_EXT = 236,
@@ -1776,6 +1778,17 @@ struct vn_command_vkCmdPushDescriptorSetWithTemplateKHR {
     const void* pData;
 };
 
+struct vn_command_vkCmdSetSampleLocationsEXT {
+    VkCommandBuffer commandBuffer;
+    const VkSampleLocationsInfoEXT* pSampleLocationsInfo;
+};
+
+struct vn_command_vkGetPhysicalDeviceMultisamplePropertiesEXT {
+    VkPhysicalDevice physicalDevice;
+    VkSampleCountFlagBits samples;
+    VkMultisamplePropertiesEXT* pMultisampleProperties;
+};
+
 struct vn_command_vkGetBufferMemoryRequirements2 {
     VkDevice device;
     const VkBufferMemoryRequirementsInfo2* pInfo;
@@ -2646,6 +2659,8 @@ struct vn_dispatch_context {
     void (*dispatch_vkDestroyDescriptorUpdateTemplate)(struct vn_dispatch_context *ctx, struct vn_command_vkDestroyDescriptorUpdateTemplate *args);
     void (*dispatch_vkUpdateDescriptorSetWithTemplate)(struct vn_dispatch_context *ctx, struct vn_command_vkUpdateDescriptorSetWithTemplate *args);
     void (*dispatch_vkCmdPushDescriptorSetWithTemplateKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdPushDescriptorSetWithTemplateKHR *args);
+    void (*dispatch_vkCmdSetSampleLocationsEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetSampleLocationsEXT *args);
+    void (*dispatch_vkGetPhysicalDeviceMultisamplePropertiesEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceMultisamplePropertiesEXT *args);
     void (*dispatch_vkGetBufferMemoryRequirements2)(struct vn_dispatch_context *ctx, struct vn_command_vkGetBufferMemoryRequirements2 *args);
     void (*dispatch_vkGetImageMemoryRequirements2)(struct vn_dispatch_context *ctx, struct vn_command_vkGetImageMemoryRequirements2 *args);
     void (*dispatch_vkGetImageSparseMemoryRequirements2)(struct vn_dispatch_context *ctx, struct vn_command_vkGetImageSparseMemoryRequirements2 *args);

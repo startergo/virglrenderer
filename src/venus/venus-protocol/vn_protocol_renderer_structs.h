@@ -725,6 +725,97 @@ vn_replace_VkRect2D_handle(VkRect2D *val)
     vn_replace_VkExtent2D_handle(&val->extent);
 }
 
+/* struct VkSampleLocationEXT */
+
+static inline void
+vn_decode_VkSampleLocationEXT_temp(struct vn_cs_decoder *dec, VkSampleLocationEXT *val)
+{
+    vn_decode_float(dec, &val->x);
+    vn_decode_float(dec, &val->y);
+}
+
+static inline void
+vn_replace_VkSampleLocationEXT_handle(VkSampleLocationEXT *val)
+{
+    /* skip val->x */
+    /* skip val->y */
+}
+
+/* struct VkSampleLocationsInfoEXT chain */
+
+static inline void *
+vn_decode_VkSampleLocationsInfoEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkSampleLocationsInfoEXT_self_temp(struct vn_cs_decoder *dec, VkSampleLocationsInfoEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkSampleCountFlagBits(dec, &val->sampleLocationsPerPixel);
+    vn_decode_VkExtent2D_temp(dec, &val->sampleLocationGridSize);
+    vn_decode_uint32_t(dec, &val->sampleLocationsCount);
+    if (vn_peek_array_size(dec)) {
+        const uint32_t iter_count = vn_decode_array_size(dec, val->sampleLocationsCount);
+        val->pSampleLocations = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pSampleLocations), iter_count);
+        if (!val->pSampleLocations) return;
+        for (uint32_t i = 0; i < iter_count; i++)
+            vn_decode_VkSampleLocationEXT_temp(dec, &((VkSampleLocationEXT *)val->pSampleLocations)[i]);
+    } else {
+        vn_decode_array_size(dec, val->sampleLocationsCount);
+        val->pSampleLocations = NULL;
+    }
+}
+
+static inline void
+vn_decode_VkSampleLocationsInfoEXT_temp(struct vn_cs_decoder *dec, VkSampleLocationsInfoEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkSampleLocationsInfoEXT_pnext_temp(dec);
+    vn_decode_VkSampleLocationsInfoEXT_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkSampleLocationsInfoEXT_handle_self(VkSampleLocationsInfoEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->sampleLocationsPerPixel */
+    vn_replace_VkExtent2D_handle(&val->sampleLocationGridSize);
+    /* skip val->sampleLocationsCount */
+    if (val->pSampleLocations) {
+       for (uint32_t i = 0; i < val->sampleLocationsCount; i++)
+            vn_replace_VkSampleLocationEXT_handle(&((VkSampleLocationEXT *)val->pSampleLocations)[i]);
+    }
+}
+
+static inline void
+vn_replace_VkSampleLocationsInfoEXT_handle(VkSampleLocationsInfoEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT:
+            vn_replace_VkSampleLocationsInfoEXT_handle_self((VkSampleLocationsInfoEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* union VkClearColorValue */
 
 static inline void

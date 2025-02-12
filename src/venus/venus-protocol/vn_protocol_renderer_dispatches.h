@@ -202,6 +202,8 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkCmdDispatchBase_EXT: return "vkCmdDispatchBase";
     case VK_COMMAND_TYPE_vkCreateDescriptorUpdateTemplate_EXT: return "vkCreateDescriptorUpdateTemplate";
     case VK_COMMAND_TYPE_vkDestroyDescriptorUpdateTemplate_EXT: return "vkDestroyDescriptorUpdateTemplate";
+    case VK_COMMAND_TYPE_vkCmdSetSampleLocationsEXT_EXT: return "vkCmdSetSampleLocationsEXT";
+    case VK_COMMAND_TYPE_vkGetPhysicalDeviceMultisamplePropertiesEXT_EXT: return "vkGetPhysicalDeviceMultisamplePropertiesEXT";
     case VK_COMMAND_TYPE_vkGetBufferMemoryRequirements2_EXT: return "vkGetBufferMemoryRequirements2";
     case VK_COMMAND_TYPE_vkGetImageMemoryRequirements2_EXT: return "vkGetImageMemoryRequirements2";
     case VK_COMMAND_TYPE_vkGetImageSparseMemoryRequirements2_EXT: return "vkGetImageSparseMemoryRequirements2";
@@ -327,7 +329,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     }
 }
 
-static void (*const vn_dispatch_table[283])(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags) = {
+static void (*const vn_dispatch_table[285])(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags) = {
     [VK_COMMAND_TYPE_vkCreateInstance_EXT] = vn_dispatch_vkCreateInstance,
     [VK_COMMAND_TYPE_vkDestroyInstance_EXT] = vn_dispatch_vkDestroyInstance,
     [VK_COMMAND_TYPE_vkEnumeratePhysicalDevices_EXT] = vn_dispatch_vkEnumeratePhysicalDevices,
@@ -489,6 +491,8 @@ static void (*const vn_dispatch_table[283])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkCmdDispatchBase_EXT] = vn_dispatch_vkCmdDispatchBase,
     [VK_COMMAND_TYPE_vkCreateDescriptorUpdateTemplate_EXT] = vn_dispatch_vkCreateDescriptorUpdateTemplate,
     [VK_COMMAND_TYPE_vkDestroyDescriptorUpdateTemplate_EXT] = vn_dispatch_vkDestroyDescriptorUpdateTemplate,
+    [VK_COMMAND_TYPE_vkCmdSetSampleLocationsEXT_EXT] = vn_dispatch_vkCmdSetSampleLocationsEXT,
+    [VK_COMMAND_TYPE_vkGetPhysicalDeviceMultisamplePropertiesEXT_EXT] = vn_dispatch_vkGetPhysicalDeviceMultisamplePropertiesEXT,
     [VK_COMMAND_TYPE_vkGetBufferMemoryRequirements2_EXT] = vn_dispatch_vkGetBufferMemoryRequirements2,
     [VK_COMMAND_TYPE_vkGetImageMemoryRequirements2_EXT] = vn_dispatch_vkGetImageMemoryRequirements2,
     [VK_COMMAND_TYPE_vkGetImageSparseMemoryRequirements2_EXT] = vn_dispatch_vkGetImageSparseMemoryRequirements2,
@@ -610,7 +614,7 @@ static inline void vn_dispatch_command(struct vn_dispatch_context *ctx)
     vn_decode_VkFlags(ctx->decoder, &cmd_flags);
 
     {
-        if (cmd_type < 283 && vn_dispatch_table[cmd_type])
+        if (cmd_type < 285 && vn_dispatch_table[cmd_type])
             vn_dispatch_table[cmd_type](ctx, cmd_flags);
         else
             vn_cs_decoder_set_fatal(ctx->decoder);

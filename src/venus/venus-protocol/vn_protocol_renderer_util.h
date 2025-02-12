@@ -14,6 +14,7 @@
 struct vn_physical_device_proc_table {
    PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT GetPhysicalDeviceCalibrateableTimeDomainsEXT;
    PFN_vkGetPhysicalDeviceFragmentShadingRatesKHR GetPhysicalDeviceFragmentShadingRatesKHR;
+   PFN_vkGetPhysicalDeviceMultisamplePropertiesEXT GetPhysicalDeviceMultisamplePropertiesEXT;
    PFN_vkGetPhysicalDeviceToolProperties GetPhysicalDeviceToolProperties;
 };
 
@@ -127,6 +128,7 @@ struct vn_device_proc_table {
    PFN_vkCmdSetRasterizationSamplesEXT CmdSetRasterizationSamplesEXT;
    PFN_vkCmdSetRasterizationStreamEXT CmdSetRasterizationStreamEXT;
    PFN_vkCmdSetRasterizerDiscardEnable CmdSetRasterizerDiscardEnable;
+   PFN_vkCmdSetSampleLocationsEXT CmdSetSampleLocationsEXT;
    PFN_vkCmdSetSampleLocationsEnableEXT CmdSetSampleLocationsEnableEXT;
    PFN_vkCmdSetSampleMaskEXT CmdSetSampleMaskEXT;
    PFN_vkCmdSetScissor CmdSetScissor;
@@ -264,6 +266,7 @@ vn_util_init_physical_device_proc_table(VkInstance instance,
 #define VN_GIPA(instance, cmd) (PFN_ ## cmd)vkGetInstanceProcAddr(instance, #cmd)
    proc_table->GetPhysicalDeviceCalibrateableTimeDomainsEXT = VN_GIPA(instance, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT);
    proc_table->GetPhysicalDeviceFragmentShadingRatesKHR = VN_GIPA(instance, vkGetPhysicalDeviceFragmentShadingRatesKHR);
+   proc_table->GetPhysicalDeviceMultisamplePropertiesEXT = VN_GIPA(instance, vkGetPhysicalDeviceMultisamplePropertiesEXT);
    proc_table->GetPhysicalDeviceToolProperties = VN_GIPA(instance, vkGetPhysicalDeviceToolProperties);
    if (!proc_table->GetPhysicalDeviceToolProperties)
       proc_table->GetPhysicalDeviceToolProperties = VN_GIPA(instance, vkGetPhysicalDeviceToolPropertiesEXT);
@@ -551,6 +554,9 @@ vn_util_init_device_proc_table(VkDevice dev,
    proc_table->CmdSetRasterizerDiscardEnable =
       api_version >= VK_API_VERSION_1_3 ? VN_GDPA(dev, vkCmdSetRasterizerDiscardEnable) :
       ext_table->EXT_extended_dynamic_state2 ? VN_GDPA(dev, vkCmdSetRasterizerDiscardEnableEXT) :
+      NULL;
+   proc_table->CmdSetSampleLocationsEXT =
+      ext_table->EXT_sample_locations ? VN_GDPA(dev, vkCmdSetSampleLocationsEXT) :
       NULL;
    proc_table->CmdSetSampleLocationsEnableEXT =
       ext_table->EXT_extended_dynamic_state3 ? VN_GDPA(dev, vkCmdSetSampleLocationsEnableEXT) :

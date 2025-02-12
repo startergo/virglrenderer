@@ -928,6 +928,14 @@ vn_decode_VkImageMemoryBarrier_pnext_temp(struct vn_cs_decoder *dec)
 
     vn_decode_VkStructureType(dec, &stype);
     switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkSampleLocationsInfoEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkImageMemoryBarrier_pnext_temp(dec);
+            vn_decode_VkSampleLocationsInfoEXT_self_temp(dec, (VkSampleLocationsInfoEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkExternalMemoryAcquireUnmodifiedEXT));
         if (pnext) {
@@ -997,6 +1005,9 @@ vn_replace_VkImageMemoryBarrier_handle(VkImageMemoryBarrier *val)
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER:
             vn_replace_VkImageMemoryBarrier_handle_self((VkImageMemoryBarrier *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT:
+            vn_replace_VkSampleLocationsInfoEXT_handle_self((VkSampleLocationsInfoEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
             vn_replace_VkExternalMemoryAcquireUnmodifiedEXT_handle_self((VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
@@ -1143,6 +1154,125 @@ vn_replace_VkDeviceGroupRenderPassBeginInfo_handle(VkDeviceGroupRenderPassBeginI
     } while (pnext);
 }
 
+/* struct VkAttachmentSampleLocationsEXT */
+
+static inline void
+vn_decode_VkAttachmentSampleLocationsEXT_temp(struct vn_cs_decoder *dec, VkAttachmentSampleLocationsEXT *val)
+{
+    vn_decode_uint32_t(dec, &val->attachmentIndex);
+    vn_decode_VkSampleLocationsInfoEXT_temp(dec, &val->sampleLocationsInfo);
+}
+
+static inline void
+vn_replace_VkAttachmentSampleLocationsEXT_handle(VkAttachmentSampleLocationsEXT *val)
+{
+    /* skip val->attachmentIndex */
+    vn_replace_VkSampleLocationsInfoEXT_handle(&val->sampleLocationsInfo);
+}
+
+/* struct VkSubpassSampleLocationsEXT */
+
+static inline void
+vn_decode_VkSubpassSampleLocationsEXT_temp(struct vn_cs_decoder *dec, VkSubpassSampleLocationsEXT *val)
+{
+    vn_decode_uint32_t(dec, &val->subpassIndex);
+    vn_decode_VkSampleLocationsInfoEXT_temp(dec, &val->sampleLocationsInfo);
+}
+
+static inline void
+vn_replace_VkSubpassSampleLocationsEXT_handle(VkSubpassSampleLocationsEXT *val)
+{
+    /* skip val->subpassIndex */
+    vn_replace_VkSampleLocationsInfoEXT_handle(&val->sampleLocationsInfo);
+}
+
+/* struct VkRenderPassSampleLocationsBeginInfoEXT chain */
+
+static inline void *
+vn_decode_VkRenderPassSampleLocationsBeginInfoEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkRenderPassSampleLocationsBeginInfoEXT_self_temp(struct vn_cs_decoder *dec, VkRenderPassSampleLocationsBeginInfoEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_uint32_t(dec, &val->attachmentInitialSampleLocationsCount);
+    if (vn_peek_array_size(dec)) {
+        const uint32_t iter_count = vn_decode_array_size(dec, val->attachmentInitialSampleLocationsCount);
+        val->pAttachmentInitialSampleLocations = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pAttachmentInitialSampleLocations), iter_count);
+        if (!val->pAttachmentInitialSampleLocations) return;
+        for (uint32_t i = 0; i < iter_count; i++)
+            vn_decode_VkAttachmentSampleLocationsEXT_temp(dec, &((VkAttachmentSampleLocationsEXT *)val->pAttachmentInitialSampleLocations)[i]);
+    } else {
+        vn_decode_array_size(dec, val->attachmentInitialSampleLocationsCount);
+        val->pAttachmentInitialSampleLocations = NULL;
+    }
+    vn_decode_uint32_t(dec, &val->postSubpassSampleLocationsCount);
+    if (vn_peek_array_size(dec)) {
+        const uint32_t iter_count = vn_decode_array_size(dec, val->postSubpassSampleLocationsCount);
+        val->pPostSubpassSampleLocations = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pPostSubpassSampleLocations), iter_count);
+        if (!val->pPostSubpassSampleLocations) return;
+        for (uint32_t i = 0; i < iter_count; i++)
+            vn_decode_VkSubpassSampleLocationsEXT_temp(dec, &((VkSubpassSampleLocationsEXT *)val->pPostSubpassSampleLocations)[i]);
+    } else {
+        vn_decode_array_size(dec, val->postSubpassSampleLocationsCount);
+        val->pPostSubpassSampleLocations = NULL;
+    }
+}
+
+static inline void
+vn_decode_VkRenderPassSampleLocationsBeginInfoEXT_temp(struct vn_cs_decoder *dec, VkRenderPassSampleLocationsBeginInfoEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_RENDER_PASS_SAMPLE_LOCATIONS_BEGIN_INFO_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkRenderPassSampleLocationsBeginInfoEXT_pnext_temp(dec);
+    vn_decode_VkRenderPassSampleLocationsBeginInfoEXT_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkRenderPassSampleLocationsBeginInfoEXT_handle_self(VkRenderPassSampleLocationsBeginInfoEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->attachmentInitialSampleLocationsCount */
+    if (val->pAttachmentInitialSampleLocations) {
+       for (uint32_t i = 0; i < val->attachmentInitialSampleLocationsCount; i++)
+            vn_replace_VkAttachmentSampleLocationsEXT_handle(&((VkAttachmentSampleLocationsEXT *)val->pAttachmentInitialSampleLocations)[i]);
+    }
+    /* skip val->postSubpassSampleLocationsCount */
+    if (val->pPostSubpassSampleLocations) {
+       for (uint32_t i = 0; i < val->postSubpassSampleLocationsCount; i++)
+            vn_replace_VkSubpassSampleLocationsEXT_handle(&((VkSubpassSampleLocationsEXT *)val->pPostSubpassSampleLocations)[i]);
+    }
+}
+
+static inline void
+vn_replace_VkRenderPassSampleLocationsBeginInfoEXT_handle(VkRenderPassSampleLocationsBeginInfoEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_RENDER_PASS_SAMPLE_LOCATIONS_BEGIN_INFO_EXT:
+            vn_replace_VkRenderPassSampleLocationsBeginInfoEXT_handle_self((VkRenderPassSampleLocationsBeginInfoEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkRenderPassAttachmentBeginInfo chain */
 
 static inline void *
@@ -1235,6 +1365,14 @@ vn_decode_VkRenderPassBeginInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkDeviceGroupRenderPassBeginInfo_self_temp(dec, (VkDeviceGroupRenderPassBeginInfo *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_RENDER_PASS_SAMPLE_LOCATIONS_BEGIN_INFO_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkRenderPassSampleLocationsBeginInfoEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkRenderPassBeginInfo_pnext_temp(dec);
+            vn_decode_VkRenderPassSampleLocationsBeginInfoEXT_self_temp(dec, (VkRenderPassSampleLocationsBeginInfoEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkRenderPassAttachmentBeginInfo));
         if (pnext) {
@@ -1310,6 +1448,9 @@ vn_replace_VkRenderPassBeginInfo_handle(VkRenderPassBeginInfo *val)
             break;
         case VK_STRUCTURE_TYPE_DEVICE_GROUP_RENDER_PASS_BEGIN_INFO:
             vn_replace_VkDeviceGroupRenderPassBeginInfo_handle_self((VkDeviceGroupRenderPassBeginInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_RENDER_PASS_SAMPLE_LOCATIONS_BEGIN_INFO_EXT:
+            vn_replace_VkRenderPassSampleLocationsBeginInfoEXT_handle_self((VkRenderPassSampleLocationsBeginInfoEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO:
             vn_replace_VkRenderPassAttachmentBeginInfo_handle_self((VkRenderPassAttachmentBeginInfo *)pnext);
@@ -2514,6 +2655,14 @@ vn_decode_VkImageMemoryBarrier2_pnext_temp(struct vn_cs_decoder *dec)
 
     vn_decode_VkStructureType(dec, &stype);
     switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkSampleLocationsInfoEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkImageMemoryBarrier2_pnext_temp(dec);
+            vn_decode_VkSampleLocationsInfoEXT_self_temp(dec, (VkSampleLocationsInfoEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkExternalMemoryAcquireUnmodifiedEXT));
         if (pnext) {
@@ -2587,6 +2736,9 @@ vn_replace_VkImageMemoryBarrier2_handle(VkImageMemoryBarrier2 *val)
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2:
             vn_replace_VkImageMemoryBarrier2_handle_self((VkImageMemoryBarrier2 *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT:
+            vn_replace_VkSampleLocationsInfoEXT_handle_self((VkSampleLocationsInfoEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT:
             vn_replace_VkExternalMemoryAcquireUnmodifiedEXT_handle_self((VkExternalMemoryAcquireUnmodifiedEXT *)pnext);
@@ -4917,6 +5069,34 @@ static inline void vn_encode_vkCmdDispatchBase_reply(struct vn_cs_encoder *enc, 
     /* skip args->groupCountX */
     /* skip args->groupCountY */
     /* skip args->groupCountZ */
+}
+
+static inline void vn_decode_vkCmdSetSampleLocationsEXT_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetSampleLocationsEXT *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pSampleLocationsInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pSampleLocationsInfo));
+        if (!args->pSampleLocationsInfo) return;
+        vn_decode_VkSampleLocationsInfoEXT_temp(dec, (VkSampleLocationsInfoEXT *)args->pSampleLocationsInfo);
+    } else {
+        args->pSampleLocationsInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkCmdSetSampleLocationsEXT_args_handle(struct vn_command_vkCmdSetSampleLocationsEXT *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    if (args->pSampleLocationsInfo)
+        vn_replace_VkSampleLocationsInfoEXT_handle((VkSampleLocationsInfoEXT *)args->pSampleLocationsInfo);
+}
+
+static inline void vn_encode_vkCmdSetSampleLocationsEXT_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdSetSampleLocationsEXT *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdSetSampleLocationsEXT_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->pSampleLocationsInfo */
 }
 
 static inline void vn_decode_vkCmdBeginRenderPass2_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdBeginRenderPass2 *args)
@@ -8394,6 +8574,34 @@ static inline void vn_dispatch_vkCmdDispatchBase(struct vn_dispatch_context *ctx
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
             vn_encode_vkCmdDispatchBase_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdSetSampleLocationsEXT(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdSetSampleLocationsEXT args;
+
+    if (!ctx->dispatch_vkCmdSetSampleLocationsEXT) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdSetSampleLocationsEXT_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdSetSampleLocationsEXT(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdSetSampleLocationsEXT_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }
