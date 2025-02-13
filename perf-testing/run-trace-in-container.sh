@@ -21,6 +21,7 @@ kernel_src=""
 benchmark_loops=0
 perfetto_loops=10
 wait_after_frame=
+tag="mesa"
 
 print_help() {
   echo "Run GL trace with perfetto"
@@ -35,6 +36,7 @@ print_help() {
   echo "  --benchmark, -b  Number of times the last frame should be run for benchmarking (default 0=disabled)"
   echo "  --perfetto, -p   Number of times the last frame should be loop for perfetto (default 10; 0=run trace normally)"
   echo "  --snapshot, -s   Make per-frame snapshots"
+  echo "  --vtest          Use vtest backend"
   echo "  --debug          Enable extra logging"
   echo ""
   echo "  --help, -h       Print this help"
@@ -95,12 +97,18 @@ while [ -n "$1" ] ; do
 	    ;;
 
         --snapshot|-s)
-           command="$command -s"
-           ;;
+            command="$command -s"
+            ;;
+
+        --vtest)
+            command="$command --vtest"
+            tag="mesa-vtest"
+            ;;
 
         --debug)
            command="$command --debug"
            ;;
+
         *)
             echo "Unknown option '$1' given, run with option --help to see supported options"
             exit
@@ -181,6 +189,11 @@ if ! [[ 1$perfetto_loops =~ $re ]] ; then
    exit 1
 fi
 
+kernel_binding=""
+if [ "x$kernel_src" != "x" ]; then
+    kernel_binding="-v ${kernel_src}:/kernel:z"
+fi
+
 echo "command=$command"
 
 docker run -it --rm \
@@ -192,9 +205,9 @@ docker run -it --rm \
     -v "$mesa_src":/mesa \
     -v "$virgl_src":/virglrenderer \
     -v "$traces_db":/traces-db \
-    -v "$kernel_src":/kernel \
+    $kernel_binding \
     --volume "$pwd":/wd \
     --workdir /wd \
-    mesa \
+    $tag \
     -t "$trace" \
     $command
