@@ -65,10 +65,9 @@ pushd /mesa
 mkdir -p build
 
 if [ ! -f build/build.ninja ]; then 
-   meson build/ \
+   meson setup build/ \
       -Dprefix=/usr/local \
-      -Ddri-drivers=i965 \
-      -Dgallium-drivers=swrast,virgl,radeonsi,iris \
+      -Dgallium-drivers=softpipe,virgl,radeonsi,iris \
       -Dbuildtype=debugoptimized \
       -Dllvm=enabled \
       -Dglx=dri \
@@ -78,13 +77,12 @@ if [ ! -f build/build.ninja ]; then
       -Dgallium-va=disabled \
       -Dvulkan-drivers=[] \
       -Dvalgrind=disabled \
-      -Dtracing=perfetto \
+      -Dperfetto=true \
       -Dlibdir=lib
 else    
    pushd build
    meson configure \
       -Dprefix=/usr/local \
-      -Ddri-drivers=i965 \
       -Dgallium-drivers=swrast,virgl,radeonsi,iris \
       -Dbuildtype=debugoptimized \
       -Dllvm=enabled \
@@ -95,7 +93,7 @@ else
       -Dgallium-va=disabled \
       -Dvulkan-drivers=[] \
       -Dvalgrind=disabled \
-      -Dtracing=perfetto \
+      -Dperfetto=true \
       -Dlibdir=lib
    popd
 fi 
@@ -106,7 +104,7 @@ pushd /virglrenderer
 mkdir -p build
 
 if [ ! -f build/build.ninja ]; then 
-   meson build/ \
+   meson setup build/ \
       -Dprefix=/usr/local \
       -Dlibdir=lib \
       -Dplatforms=egl \
