@@ -703,16 +703,16 @@ vkr_dispatch_vkGetPhysicalDeviceExternalFenceProperties(
 }
 
 static void
-vkr_dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT(
+vkr_dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR(
    UNUSED struct vn_dispatch_context *ctx,
-   struct vn_command_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT *args)
+   struct vn_command_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR *args)
 {
    struct vkr_physical_device *physical_dev =
       vkr_physical_device_from_handle(args->physicalDevice);
    struct vn_physical_device_proc_table *vk = &physical_dev->proc_table;
 
-   vn_replace_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT_args_handle(args);
-   args->ret = vk->GetPhysicalDeviceCalibrateableTimeDomainsEXT(
+   vn_replace_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR_args_handle(args);
+   args->ret = vk->GetPhysicalDeviceCalibrateableTimeDomainsKHR(
       args->physicalDevice, args->pTimeDomainCount, args->pTimeDomains);
 }
 
@@ -793,8 +793,8 @@ vkr_context_init_physical_device_dispatch(struct vkr_context *ctx)
       vkr_dispatch_vkGetPhysicalDeviceExternalSemaphoreProperties;
    dispatch->dispatch_vkGetPhysicalDeviceExternalFenceProperties =
       vkr_dispatch_vkGetPhysicalDeviceExternalFenceProperties;
-   dispatch->dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT =
-      vkr_dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
+   dispatch->dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR =
+      vkr_dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR;
 
    /* VK_KHR_fragment_shading_rate */
    dispatch->dispatch_vkGetPhysicalDeviceFragmentShadingRatesKHR =

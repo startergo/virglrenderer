@@ -284,26 +284,26 @@ vn_replace_VkVertexInputAttributeDescription_handle(VkVertexInputAttributeDescri
     /* skip val->offset */
 }
 
-/* struct VkVertexInputBindingDivisorDescriptionEXT */
+/* struct VkVertexInputBindingDivisorDescriptionKHR */
 
 static inline void
-vn_decode_VkVertexInputBindingDivisorDescriptionEXT_temp(struct vn_cs_decoder *dec, VkVertexInputBindingDivisorDescriptionEXT *val)
+vn_decode_VkVertexInputBindingDivisorDescriptionKHR_temp(struct vn_cs_decoder *dec, VkVertexInputBindingDivisorDescriptionKHR *val)
 {
     vn_decode_uint32_t(dec, &val->binding);
     vn_decode_uint32_t(dec, &val->divisor);
 }
 
 static inline void
-vn_replace_VkVertexInputBindingDivisorDescriptionEXT_handle(VkVertexInputBindingDivisorDescriptionEXT *val)
+vn_replace_VkVertexInputBindingDivisorDescriptionKHR_handle(VkVertexInputBindingDivisorDescriptionKHR *val)
 {
     /* skip val->binding */
     /* skip val->divisor */
 }
 
-/* struct VkPipelineVertexInputDivisorStateCreateInfoEXT chain */
+/* struct VkPipelineVertexInputDivisorStateCreateInfoKHR chain */
 
 static inline void *
-vn_decode_VkPipelineVertexInputDivisorStateCreateInfoEXT_pnext_temp(struct vn_cs_decoder *dec)
+vn_decode_VkPipelineVertexInputDivisorStateCreateInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
 {
     /* no known/supported struct */
     if (vn_decode_simple_pointer(dec))
@@ -312,7 +312,7 @@ vn_decode_VkPipelineVertexInputDivisorStateCreateInfoEXT_pnext_temp(struct vn_cs
 }
 
 static inline void
-vn_decode_VkPipelineVertexInputDivisorStateCreateInfoEXT_self_temp(struct vn_cs_decoder *dec, VkPipelineVertexInputDivisorStateCreateInfoEXT *val)
+vn_decode_VkPipelineVertexInputDivisorStateCreateInfoKHR_self_temp(struct vn_cs_decoder *dec, VkPipelineVertexInputDivisorStateCreateInfoKHR *val)
 {
     /* skip val->{sType,pNext} */
     vn_decode_uint32_t(dec, &val->vertexBindingDivisorCount);
@@ -321,7 +321,7 @@ vn_decode_VkPipelineVertexInputDivisorStateCreateInfoEXT_self_temp(struct vn_cs_
         val->pVertexBindingDivisors = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pVertexBindingDivisors), iter_count);
         if (!val->pVertexBindingDivisors) return;
         for (uint32_t i = 0; i < iter_count; i++)
-            vn_decode_VkVertexInputBindingDivisorDescriptionEXT_temp(dec, &((VkVertexInputBindingDivisorDescriptionEXT *)val->pVertexBindingDivisors)[i]);
+            vn_decode_VkVertexInputBindingDivisorDescriptionKHR_temp(dec, &((VkVertexInputBindingDivisorDescriptionKHR *)val->pVertexBindingDivisors)[i]);
     } else {
         vn_decode_array_size(dec, val->vertexBindingDivisorCount);
         val->pVertexBindingDivisors = NULL;
@@ -329,39 +329,39 @@ vn_decode_VkPipelineVertexInputDivisorStateCreateInfoEXT_self_temp(struct vn_cs_
 }
 
 static inline void
-vn_decode_VkPipelineVertexInputDivisorStateCreateInfoEXT_temp(struct vn_cs_decoder *dec, VkPipelineVertexInputDivisorStateCreateInfoEXT *val)
+vn_decode_VkPipelineVertexInputDivisorStateCreateInfoKHR_temp(struct vn_cs_decoder *dec, VkPipelineVertexInputDivisorStateCreateInfoKHR *val)
 {
     VkStructureType stype;
     vn_decode_VkStructureType(dec, &stype);
-    if (stype != VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT)
+    if (stype != VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_KHR)
         vn_cs_decoder_set_fatal(dec);
 
     val->sType = stype;
-    val->pNext = vn_decode_VkPipelineVertexInputDivisorStateCreateInfoEXT_pnext_temp(dec);
-    vn_decode_VkPipelineVertexInputDivisorStateCreateInfoEXT_self_temp(dec, val);
+    val->pNext = vn_decode_VkPipelineVertexInputDivisorStateCreateInfoKHR_pnext_temp(dec);
+    vn_decode_VkPipelineVertexInputDivisorStateCreateInfoKHR_self_temp(dec, val);
 }
 
 static inline void
-vn_replace_VkPipelineVertexInputDivisorStateCreateInfoEXT_handle_self(VkPipelineVertexInputDivisorStateCreateInfoEXT *val)
+vn_replace_VkPipelineVertexInputDivisorStateCreateInfoKHR_handle_self(VkPipelineVertexInputDivisorStateCreateInfoKHR *val)
 {
     /* skip val->sType */
     /* skip val->pNext */
     /* skip val->vertexBindingDivisorCount */
     if (val->pVertexBindingDivisors) {
        for (uint32_t i = 0; i < val->vertexBindingDivisorCount; i++)
-            vn_replace_VkVertexInputBindingDivisorDescriptionEXT_handle(&((VkVertexInputBindingDivisorDescriptionEXT *)val->pVertexBindingDivisors)[i]);
+            vn_replace_VkVertexInputBindingDivisorDescriptionKHR_handle(&((VkVertexInputBindingDivisorDescriptionKHR *)val->pVertexBindingDivisors)[i]);
     }
 }
 
 static inline void
-vn_replace_VkPipelineVertexInputDivisorStateCreateInfoEXT_handle(VkPipelineVertexInputDivisorStateCreateInfoEXT *val)
+vn_replace_VkPipelineVertexInputDivisorStateCreateInfoKHR_handle(VkPipelineVertexInputDivisorStateCreateInfoKHR *val)
 {
     struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
 
     do {
         switch ((int32_t)pnext->sType) {
-        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT:
-            vn_replace_VkPipelineVertexInputDivisorStateCreateInfoEXT_handle_self((VkPipelineVertexInputDivisorStateCreateInfoEXT *)pnext);
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_KHR:
+            vn_replace_VkPipelineVertexInputDivisorStateCreateInfoKHR_handle_self((VkPipelineVertexInputDivisorStateCreateInfoKHR *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -384,12 +384,12 @@ vn_decode_VkPipelineVertexInputStateCreateInfo_pnext_temp(struct vn_cs_decoder *
 
     vn_decode_VkStructureType(dec, &stype);
     switch ((int32_t)stype) {
-    case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT:
-        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineVertexInputDivisorStateCreateInfoEXT));
+    case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineVertexInputDivisorStateCreateInfoKHR));
         if (pnext) {
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPipelineVertexInputStateCreateInfo_pnext_temp(dec);
-            vn_decode_VkPipelineVertexInputDivisorStateCreateInfoEXT_self_temp(dec, (VkPipelineVertexInputDivisorStateCreateInfoEXT *)pnext);
+            vn_decode_VkPipelineVertexInputDivisorStateCreateInfoKHR_self_temp(dec, (VkPipelineVertexInputDivisorStateCreateInfoKHR *)pnext);
         }
         break;
     default:
@@ -472,8 +472,8 @@ vn_replace_VkPipelineVertexInputStateCreateInfo_handle(VkPipelineVertexInputStat
         case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO:
             vn_replace_VkPipelineVertexInputStateCreateInfo_handle_self((VkPipelineVertexInputStateCreateInfo *)pnext);
             break;
-        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT:
-            vn_replace_VkPipelineVertexInputDivisorStateCreateInfoEXT_handle_self((VkPipelineVertexInputDivisorStateCreateInfoEXT *)pnext);
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_KHR:
+            vn_replace_VkPipelineVertexInputDivisorStateCreateInfoKHR_handle_self((VkPipelineVertexInputDivisorStateCreateInfoKHR *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -1031,10 +1031,10 @@ vn_replace_VkPipelineRasterizationDepthClipStateCreateInfoEXT_handle(VkPipelineR
     } while (pnext);
 }
 
-/* struct VkPipelineRasterizationLineStateCreateInfoEXT chain */
+/* struct VkPipelineRasterizationLineStateCreateInfoKHR chain */
 
 static inline void *
-vn_decode_VkPipelineRasterizationLineStateCreateInfoEXT_pnext_temp(struct vn_cs_decoder *dec)
+vn_decode_VkPipelineRasterizationLineStateCreateInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
 {
     /* no known/supported struct */
     if (vn_decode_simple_pointer(dec))
@@ -1043,30 +1043,30 @@ vn_decode_VkPipelineRasterizationLineStateCreateInfoEXT_pnext_temp(struct vn_cs_
 }
 
 static inline void
-vn_decode_VkPipelineRasterizationLineStateCreateInfoEXT_self_temp(struct vn_cs_decoder *dec, VkPipelineRasterizationLineStateCreateInfoEXT *val)
+vn_decode_VkPipelineRasterizationLineStateCreateInfoKHR_self_temp(struct vn_cs_decoder *dec, VkPipelineRasterizationLineStateCreateInfoKHR *val)
 {
     /* skip val->{sType,pNext} */
-    vn_decode_VkLineRasterizationModeEXT(dec, &val->lineRasterizationMode);
+    vn_decode_VkLineRasterizationModeKHR(dec, &val->lineRasterizationMode);
     vn_decode_VkBool32(dec, &val->stippledLineEnable);
     vn_decode_uint32_t(dec, &val->lineStippleFactor);
     vn_decode_uint16_t(dec, &val->lineStipplePattern);
 }
 
 static inline void
-vn_decode_VkPipelineRasterizationLineStateCreateInfoEXT_temp(struct vn_cs_decoder *dec, VkPipelineRasterizationLineStateCreateInfoEXT *val)
+vn_decode_VkPipelineRasterizationLineStateCreateInfoKHR_temp(struct vn_cs_decoder *dec, VkPipelineRasterizationLineStateCreateInfoKHR *val)
 {
     VkStructureType stype;
     vn_decode_VkStructureType(dec, &stype);
-    if (stype != VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT)
+    if (stype != VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR)
         vn_cs_decoder_set_fatal(dec);
 
     val->sType = stype;
-    val->pNext = vn_decode_VkPipelineRasterizationLineStateCreateInfoEXT_pnext_temp(dec);
-    vn_decode_VkPipelineRasterizationLineStateCreateInfoEXT_self_temp(dec, val);
+    val->pNext = vn_decode_VkPipelineRasterizationLineStateCreateInfoKHR_pnext_temp(dec);
+    vn_decode_VkPipelineRasterizationLineStateCreateInfoKHR_self_temp(dec, val);
 }
 
 static inline void
-vn_replace_VkPipelineRasterizationLineStateCreateInfoEXT_handle_self(VkPipelineRasterizationLineStateCreateInfoEXT *val)
+vn_replace_VkPipelineRasterizationLineStateCreateInfoKHR_handle_self(VkPipelineRasterizationLineStateCreateInfoKHR *val)
 {
     /* skip val->sType */
     /* skip val->pNext */
@@ -1077,14 +1077,14 @@ vn_replace_VkPipelineRasterizationLineStateCreateInfoEXT_handle_self(VkPipelineR
 }
 
 static inline void
-vn_replace_VkPipelineRasterizationLineStateCreateInfoEXT_handle(VkPipelineRasterizationLineStateCreateInfoEXT *val)
+vn_replace_VkPipelineRasterizationLineStateCreateInfoKHR_handle(VkPipelineRasterizationLineStateCreateInfoKHR *val)
 {
     struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
 
     do {
         switch ((int32_t)pnext->sType) {
-        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
-            vn_replace_VkPipelineRasterizationLineStateCreateInfoEXT_handle_self((VkPipelineRasterizationLineStateCreateInfoEXT *)pnext);
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR:
+            vn_replace_VkPipelineRasterizationLineStateCreateInfoKHR_handle_self((VkPipelineRasterizationLineStateCreateInfoKHR *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -1188,12 +1188,12 @@ vn_decode_VkPipelineRasterizationStateCreateInfo_pnext_temp(struct vn_cs_decoder
             vn_decode_VkPipelineRasterizationDepthClipStateCreateInfoEXT_self_temp(dec, (VkPipelineRasterizationDepthClipStateCreateInfoEXT *)pnext);
         }
         break;
-    case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
-        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineRasterizationLineStateCreateInfoEXT));
+    case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineRasterizationLineStateCreateInfoKHR));
         if (pnext) {
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPipelineRasterizationStateCreateInfo_pnext_temp(dec);
-            vn_decode_VkPipelineRasterizationLineStateCreateInfoEXT_self_temp(dec, (VkPipelineRasterizationLineStateCreateInfoEXT *)pnext);
+            vn_decode_VkPipelineRasterizationLineStateCreateInfoKHR_self_temp(dec, (VkPipelineRasterizationLineStateCreateInfoKHR *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
@@ -1281,8 +1281,8 @@ vn_replace_VkPipelineRasterizationStateCreateInfo_handle(VkPipelineRasterization
         case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT:
             vn_replace_VkPipelineRasterizationDepthClipStateCreateInfoEXT_handle_self((VkPipelineRasterizationDepthClipStateCreateInfoEXT *)pnext);
             break;
-        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
-            vn_replace_VkPipelineRasterizationLineStateCreateInfoEXT_handle_self((VkPipelineRasterizationLineStateCreateInfoEXT *)pnext);
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR:
+            vn_replace_VkPipelineRasterizationLineStateCreateInfoKHR_handle_self((VkPipelineRasterizationLineStateCreateInfoKHR *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
             vn_replace_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT_handle_self((VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *)pnext);

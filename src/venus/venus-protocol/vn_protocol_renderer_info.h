@@ -12,7 +12,7 @@
 
 struct vn_info_extension_table {
    union {
-      bool enabled[120];
+      bool enabled[125];
       struct {
          bool EXT_4444_formats;
          bool EXT_attachment_feedback_loop_layout;
@@ -78,6 +78,7 @@ struct vn_info_extension_table {
          bool KHR_8bit_storage;
          bool KHR_bind_memory2;
          bool KHR_buffer_device_address;
+         bool KHR_calibrated_timestamps;
          bool KHR_copy_commands2;
          bool KHR_create_renderpass2;
          bool KHR_dedicated_allocation;
@@ -103,6 +104,9 @@ struct vn_info_extension_table {
          bool KHR_get_physical_device_properties2;
          bool KHR_image_format_list;
          bool KHR_imageless_framebuffer;
+         bool KHR_index_type_uint8;
+         bool KHR_line_rasterization;
+         bool KHR_load_store_op_none;
          bool KHR_maintenance1;
          bool KHR_maintenance2;
          bool KHR_maintenance3;
@@ -130,6 +134,7 @@ struct vn_info_extension_table {
          bool KHR_timeline_semaphore;
          bool KHR_uniform_buffer_standard_layout;
          bool KHR_variable_pointers;
+         bool KHR_vertex_attribute_divisor;
          bool KHR_vulkan_memory_model;
          bool KHR_zero_initialize_workgroup_memory;
          bool MESA_venus_protocol;
@@ -138,7 +143,7 @@ struct vn_info_extension_table {
    };
 };
 
-#define VN_INFO_EXTENSION_MAX_NUMBER (500)
+#define VN_INFO_EXTENSION_MAX_NUMBER (544)
 
 struct vn_info_extension {
    const char *name;
@@ -147,8 +152,8 @@ struct vn_info_extension {
 };
 
 /* sorted by extension names for bsearch */
-static const uint32_t _vn_info_extension_count = 120;
-static const struct vn_info_extension _vn_info_extensions[120] = {
+static const uint32_t _vn_info_extension_count = 125;
+static const struct vn_info_extension _vn_info_extensions[125] = {
    { "VK_EXT_4444_formats", 341, 1 },
    { "VK_EXT_attachment_feedback_loop_layout", 340, 2 },
    { "VK_EXT_blend_operation_advanced", 149, 2 },
@@ -213,6 +218,7 @@ static const struct vn_info_extension _vn_info_extensions[120] = {
    { "VK_KHR_8bit_storage", 178, 1 },
    { "VK_KHR_bind_memory2", 158, 1 },
    { "VK_KHR_buffer_device_address", 258, 1 },
+   { "VK_KHR_calibrated_timestamps", 544, 1 },
    { "VK_KHR_copy_commands2", 338, 1 },
    { "VK_KHR_create_renderpass2", 110, 1 },
    { "VK_KHR_dedicated_allocation", 128, 3 },
@@ -238,6 +244,9 @@ static const struct vn_info_extension _vn_info_extensions[120] = {
    { "VK_KHR_get_physical_device_properties2", 60, 2 },
    { "VK_KHR_image_format_list", 148, 1 },
    { "VK_KHR_imageless_framebuffer", 109, 1 },
+   { "VK_KHR_index_type_uint8", 534, 1 },
+   { "VK_KHR_line_rasterization", 535, 1 },
+   { "VK_KHR_load_store_op_none", 527, 1 },
    { "VK_KHR_maintenance1", 70, 2 },
    { "VK_KHR_maintenance2", 118, 1 },
    { "VK_KHR_maintenance3", 169, 1 },
@@ -265,6 +274,7 @@ static const struct vn_info_extension _vn_info_extensions[120] = {
    { "VK_KHR_timeline_semaphore", 208, 2 },
    { "VK_KHR_uniform_buffer_standard_layout", 254, 1 },
    { "VK_KHR_variable_pointers", 121, 1 },
+   { "VK_KHR_vertex_attribute_divisor", 526, 1 },
    { "VK_KHR_vulkan_memory_model", 212, 3 },
    { "VK_KHR_zero_initialize_workgroup_memory", 326, 1 },
    { "VK_MESA_venus_protocol", 385, 2 },
@@ -280,7 +290,7 @@ vn_info_wire_format_version(void)
 static inline uint32_t
 vn_info_vk_xml_version(void)
 {
-    return VK_MAKE_API_VERSION(0, 1, 3, 269);
+    return VK_MAKE_API_VERSION(0, 1, 3, 302);
 }
 
 static inline int

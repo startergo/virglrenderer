@@ -214,8 +214,8 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkDestroySamplerYcbcrConversion_EXT: return "vkDestroySamplerYcbcrConversion";
     case VK_COMMAND_TYPE_vkGetDeviceQueue2_EXT: return "vkGetDeviceQueue2";
     case VK_COMMAND_TYPE_vkGetDescriptorSetLayoutSupport_EXT: return "vkGetDescriptorSetLayoutSupport";
-    case VK_COMMAND_TYPE_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT_EXT: return "vkGetPhysicalDeviceCalibrateableTimeDomainsEXT";
-    case VK_COMMAND_TYPE_vkGetCalibratedTimestampsEXT_EXT: return "vkGetCalibratedTimestampsEXT";
+    case VK_COMMAND_TYPE_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR_EXT: return "vkGetPhysicalDeviceCalibrateableTimeDomainsKHR";
+    case VK_COMMAND_TYPE_vkGetCalibratedTimestampsKHR_EXT: return "vkGetCalibratedTimestampsKHR";
     case VK_COMMAND_TYPE_vkCreateRenderPass2_EXT: return "vkCreateRenderPass2";
     case VK_COMMAND_TYPE_vkCmdBeginRenderPass2_EXT: return "vkCmdBeginRenderPass2";
     case VK_COMMAND_TYPE_vkCmdNextSubpass2_EXT: return "vkCmdNextSubpass2";
@@ -235,7 +235,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkGetBufferOpaqueCaptureAddress_EXT: return "vkGetBufferOpaqueCaptureAddress";
     case VK_COMMAND_TYPE_vkGetBufferDeviceAddress_EXT: return "vkGetBufferDeviceAddress";
     case VK_COMMAND_TYPE_vkGetDeviceMemoryOpaqueCaptureAddress_EXT: return "vkGetDeviceMemoryOpaqueCaptureAddress";
-    case VK_COMMAND_TYPE_vkCmdSetLineStippleEXT_EXT: return "vkCmdSetLineStippleEXT";
+    case VK_COMMAND_TYPE_vkCmdSetLineStippleKHR_EXT: return "vkCmdSetLineStippleKHR";
     case VK_COMMAND_TYPE_vkGetPhysicalDeviceToolProperties_EXT: return "vkGetPhysicalDeviceToolProperties";
     case VK_COMMAND_TYPE_vkCmdSetCullMode_EXT: return "vkCmdSetCullMode";
     case VK_COMMAND_TYPE_vkCmdSetFrontFace_EXT: return "vkCmdSetFrontFace";
@@ -503,8 +503,8 @@ static void (*const vn_dispatch_table[285])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkDestroySamplerYcbcrConversion_EXT] = vn_dispatch_vkDestroySamplerYcbcrConversion,
     [VK_COMMAND_TYPE_vkGetDeviceQueue2_EXT] = vn_dispatch_vkGetDeviceQueue2,
     [VK_COMMAND_TYPE_vkGetDescriptorSetLayoutSupport_EXT] = vn_dispatch_vkGetDescriptorSetLayoutSupport,
-    [VK_COMMAND_TYPE_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT_EXT] = vn_dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT,
-    [VK_COMMAND_TYPE_vkGetCalibratedTimestampsEXT_EXT] = vn_dispatch_vkGetCalibratedTimestampsEXT,
+    [VK_COMMAND_TYPE_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR_EXT] = vn_dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR,
+    [VK_COMMAND_TYPE_vkGetCalibratedTimestampsKHR_EXT] = vn_dispatch_vkGetCalibratedTimestampsKHR,
     [VK_COMMAND_TYPE_vkCreateRenderPass2_EXT] = vn_dispatch_vkCreateRenderPass2,
     [VK_COMMAND_TYPE_vkCmdBeginRenderPass2_EXT] = vn_dispatch_vkCmdBeginRenderPass2,
     [VK_COMMAND_TYPE_vkCmdNextSubpass2_EXT] = vn_dispatch_vkCmdNextSubpass2,
@@ -524,7 +524,7 @@ static void (*const vn_dispatch_table[285])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkGetBufferOpaqueCaptureAddress_EXT] = vn_dispatch_vkGetBufferOpaqueCaptureAddress,
     [VK_COMMAND_TYPE_vkGetBufferDeviceAddress_EXT] = vn_dispatch_vkGetBufferDeviceAddress,
     [VK_COMMAND_TYPE_vkGetDeviceMemoryOpaqueCaptureAddress_EXT] = vn_dispatch_vkGetDeviceMemoryOpaqueCaptureAddress,
-    [VK_COMMAND_TYPE_vkCmdSetLineStippleEXT_EXT] = vn_dispatch_vkCmdSetLineStippleEXT,
+    [VK_COMMAND_TYPE_vkCmdSetLineStippleKHR_EXT] = vn_dispatch_vkCmdSetLineStippleKHR,
     [VK_COMMAND_TYPE_vkGetPhysicalDeviceToolProperties_EXT] = vn_dispatch_vkGetPhysicalDeviceToolProperties,
     [VK_COMMAND_TYPE_vkCmdSetCullMode_EXT] = vn_dispatch_vkCmdSetCullMode,
     [VK_COMMAND_TYPE_vkCmdSetFrontFace_EXT] = vn_dispatch_vkCmdSetFrontFace,

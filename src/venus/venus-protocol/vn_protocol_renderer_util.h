@@ -12,7 +12,7 @@
 #include "vn_protocol_renderer_info.h"
 
 struct vn_physical_device_proc_table {
-   PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT GetPhysicalDeviceCalibrateableTimeDomainsEXT;
+   PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR GetPhysicalDeviceCalibrateableTimeDomainsKHR;
    PFN_vkGetPhysicalDeviceFragmentShadingRatesKHR GetPhysicalDeviceFragmentShadingRatesKHR;
    PFN_vkGetPhysicalDeviceMultisamplePropertiesEXT GetPhysicalDeviceMultisamplePropertiesEXT;
    PFN_vkGetPhysicalDeviceToolProperties GetPhysicalDeviceToolProperties;
@@ -115,8 +115,8 @@ struct vn_device_proc_table {
    PFN_vkCmdSetFragmentShadingRateKHR CmdSetFragmentShadingRateKHR;
    PFN_vkCmdSetFrontFace CmdSetFrontFace;
    PFN_vkCmdSetLineRasterizationModeEXT CmdSetLineRasterizationModeEXT;
-   PFN_vkCmdSetLineStippleEXT CmdSetLineStippleEXT;
    PFN_vkCmdSetLineStippleEnableEXT CmdSetLineStippleEnableEXT;
+   PFN_vkCmdSetLineStippleKHR CmdSetLineStippleKHR;
    PFN_vkCmdSetLineWidth CmdSetLineWidth;
    PFN_vkCmdSetLogicOpEXT CmdSetLogicOpEXT;
    PFN_vkCmdSetLogicOpEnableEXT CmdSetLogicOpEnableEXT;
@@ -202,7 +202,7 @@ struct vn_device_proc_table {
    PFN_vkGetBufferMemoryRequirements GetBufferMemoryRequirements;
    PFN_vkGetBufferMemoryRequirements2 GetBufferMemoryRequirements2;
    PFN_vkGetBufferOpaqueCaptureAddress GetBufferOpaqueCaptureAddress;
-   PFN_vkGetCalibratedTimestampsEXT GetCalibratedTimestampsEXT;
+   PFN_vkGetCalibratedTimestampsKHR GetCalibratedTimestampsKHR;
    PFN_vkGetDescriptorSetLayoutSupport GetDescriptorSetLayoutSupport;
    PFN_vkGetDeviceBufferMemoryRequirements GetDeviceBufferMemoryRequirements;
    PFN_vkGetDeviceGroupPeerMemoryFeatures GetDeviceGroupPeerMemoryFeatures;
@@ -264,7 +264,9 @@ vn_util_init_physical_device_proc_table(VkInstance instance,
                                         struct vn_physical_device_proc_table *proc_table)
 {
 #define VN_GIPA(instance, cmd) (PFN_ ## cmd)vkGetInstanceProcAddr(instance, #cmd)
-   proc_table->GetPhysicalDeviceCalibrateableTimeDomainsEXT = VN_GIPA(instance, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT);
+   proc_table->GetPhysicalDeviceCalibrateableTimeDomainsKHR = VN_GIPA(instance, vkGetPhysicalDeviceCalibrateableTimeDomainsKHR);
+   if (!proc_table->GetPhysicalDeviceCalibrateableTimeDomainsKHR)
+      proc_table->GetPhysicalDeviceCalibrateableTimeDomainsKHR = VN_GIPA(instance, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT);
    proc_table->GetPhysicalDeviceFragmentShadingRatesKHR = VN_GIPA(instance, vkGetPhysicalDeviceFragmentShadingRatesKHR);
    proc_table->GetPhysicalDeviceMultisamplePropertiesEXT = VN_GIPA(instance, vkGetPhysicalDeviceMultisamplePropertiesEXT);
    proc_table->GetPhysicalDeviceToolProperties = VN_GIPA(instance, vkGetPhysicalDeviceToolProperties);
@@ -421,6 +423,7 @@ vn_util_init_device_proc_table(VkDevice dev,
       NULL;
    proc_table->CmdPushDescriptorSetWithTemplateKHR =
       ext_table->KHR_push_descriptor ? VN_GDPA(dev, vkCmdPushDescriptorSetWithTemplateKHR) :
+      ext_table->KHR_descriptor_update_template ? VN_GDPA(dev, vkCmdPushDescriptorSetWithTemplateKHR) :
       NULL;
    proc_table->CmdResetEvent = VN_GDPA(dev, vkCmdResetEvent);
    proc_table->CmdResetEvent2 =
@@ -515,11 +518,12 @@ vn_util_init_device_proc_table(VkDevice dev,
    proc_table->CmdSetLineRasterizationModeEXT =
       ext_table->EXT_extended_dynamic_state3 ? VN_GDPA(dev, vkCmdSetLineRasterizationModeEXT) :
       NULL;
-   proc_table->CmdSetLineStippleEXT =
-      ext_table->EXT_line_rasterization ? VN_GDPA(dev, vkCmdSetLineStippleEXT) :
-      NULL;
    proc_table->CmdSetLineStippleEnableEXT =
       ext_table->EXT_extended_dynamic_state3 ? VN_GDPA(dev, vkCmdSetLineStippleEnableEXT) :
+      NULL;
+   proc_table->CmdSetLineStippleKHR =
+      ext_table->EXT_line_rasterization ? VN_GDPA(dev, vkCmdSetLineStippleEXT) :
+      ext_table->KHR_line_rasterization ? VN_GDPA(dev, vkCmdSetLineStippleKHR) :
       NULL;
    proc_table->CmdSetLineWidth = VN_GDPA(dev, vkCmdSetLineWidth);
    proc_table->CmdSetLogicOpEXT =
@@ -687,8 +691,9 @@ vn_util_init_device_proc_table(VkDevice dev,
       api_version >= VK_API_VERSION_1_2 ? VN_GDPA(dev, vkGetBufferOpaqueCaptureAddress) :
       ext_table->KHR_buffer_device_address ? VN_GDPA(dev, vkGetBufferOpaqueCaptureAddressKHR) :
       NULL;
-   proc_table->GetCalibratedTimestampsEXT =
+   proc_table->GetCalibratedTimestampsKHR =
       ext_table->EXT_calibrated_timestamps ? VN_GDPA(dev, vkGetCalibratedTimestampsEXT) :
+      ext_table->KHR_calibrated_timestamps ? VN_GDPA(dev, vkGetCalibratedTimestampsKHR) :
       NULL;
    proc_table->GetDescriptorSetLayoutSupport =
       api_version >= VK_API_VERSION_1_1 ? VN_GDPA(dev, vkGetDescriptorSetLayoutSupport) :
