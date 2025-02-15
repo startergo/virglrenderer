@@ -92,20 +92,21 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .EXT_texture_compression_astc_hdr = true,
    .EXT_tooling_info = false, /* implementation in driver */
    .EXT_ycbcr_2plane_444_formats = true,
+   /* promoted to VK_VERSION_1_4 */
+   .KHR_index_type_uint8 = true,
+   .KHR_line_rasterization = true,
+   .KHR_load_store_op_none = true,
+   .KHR_maintenance5 = true,
+   .KHR_push_descriptor = true,
+   .KHR_vertex_attribute_divisor = true,
    /* KHR extensions */
    .KHR_calibrated_timestamps = true,
    .KHR_external_fence_fd = true,
    .KHR_external_memory_fd = true,
    .KHR_external_semaphore_fd = true,
    .KHR_fragment_shading_rate = true,
-   .KHR_index_type_uint8 = true,
-   .KHR_line_rasterization = true,
-   .KHR_load_store_op_none = true,
-   .KHR_maintenance5 = true,
    .KHR_pipeline_library = true,
-   .KHR_push_descriptor = true,
    .KHR_shader_clock = true,
-   .KHR_vertex_attribute_divisor = true,
    /* EXT extensions */
    .EXT_attachment_feedback_loop_layout = true,
    .EXT_blend_operation_advanced = true,

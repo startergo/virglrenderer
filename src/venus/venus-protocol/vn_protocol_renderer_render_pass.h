@@ -491,10 +491,10 @@ vn_replace_VkRenderPassCreateInfo_handle(VkRenderPassCreateInfo *val)
     } while (pnext);
 }
 
-/* struct VkRenderingAreaInfoKHR chain */
+/* struct VkRenderingAreaInfo chain */
 
 static inline void *
-vn_decode_VkRenderingAreaInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+vn_decode_VkRenderingAreaInfo_pnext_temp(struct vn_cs_decoder *dec)
 {
     /* no known/supported struct */
     if (vn_decode_simple_pointer(dec))
@@ -503,7 +503,7 @@ vn_decode_VkRenderingAreaInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
 }
 
 static inline void
-vn_decode_VkRenderingAreaInfoKHR_self_temp(struct vn_cs_decoder *dec, VkRenderingAreaInfoKHR *val)
+vn_decode_VkRenderingAreaInfo_self_temp(struct vn_cs_decoder *dec, VkRenderingAreaInfo *val)
 {
     /* skip val->{sType,pNext} */
     vn_decode_uint32_t(dec, &val->viewMask);
@@ -522,20 +522,20 @@ vn_decode_VkRenderingAreaInfoKHR_self_temp(struct vn_cs_decoder *dec, VkRenderin
 }
 
 static inline void
-vn_decode_VkRenderingAreaInfoKHR_temp(struct vn_cs_decoder *dec, VkRenderingAreaInfoKHR *val)
+vn_decode_VkRenderingAreaInfo_temp(struct vn_cs_decoder *dec, VkRenderingAreaInfo *val)
 {
     VkStructureType stype;
     vn_decode_VkStructureType(dec, &stype);
-    if (stype != VK_STRUCTURE_TYPE_RENDERING_AREA_INFO_KHR)
+    if (stype != VK_STRUCTURE_TYPE_RENDERING_AREA_INFO)
         vn_cs_decoder_set_fatal(dec);
 
     val->sType = stype;
-    val->pNext = vn_decode_VkRenderingAreaInfoKHR_pnext_temp(dec);
-    vn_decode_VkRenderingAreaInfoKHR_self_temp(dec, val);
+    val->pNext = vn_decode_VkRenderingAreaInfo_pnext_temp(dec);
+    vn_decode_VkRenderingAreaInfo_self_temp(dec, val);
 }
 
 static inline void
-vn_replace_VkRenderingAreaInfoKHR_handle_self(VkRenderingAreaInfoKHR *val)
+vn_replace_VkRenderingAreaInfo_handle_self(VkRenderingAreaInfo *val)
 {
     /* skip val->sType */
     /* skip val->pNext */
@@ -547,14 +547,14 @@ vn_replace_VkRenderingAreaInfoKHR_handle_self(VkRenderingAreaInfoKHR *val)
 }
 
 static inline void
-vn_replace_VkRenderingAreaInfoKHR_handle(VkRenderingAreaInfoKHR *val)
+vn_replace_VkRenderingAreaInfo_handle(VkRenderingAreaInfo *val)
 {
     struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
 
     do {
         switch ((int32_t)pnext->sType) {
-        case VK_STRUCTURE_TYPE_RENDERING_AREA_INFO_KHR:
-            vn_replace_VkRenderingAreaInfoKHR_handle_self((VkRenderingAreaInfoKHR *)pnext);
+        case VK_STRUCTURE_TYPE_RENDERING_AREA_INFO:
+            vn_replace_VkRenderingAreaInfo_handle_self((VkRenderingAreaInfo *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -1472,13 +1472,13 @@ static inline void vn_encode_vkGetRenderAreaGranularity_reply(struct vn_cs_encod
         vn_encode_VkExtent2D(enc, args->pGranularity);
 }
 
-static inline void vn_decode_vkGetRenderingAreaGranularityKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkGetRenderingAreaGranularityKHR *args)
+static inline void vn_decode_vkGetRenderingAreaGranularity_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkGetRenderingAreaGranularity *args)
 {
     vn_decode_VkDevice_lookup(dec, &args->device);
     if (vn_decode_simple_pointer(dec)) {
         args->pRenderingAreaInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pRenderingAreaInfo));
         if (!args->pRenderingAreaInfo) return;
-        vn_decode_VkRenderingAreaInfoKHR_temp(dec, (VkRenderingAreaInfoKHR *)args->pRenderingAreaInfo);
+        vn_decode_VkRenderingAreaInfo_temp(dec, (VkRenderingAreaInfo *)args->pRenderingAreaInfo);
     } else {
         args->pRenderingAreaInfo = NULL;
         vn_cs_decoder_set_fatal(dec);
@@ -1493,17 +1493,17 @@ static inline void vn_decode_vkGetRenderingAreaGranularityKHR_args_temp(struct v
     }
 }
 
-static inline void vn_replace_vkGetRenderingAreaGranularityKHR_args_handle(struct vn_command_vkGetRenderingAreaGranularityKHR *args)
+static inline void vn_replace_vkGetRenderingAreaGranularity_args_handle(struct vn_command_vkGetRenderingAreaGranularity *args)
 {
     vn_replace_VkDevice_handle(&args->device);
     if (args->pRenderingAreaInfo)
-        vn_replace_VkRenderingAreaInfoKHR_handle((VkRenderingAreaInfoKHR *)args->pRenderingAreaInfo);
+        vn_replace_VkRenderingAreaInfo_handle((VkRenderingAreaInfo *)args->pRenderingAreaInfo);
     /* skip args->pGranularity */
 }
 
-static inline void vn_encode_vkGetRenderingAreaGranularityKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkGetRenderingAreaGranularityKHR *args)
+static inline void vn_encode_vkGetRenderingAreaGranularity_reply(struct vn_cs_encoder *enc, const struct vn_command_vkGetRenderingAreaGranularity *args)
 {
-    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkGetRenderingAreaGranularityKHR_EXT});
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkGetRenderingAreaGranularity_EXT});
 
     /* skip args->device */
     /* skip args->pRenderingAreaInfo */
@@ -1647,27 +1647,27 @@ static inline void vn_dispatch_vkGetRenderAreaGranularity(struct vn_dispatch_con
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
 
-static inline void vn_dispatch_vkGetRenderingAreaGranularityKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+static inline void vn_dispatch_vkGetRenderingAreaGranularity(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
 {
-    struct vn_command_vkGetRenderingAreaGranularityKHR args;
+    struct vn_command_vkGetRenderingAreaGranularity args;
 
-    if (!ctx->dispatch_vkGetRenderingAreaGranularityKHR) {
+    if (!ctx->dispatch_vkGetRenderingAreaGranularity) {
         vn_cs_decoder_set_fatal(ctx->decoder);
         return;
     }
 
-    vn_decode_vkGetRenderingAreaGranularityKHR_args_temp(ctx->decoder, &args);
+    vn_decode_vkGetRenderingAreaGranularity_args_temp(ctx->decoder, &args);
     if (!args.device) {
         vn_cs_decoder_set_fatal(ctx->decoder);
         return;
     }
 
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
-        ctx->dispatch_vkGetRenderingAreaGranularityKHR(ctx, &args);
+        ctx->dispatch_vkGetRenderingAreaGranularity(ctx, &args);
 
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
-            vn_encode_vkGetRenderingAreaGranularityKHR_reply(ctx->encoder, &args);
+            vn_encode_vkGetRenderingAreaGranularity_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }

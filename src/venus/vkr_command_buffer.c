@@ -583,10 +583,10 @@ vkr_dispatch_vkCmdDrawIndexedIndirectCount(
 }
 
 static void
-vkr_dispatch_vkCmdSetLineStippleKHR(UNUSED struct vn_dispatch_context *dispatch,
-                                    struct vn_command_vkCmdSetLineStippleKHR *args)
+vkr_dispatch_vkCmdSetLineStipple(UNUSED struct vn_dispatch_context *dispatch,
+                                 struct vn_command_vkCmdSetLineStipple *args)
 {
-   VKR_CMD_CALL(CmdSetLineStippleKHR, args, args->lineStippleFactor,
+   VKR_CMD_CALL(CmdSetLineStipple, args, args->lineStippleFactor,
                 args->lineStipplePattern);
 }
 
@@ -653,10 +653,10 @@ vkr_dispatch_vkCmdBindVertexBuffers2(UNUSED struct vn_dispatch_context *dispatch
 }
 
 static void
-vkr_dispatch_vkCmdBindIndexBuffer2KHR(UNUSED struct vn_dispatch_context *dispatch,
-                                      struct vn_command_vkCmdBindIndexBuffer2KHR *args)
+vkr_dispatch_vkCmdBindIndexBuffer2(UNUSED struct vn_dispatch_context *dispatch,
+                                   struct vn_command_vkCmdBindIndexBuffer2 *args)
 {
-   VKR_CMD_CALL(CmdBindIndexBuffer2KHR, args, args->buffer, args->offset, args->size,
+   VKR_CMD_CALL(CmdBindIndexBuffer2, args, args->buffer, args->offset, args->size,
                 args->indexType);
 }
 
@@ -861,10 +861,10 @@ vkr_dispatch_vkCmdDrawMultiIndexedEXT(UNUSED struct vn_dispatch_context *dispatc
 }
 
 static void
-vkr_dispatch_vkCmdPushDescriptorSetKHR(UNUSED struct vn_dispatch_context *dispatch,
-                                       struct vn_command_vkCmdPushDescriptorSetKHR *args)
+vkr_dispatch_vkCmdPushDescriptorSet(UNUSED struct vn_dispatch_context *dispatch,
+                                    struct vn_command_vkCmdPushDescriptorSet *args)
 {
-   VKR_CMD_CALL(CmdPushDescriptorSetKHR, args, args->pipelineBindPoint, args->layout,
+   VKR_CMD_CALL(CmdPushDescriptorSet, args, args->pipelineBindPoint, args->layout,
                 args->set, args->descriptorWriteCount, args->pDescriptorWrites);
 }
 
@@ -1154,7 +1154,7 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
    dispatch->dispatch_vkCmdDrawIndexedIndirectCount =
       vkr_dispatch_vkCmdDrawIndexedIndirectCount;
 
-   dispatch->dispatch_vkCmdSetLineStippleKHR = vkr_dispatch_vkCmdSetLineStippleKHR;
+   dispatch->dispatch_vkCmdSetLineStipple = vkr_dispatch_vkCmdSetLineStipple;
 
    dispatch->dispatch_vkCmdBindTransformFeedbackBuffersEXT =
       vkr_dispatch_vkCmdBindTransformFeedbackBuffersEXT;
@@ -1181,7 +1181,7 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
    dispatch->dispatch_vkCmdSetStencilTestEnable = vkr_dispatch_vkCmdSetStencilTestEnable;
    dispatch->dispatch_vkCmdSetViewportWithCount = vkr_dispatch_vkCmdSetViewportWithCount;
 
-   dispatch->dispatch_vkCmdBindIndexBuffer2KHR = vkr_dispatch_vkCmdBindIndexBuffer2KHR;
+   dispatch->dispatch_vkCmdBindIndexBuffer2 = vkr_dispatch_vkCmdBindIndexBuffer2;
 
    /* VK_KHR_dynamic_rendering */
    dispatch->dispatch_vkCmdBeginRendering = vkr_dispatch_vkCmdBeginRendering;
@@ -1215,8 +1215,8 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
    dispatch->dispatch_vkCmdDrawMultiIndexedEXT = vkr_dispatch_vkCmdDrawMultiIndexedEXT;
 
    /* VK_KHR_push_descriptor */
-   dispatch->dispatch_vkCmdPushDescriptorSetKHR = vkr_dispatch_vkCmdPushDescriptorSetKHR;
-   dispatch->dispatch_vkCmdPushDescriptorSetWithTemplateKHR = NULL;
+   dispatch->dispatch_vkCmdPushDescriptorSet = vkr_dispatch_vkCmdPushDescriptorSet;
+   dispatch->dispatch_vkCmdPushDescriptorSetWithTemplate = NULL;
 
    /* VK_EXT_color_write_enable */
    dispatch->dispatch_vkCmdSetColorWriteEnableEXT =

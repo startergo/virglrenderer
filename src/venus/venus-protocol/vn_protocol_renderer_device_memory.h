@@ -24,6 +24,7 @@
  *   vkMapMemory
  *   vkGetMemoryFdKHR
  *   vkGetMemoryFdPropertiesKHR
+ *   vkMapMemory2
  */
 
 /* struct VkExportMemoryAllocateInfo chain */
@@ -561,6 +562,65 @@ vn_replace_VkDeviceMemoryOpaqueCaptureAddressInfo_handle(VkDeviceMemoryOpaqueCap
     } while (pnext);
 }
 
+/* struct VkMemoryUnmapInfo chain */
+
+static inline void *
+vn_decode_VkMemoryUnmapInfo_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkMemoryUnmapInfo_self_temp(struct vn_cs_decoder *dec, VkMemoryUnmapInfo *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkFlags(dec, &val->flags);
+    vn_decode_VkDeviceMemory_lookup(dec, &val->memory);
+}
+
+static inline void
+vn_decode_VkMemoryUnmapInfo_temp(struct vn_cs_decoder *dec, VkMemoryUnmapInfo *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_MEMORY_UNMAP_INFO)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkMemoryUnmapInfo_pnext_temp(dec);
+    vn_decode_VkMemoryUnmapInfo_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkMemoryUnmapInfo_handle_self(VkMemoryUnmapInfo *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->flags */
+    vn_replace_VkDeviceMemory_handle(&val->memory);
+}
+
+static inline void
+vn_replace_VkMemoryUnmapInfo_handle(VkMemoryUnmapInfo *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_MEMORY_UNMAP_INFO:
+            vn_replace_VkMemoryUnmapInfo_handle_self((VkMemoryUnmapInfo *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkMemoryResourceAllocationSizePropertiesMESA chain */
 
 static inline void
@@ -930,6 +990,35 @@ static inline void vn_encode_vkGetDeviceMemoryOpaqueCaptureAddress_reply(struct 
     /* skip args->pInfo */
 }
 
+static inline void vn_decode_vkUnmapMemory2_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkUnmapMemory2 *args)
+{
+    vn_decode_VkDevice_lookup(dec, &args->device);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pMemoryUnmapInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pMemoryUnmapInfo));
+        if (!args->pMemoryUnmapInfo) return;
+        vn_decode_VkMemoryUnmapInfo_temp(dec, (VkMemoryUnmapInfo *)args->pMemoryUnmapInfo);
+    } else {
+        args->pMemoryUnmapInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkUnmapMemory2_args_handle(struct vn_command_vkUnmapMemory2 *args)
+{
+    vn_replace_VkDevice_handle(&args->device);
+    if (args->pMemoryUnmapInfo)
+        vn_replace_VkMemoryUnmapInfo_handle((VkMemoryUnmapInfo *)args->pMemoryUnmapInfo);
+}
+
+static inline void vn_encode_vkUnmapMemory2_reply(struct vn_cs_encoder *enc, const struct vn_command_vkUnmapMemory2 *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkUnmapMemory2_EXT});
+
+    vn_encode_VkResult(enc, &args->ret);
+    /* skip args->device */
+    /* skip args->pMemoryUnmapInfo */
+}
+
 static inline void vn_decode_vkGetMemoryResourcePropertiesMESA_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkGetMemoryResourcePropertiesMESA *args)
 {
     vn_decode_VkDevice_lookup(dec, &args->device);
@@ -1166,6 +1255,39 @@ static inline void vn_dispatch_vkGetDeviceMemoryOpaqueCaptureAddress(struct vn_d
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
             vn_encode_vkGetDeviceMemoryOpaqueCaptureAddress_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkUnmapMemory2(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkUnmapMemory2 args;
+
+    if (!ctx->dispatch_vkUnmapMemory2) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkUnmapMemory2_args_temp(ctx->decoder, &args);
+    if (!args.device) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkUnmapMemory2(ctx, &args);
+
+#ifdef DEBUG
+    if (!vn_cs_decoder_get_fatal(ctx->decoder) && vn_dispatch_should_log_result(args.ret))
+        vn_dispatch_debug_log(ctx, "vkUnmapMemory2 returned %d", args.ret);
+#endif
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkUnmapMemory2_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }

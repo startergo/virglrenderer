@@ -144,12 +144,12 @@ vn_decode_VkBufferCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
 
     vn_decode_VkStructureType(dec, &stype);
     switch ((int32_t)stype) {
-    case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO_KHR:
-        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkBufferUsageFlags2CreateInfoKHR));
+    case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkBufferUsageFlags2CreateInfo));
         if (pnext) {
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkBufferCreateInfo_pnext_temp(dec);
-            vn_decode_VkBufferUsageFlags2CreateInfoKHR_self_temp(dec, (VkBufferUsageFlags2CreateInfoKHR *)pnext);
+            vn_decode_VkBufferUsageFlags2CreateInfo_self_temp(dec, (VkBufferUsageFlags2CreateInfo *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO:
@@ -234,8 +234,8 @@ vn_replace_VkBufferCreateInfo_handle(VkBufferCreateInfo *val)
         case VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO:
             vn_replace_VkBufferCreateInfo_handle_self((VkBufferCreateInfo *)pnext);
             break;
-        case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO_KHR:
-            vn_replace_VkBufferUsageFlags2CreateInfoKHR_handle_self((VkBufferUsageFlags2CreateInfoKHR *)pnext);
+        case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO:
+            vn_replace_VkBufferUsageFlags2CreateInfo_handle_self((VkBufferUsageFlags2CreateInfo *)pnext);
             break;
         case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO:
             vn_replace_VkExternalMemoryBufferCreateInfo_handle_self((VkExternalMemoryBufferCreateInfo *)pnext);
@@ -339,6 +339,14 @@ vn_decode_VkBindBufferMemoryInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkBindBufferMemoryDeviceGroupInfo_self_temp(dec, (VkBindBufferMemoryDeviceGroupInfo *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_BIND_MEMORY_STATUS:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkBindMemoryStatus));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkBindBufferMemoryInfo_pnext_temp(dec);
+            vn_decode_VkBindMemoryStatus_self_temp(dec, (VkBindMemoryStatus *)pnext);
+        }
+        break;
     default:
         /* unexpected struct */
         pnext = NULL;
@@ -393,6 +401,9 @@ vn_replace_VkBindBufferMemoryInfo_handle(VkBindBufferMemoryInfo *val)
             break;
         case VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_DEVICE_GROUP_INFO:
             vn_replace_VkBindBufferMemoryDeviceGroupInfo_handle_self((VkBindBufferMemoryDeviceGroupInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_BIND_MEMORY_STATUS:
+            vn_replace_VkBindMemoryStatus_handle_self((VkBindMemoryStatus *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */

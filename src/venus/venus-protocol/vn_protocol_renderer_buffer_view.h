@@ -30,12 +30,12 @@ vn_decode_VkBufferViewCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
 
     vn_decode_VkStructureType(dec, &stype);
     switch ((int32_t)stype) {
-    case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO_KHR:
-        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkBufferUsageFlags2CreateInfoKHR));
+    case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkBufferUsageFlags2CreateInfo));
         if (pnext) {
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkBufferViewCreateInfo_pnext_temp(dec);
-            vn_decode_VkBufferUsageFlags2CreateInfoKHR_self_temp(dec, (VkBufferUsageFlags2CreateInfoKHR *)pnext);
+            vn_decode_VkBufferUsageFlags2CreateInfo_self_temp(dec, (VkBufferUsageFlags2CreateInfo *)pnext);
         }
         break;
     default:
@@ -94,8 +94,8 @@ vn_replace_VkBufferViewCreateInfo_handle(VkBufferViewCreateInfo *val)
         case VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO:
             vn_replace_VkBufferViewCreateInfo_handle_self((VkBufferViewCreateInfo *)pnext);
             break;
-        case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO_KHR:
-            vn_replace_VkBufferUsageFlags2CreateInfoKHR_handle_self((VkBufferUsageFlags2CreateInfoKHR *)pnext);
+        case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO:
+            vn_replace_VkBufferUsageFlags2CreateInfo_handle_self((VkBufferUsageFlags2CreateInfo *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */

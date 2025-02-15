@@ -20,7 +20,8 @@
 /*
  * These structs/unions/commands are not included
  *
- *   vkCmdPushDescriptorSetWithTemplateKHR
+ *   vkCmdPushDescriptorSetWithTemplate
+ *   vkCmdPushDescriptorSetWithTemplate2
  */
 
 /* struct VkCommandBufferAllocateInfo chain */
@@ -247,6 +248,22 @@ vn_decode_VkCommandBufferInheritanceInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkCommandBufferInheritanceRenderingInfo_self_temp(dec, (VkCommandBufferInheritanceRenderingInfo *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_LOCATION_INFO:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkRenderingAttachmentLocationInfo));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkCommandBufferInheritanceInfo_pnext_temp(dec);
+            vn_decode_VkRenderingAttachmentLocationInfo_self_temp(dec, (VkRenderingAttachmentLocationInfo *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_RENDERING_INPUT_ATTACHMENT_INDEX_INFO:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkRenderingInputAttachmentIndexInfo));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkCommandBufferInheritanceInfo_pnext_temp(dec);
+            vn_decode_VkRenderingInputAttachmentIndexInfo_self_temp(dec, (VkRenderingInputAttachmentIndexInfo *)pnext);
+        }
+        break;
     default:
         /* unexpected struct */
         pnext = NULL;
@@ -310,6 +327,12 @@ vn_replace_VkCommandBufferInheritanceInfo_handle(VkCommandBufferInheritanceInfo 
             break;
         case VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO:
             vn_replace_VkCommandBufferInheritanceRenderingInfo_handle_self((VkCommandBufferInheritanceRenderingInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_LOCATION_INFO:
+            vn_replace_VkRenderingAttachmentLocationInfo_handle_self((VkRenderingAttachmentLocationInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_RENDERING_INPUT_ATTACHMENT_INDEX_INFO:
+            vn_replace_VkRenderingInputAttachmentIndexInfo_handle_self((VkRenderingInputAttachmentIndexInfo *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -515,26 +538,6 @@ vn_replace_VkBufferCopy_handle(VkBufferCopy *val)
     /* skip val->srcOffset */
     /* skip val->dstOffset */
     /* skip val->size */
-}
-
-/* struct VkImageSubresourceLayers */
-
-static inline void
-vn_decode_VkImageSubresourceLayers_temp(struct vn_cs_decoder *dec, VkImageSubresourceLayers *val)
-{
-    vn_decode_VkFlags(dec, &val->aspectMask);
-    vn_decode_uint32_t(dec, &val->mipLevel);
-    vn_decode_uint32_t(dec, &val->baseArrayLayer);
-    vn_decode_uint32_t(dec, &val->layerCount);
-}
-
-static inline void
-vn_replace_VkImageSubresourceLayers_handle(VkImageSubresourceLayers *val)
-{
-    /* skip val->aspectMask */
-    /* skip val->mipLevel */
-    /* skip val->baseArrayLayer */
-    /* skip val->layerCount */
 }
 
 /* struct VkImageCopy */
@@ -1748,71 +1751,6 @@ vn_replace_VkCopyBufferInfo2_handle(VkCopyBufferInfo2 *val)
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2:
             vn_replace_VkCopyBufferInfo2_handle_self((VkCopyBufferInfo2 *)pnext);
-            break;
-        default:
-            /* ignore unknown/unsupported struct */
-            break;
-        }
-        pnext = pnext->pNext;
-    } while (pnext);
-}
-
-/* struct VkImageCopy2 chain */
-
-static inline void *
-vn_decode_VkImageCopy2_pnext_temp(struct vn_cs_decoder *dec)
-{
-    /* no known/supported struct */
-    if (vn_decode_simple_pointer(dec))
-        vn_cs_decoder_set_fatal(dec);
-    return NULL;
-}
-
-static inline void
-vn_decode_VkImageCopy2_self_temp(struct vn_cs_decoder *dec, VkImageCopy2 *val)
-{
-    /* skip val->{sType,pNext} */
-    vn_decode_VkImageSubresourceLayers_temp(dec, &val->srcSubresource);
-    vn_decode_VkOffset3D_temp(dec, &val->srcOffset);
-    vn_decode_VkImageSubresourceLayers_temp(dec, &val->dstSubresource);
-    vn_decode_VkOffset3D_temp(dec, &val->dstOffset);
-    vn_decode_VkExtent3D_temp(dec, &val->extent);
-}
-
-static inline void
-vn_decode_VkImageCopy2_temp(struct vn_cs_decoder *dec, VkImageCopy2 *val)
-{
-    VkStructureType stype;
-    vn_decode_VkStructureType(dec, &stype);
-    if (stype != VK_STRUCTURE_TYPE_IMAGE_COPY_2)
-        vn_cs_decoder_set_fatal(dec);
-
-    val->sType = stype;
-    val->pNext = vn_decode_VkImageCopy2_pnext_temp(dec);
-    vn_decode_VkImageCopy2_self_temp(dec, val);
-}
-
-static inline void
-vn_replace_VkImageCopy2_handle_self(VkImageCopy2 *val)
-{
-    /* skip val->sType */
-    /* skip val->pNext */
-    vn_replace_VkImageSubresourceLayers_handle(&val->srcSubresource);
-    vn_replace_VkOffset3D_handle(&val->srcOffset);
-    vn_replace_VkImageSubresourceLayers_handle(&val->dstSubresource);
-    vn_replace_VkOffset3D_handle(&val->dstOffset);
-    vn_replace_VkExtent3D_handle(&val->extent);
-}
-
-static inline void
-vn_replace_VkImageCopy2_handle(VkImageCopy2 *val)
-{
-    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
-
-    do {
-        switch ((int32_t)pnext->sType) {
-        case VK_STRUCTURE_TYPE_IMAGE_COPY_2:
-            vn_replace_VkImageCopy2_handle_self((VkImageCopy2 *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -3110,6 +3048,314 @@ vn_replace_VkRenderingInfo_handle(VkRenderingInfo *val)
             break;
         case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
             vn_replace_VkRenderingFragmentShadingRateAttachmentInfoKHR_handle_self((VkRenderingFragmentShadingRateAttachmentInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkBindDescriptorSetsInfo chain */
+
+static inline void *
+vn_decode_VkBindDescriptorSetsInfo_pnext_temp(struct vn_cs_decoder *dec)
+{
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineLayoutCreateInfo));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkBindDescriptorSetsInfo_pnext_temp(dec);
+            vn_decode_VkPipelineLayoutCreateInfo_self_temp(dec, (VkPipelineLayoutCreateInfo *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
+        vn_cs_decoder_set_fatal(dec);
+        break;
+    }
+
+    return pnext;
+}
+
+static inline void
+vn_decode_VkBindDescriptorSetsInfo_self_temp(struct vn_cs_decoder *dec, VkBindDescriptorSetsInfo *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkFlags(dec, &val->stageFlags);
+    vn_decode_VkPipelineLayout_lookup(dec, &val->layout);
+    vn_decode_uint32_t(dec, &val->firstSet);
+    vn_decode_uint32_t(dec, &val->descriptorSetCount);
+    if (vn_peek_array_size(dec)) {
+        const uint32_t iter_count = vn_decode_array_size(dec, val->descriptorSetCount);
+        val->pDescriptorSets = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pDescriptorSets), iter_count);
+        if (!val->pDescriptorSets) return;
+        for (uint32_t i = 0; i < iter_count; i++)
+            vn_decode_VkDescriptorSet_lookup(dec, &((VkDescriptorSet *)val->pDescriptorSets)[i]);
+    } else {
+        vn_decode_array_size(dec, val->descriptorSetCount);
+        val->pDescriptorSets = NULL;
+    }
+    vn_decode_uint32_t(dec, &val->dynamicOffsetCount);
+    if (vn_peek_array_size(dec)) {
+        const size_t array_size = vn_decode_array_size(dec, val->dynamicOffsetCount);
+        val->pDynamicOffsets = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pDynamicOffsets), array_size);
+        if (!val->pDynamicOffsets) return;
+        vn_decode_uint32_t_array(dec, (uint32_t *)val->pDynamicOffsets, array_size);
+    } else {
+        vn_decode_array_size_unchecked(dec);
+        val->pDynamicOffsets = NULL;
+    }
+}
+
+static inline void
+vn_decode_VkBindDescriptorSetsInfo_temp(struct vn_cs_decoder *dec, VkBindDescriptorSetsInfo *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_SETS_INFO)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkBindDescriptorSetsInfo_pnext_temp(dec);
+    vn_decode_VkBindDescriptorSetsInfo_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkBindDescriptorSetsInfo_handle_self(VkBindDescriptorSetsInfo *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->stageFlags */
+    vn_replace_VkPipelineLayout_handle(&val->layout);
+    /* skip val->firstSet */
+    /* skip val->descriptorSetCount */
+    if (val->pDescriptorSets) {
+       for (uint32_t i = 0; i < val->descriptorSetCount; i++)
+            vn_replace_VkDescriptorSet_handle(&((VkDescriptorSet *)val->pDescriptorSets)[i]);
+    }
+    /* skip val->dynamicOffsetCount */
+    /* skip val->pDynamicOffsets */
+}
+
+static inline void
+vn_replace_VkBindDescriptorSetsInfo_handle(VkBindDescriptorSetsInfo *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_SETS_INFO:
+            vn_replace_VkBindDescriptorSetsInfo_handle_self((VkBindDescriptorSetsInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO:
+            vn_replace_VkPipelineLayoutCreateInfo_handle_self((VkPipelineLayoutCreateInfo *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPushConstantsInfo chain */
+
+static inline void *
+vn_decode_VkPushConstantsInfo_pnext_temp(struct vn_cs_decoder *dec)
+{
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineLayoutCreateInfo));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPushConstantsInfo_pnext_temp(dec);
+            vn_decode_VkPipelineLayoutCreateInfo_self_temp(dec, (VkPipelineLayoutCreateInfo *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
+        vn_cs_decoder_set_fatal(dec);
+        break;
+    }
+
+    return pnext;
+}
+
+static inline void
+vn_decode_VkPushConstantsInfo_self_temp(struct vn_cs_decoder *dec, VkPushConstantsInfo *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkPipelineLayout_lookup(dec, &val->layout);
+    vn_decode_VkFlags(dec, &val->stageFlags);
+    vn_decode_uint32_t(dec, &val->offset);
+    vn_decode_uint32_t(dec, &val->size);
+    if (vn_peek_array_size(dec)) {
+        const size_t array_size = vn_decode_array_size(dec, val->size);
+        val->pValues = vn_cs_decoder_get_blob_storage(dec, array_size);
+        if (!val->pValues) return;
+        vn_decode_blob_array(dec, (void *)val->pValues, array_size);
+    } else {
+        vn_decode_array_size(dec, val->size);
+        val->pValues = NULL;
+    }
+}
+
+static inline void
+vn_decode_VkPushConstantsInfo_temp(struct vn_cs_decoder *dec, VkPushConstantsInfo *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PUSH_CONSTANTS_INFO)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPushConstantsInfo_pnext_temp(dec);
+    vn_decode_VkPushConstantsInfo_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPushConstantsInfo_handle_self(VkPushConstantsInfo *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    vn_replace_VkPipelineLayout_handle(&val->layout);
+    /* skip val->stageFlags */
+    /* skip val->offset */
+    /* skip val->size */
+    /* skip val->pValues */
+}
+
+static inline void
+vn_replace_VkPushConstantsInfo_handle(VkPushConstantsInfo *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PUSH_CONSTANTS_INFO:
+            vn_replace_VkPushConstantsInfo_handle_self((VkPushConstantsInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO:
+            vn_replace_VkPipelineLayoutCreateInfo_handle_self((VkPipelineLayoutCreateInfo *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPushDescriptorSetInfo chain */
+
+static inline void *
+vn_decode_VkPushDescriptorSetInfo_pnext_temp(struct vn_cs_decoder *dec)
+{
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPipelineLayoutCreateInfo));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPushDescriptorSetInfo_pnext_temp(dec);
+            vn_decode_VkPipelineLayoutCreateInfo_self_temp(dec, (VkPipelineLayoutCreateInfo *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
+        vn_cs_decoder_set_fatal(dec);
+        break;
+    }
+
+    return pnext;
+}
+
+static inline void
+vn_decode_VkPushDescriptorSetInfo_self_temp(struct vn_cs_decoder *dec, VkPushDescriptorSetInfo *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkFlags(dec, &val->stageFlags);
+    vn_decode_VkPipelineLayout_lookup(dec, &val->layout);
+    vn_decode_uint32_t(dec, &val->set);
+    vn_decode_uint32_t(dec, &val->descriptorWriteCount);
+    if (vn_peek_array_size(dec)) {
+        const uint32_t iter_count = vn_decode_array_size(dec, val->descriptorWriteCount);
+        val->pDescriptorWrites = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pDescriptorWrites), iter_count);
+        if (!val->pDescriptorWrites) return;
+        for (uint32_t i = 0; i < iter_count; i++)
+            vn_decode_VkWriteDescriptorSet_temp(dec, &((VkWriteDescriptorSet *)val->pDescriptorWrites)[i]);
+    } else {
+        vn_decode_array_size(dec, val->descriptorWriteCount);
+        val->pDescriptorWrites = NULL;
+    }
+}
+
+static inline void
+vn_decode_VkPushDescriptorSetInfo_temp(struct vn_cs_decoder *dec, VkPushDescriptorSetInfo *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PUSH_DESCRIPTOR_SET_INFO)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPushDescriptorSetInfo_pnext_temp(dec);
+    vn_decode_VkPushDescriptorSetInfo_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPushDescriptorSetInfo_handle_self(VkPushDescriptorSetInfo *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->stageFlags */
+    vn_replace_VkPipelineLayout_handle(&val->layout);
+    /* skip val->set */
+    /* skip val->descriptorWriteCount */
+    if (val->pDescriptorWrites) {
+       for (uint32_t i = 0; i < val->descriptorWriteCount; i++)
+            vn_replace_VkWriteDescriptorSet_handle(&((VkWriteDescriptorSet *)val->pDescriptorWrites)[i]);
+    }
+}
+
+static inline void
+vn_replace_VkPushDescriptorSetInfo_handle(VkPushDescriptorSetInfo *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PUSH_DESCRIPTOR_SET_INFO:
+            vn_replace_VkPushDescriptorSetInfo_handle_self((VkPushDescriptorSetInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO:
+            vn_replace_VkPipelineLayoutCreateInfo_handle_self((VkPipelineLayoutCreateInfo *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -4972,7 +5218,7 @@ static inline void vn_encode_vkCmdExecuteCommands_reply(struct vn_cs_encoder *en
     /* skip args->pCommandBuffers */
 }
 
-static inline void vn_decode_vkCmdPushDescriptorSetKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdPushDescriptorSetKHR *args)
+static inline void vn_decode_vkCmdPushDescriptorSet_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdPushDescriptorSet *args)
 {
     vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
     vn_decode_VkPipelineBindPoint(dec, &args->pipelineBindPoint);
@@ -4991,7 +5237,7 @@ static inline void vn_decode_vkCmdPushDescriptorSetKHR_args_temp(struct vn_cs_de
     }
 }
 
-static inline void vn_replace_vkCmdPushDescriptorSetKHR_args_handle(struct vn_command_vkCmdPushDescriptorSetKHR *args)
+static inline void vn_replace_vkCmdPushDescriptorSet_args_handle(struct vn_command_vkCmdPushDescriptorSet *args)
 {
     vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
     /* skip args->pipelineBindPoint */
@@ -5004,9 +5250,9 @@ static inline void vn_replace_vkCmdPushDescriptorSetKHR_args_handle(struct vn_co
     }
 }
 
-static inline void vn_encode_vkCmdPushDescriptorSetKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdPushDescriptorSetKHR *args)
+static inline void vn_encode_vkCmdPushDescriptorSet_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdPushDescriptorSet *args)
 {
-    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdPushDescriptorSetKHR_EXT});
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdPushDescriptorSet_EXT});
 
     /* skip args->commandBuffer */
     /* skip args->pipelineBindPoint */
@@ -5523,23 +5769,23 @@ static inline void vn_encode_vkCmdDrawIndirectByteCountEXT_reply(struct vn_cs_en
     /* skip args->vertexStride */
 }
 
-static inline void vn_decode_vkCmdSetLineStippleKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetLineStippleKHR *args)
+static inline void vn_decode_vkCmdSetLineStipple_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetLineStipple *args)
 {
     vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
     vn_decode_uint32_t(dec, &args->lineStippleFactor);
     vn_decode_uint16_t(dec, &args->lineStipplePattern);
 }
 
-static inline void vn_replace_vkCmdSetLineStippleKHR_args_handle(struct vn_command_vkCmdSetLineStippleKHR *args)
+static inline void vn_replace_vkCmdSetLineStipple_args_handle(struct vn_command_vkCmdSetLineStipple *args)
 {
     vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
     /* skip args->lineStippleFactor */
     /* skip args->lineStipplePattern */
 }
 
-static inline void vn_encode_vkCmdSetLineStippleKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdSetLineStippleKHR *args)
+static inline void vn_encode_vkCmdSetLineStipple_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdSetLineStipple *args)
 {
-    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdSetLineStippleKHR_EXT});
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdSetLineStipple_EXT});
 
     /* skip args->commandBuffer */
     /* skip args->lineStippleFactor */
@@ -5676,7 +5922,7 @@ static inline void vn_encode_vkCmdSetScissorWithCount_reply(struct vn_cs_encoder
     /* skip args->pScissors */
 }
 
-static inline void vn_decode_vkCmdBindIndexBuffer2KHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdBindIndexBuffer2KHR *args)
+static inline void vn_decode_vkCmdBindIndexBuffer2_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdBindIndexBuffer2 *args)
 {
     vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
     vn_decode_VkBuffer_lookup(dec, &args->buffer);
@@ -5685,7 +5931,7 @@ static inline void vn_decode_vkCmdBindIndexBuffer2KHR_args_temp(struct vn_cs_dec
     vn_decode_VkIndexType(dec, &args->indexType);
 }
 
-static inline void vn_replace_vkCmdBindIndexBuffer2KHR_args_handle(struct vn_command_vkCmdBindIndexBuffer2KHR *args)
+static inline void vn_replace_vkCmdBindIndexBuffer2_args_handle(struct vn_command_vkCmdBindIndexBuffer2 *args)
 {
     vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
     vn_replace_VkBuffer_handle(&args->buffer);
@@ -5694,9 +5940,9 @@ static inline void vn_replace_vkCmdBindIndexBuffer2KHR_args_handle(struct vn_com
     /* skip args->indexType */
 }
 
-static inline void vn_encode_vkCmdBindIndexBuffer2KHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdBindIndexBuffer2KHR *args)
+static inline void vn_encode_vkCmdBindIndexBuffer2_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdBindIndexBuffer2 *args)
 {
-    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdBindIndexBuffer2KHR_EXT});
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdBindIndexBuffer2_EXT});
 
     /* skip args->commandBuffer */
     /* skip args->buffer */
@@ -6447,7 +6693,7 @@ static inline void vn_encode_vkCmdSetProvokingVertexModeEXT_reply(struct vn_cs_e
 static inline void vn_decode_vkCmdSetLineRasterizationModeEXT_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetLineRasterizationModeEXT *args)
 {
     vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
-    vn_decode_VkLineRasterizationModeKHR(dec, &args->lineRasterizationMode);
+    vn_decode_VkLineRasterizationMode(dec, &args->lineRasterizationMode);
 }
 
 static inline void vn_replace_vkCmdSetLineRasterizationModeEXT_args_handle(struct vn_command_vkCmdSetLineRasterizationModeEXT *args)
@@ -6991,6 +7237,146 @@ static inline void vn_encode_vkCmdEndRendering_reply(struct vn_cs_encoder *enc, 
     vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdEndRendering_EXT});
 
     /* skip args->commandBuffer */
+}
+
+static inline void vn_decode_vkCmdBindDescriptorSets2_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdBindDescriptorSets2 *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pBindDescriptorSetsInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pBindDescriptorSetsInfo));
+        if (!args->pBindDescriptorSetsInfo) return;
+        vn_decode_VkBindDescriptorSetsInfo_temp(dec, (VkBindDescriptorSetsInfo *)args->pBindDescriptorSetsInfo);
+    } else {
+        args->pBindDescriptorSetsInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkCmdBindDescriptorSets2_args_handle(struct vn_command_vkCmdBindDescriptorSets2 *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    if (args->pBindDescriptorSetsInfo)
+        vn_replace_VkBindDescriptorSetsInfo_handle((VkBindDescriptorSetsInfo *)args->pBindDescriptorSetsInfo);
+}
+
+static inline void vn_encode_vkCmdBindDescriptorSets2_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdBindDescriptorSets2 *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdBindDescriptorSets2_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->pBindDescriptorSetsInfo */
+}
+
+static inline void vn_decode_vkCmdPushConstants2_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdPushConstants2 *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pPushConstantsInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pPushConstantsInfo));
+        if (!args->pPushConstantsInfo) return;
+        vn_decode_VkPushConstantsInfo_temp(dec, (VkPushConstantsInfo *)args->pPushConstantsInfo);
+    } else {
+        args->pPushConstantsInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkCmdPushConstants2_args_handle(struct vn_command_vkCmdPushConstants2 *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    if (args->pPushConstantsInfo)
+        vn_replace_VkPushConstantsInfo_handle((VkPushConstantsInfo *)args->pPushConstantsInfo);
+}
+
+static inline void vn_encode_vkCmdPushConstants2_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdPushConstants2 *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdPushConstants2_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->pPushConstantsInfo */
+}
+
+static inline void vn_decode_vkCmdPushDescriptorSet2_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdPushDescriptorSet2 *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pPushDescriptorSetInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pPushDescriptorSetInfo));
+        if (!args->pPushDescriptorSetInfo) return;
+        vn_decode_VkPushDescriptorSetInfo_temp(dec, (VkPushDescriptorSetInfo *)args->pPushDescriptorSetInfo);
+    } else {
+        args->pPushDescriptorSetInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkCmdPushDescriptorSet2_args_handle(struct vn_command_vkCmdPushDescriptorSet2 *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    if (args->pPushDescriptorSetInfo)
+        vn_replace_VkPushDescriptorSetInfo_handle((VkPushDescriptorSetInfo *)args->pPushDescriptorSetInfo);
+}
+
+static inline void vn_encode_vkCmdPushDescriptorSet2_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdPushDescriptorSet2 *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdPushDescriptorSet2_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->pPushDescriptorSetInfo */
+}
+
+static inline void vn_decode_vkCmdSetRenderingAttachmentLocations_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetRenderingAttachmentLocations *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pLocationInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pLocationInfo));
+        if (!args->pLocationInfo) return;
+        vn_decode_VkRenderingAttachmentLocationInfo_temp(dec, (VkRenderingAttachmentLocationInfo *)args->pLocationInfo);
+    } else {
+        args->pLocationInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkCmdSetRenderingAttachmentLocations_args_handle(struct vn_command_vkCmdSetRenderingAttachmentLocations *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    if (args->pLocationInfo)
+        vn_replace_VkRenderingAttachmentLocationInfo_handle((VkRenderingAttachmentLocationInfo *)args->pLocationInfo);
+}
+
+static inline void vn_encode_vkCmdSetRenderingAttachmentLocations_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdSetRenderingAttachmentLocations *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdSetRenderingAttachmentLocations_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->pLocationInfo */
+}
+
+static inline void vn_decode_vkCmdSetRenderingInputAttachmentIndices_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetRenderingInputAttachmentIndices *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pInputAttachmentIndexInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pInputAttachmentIndexInfo));
+        if (!args->pInputAttachmentIndexInfo) return;
+        vn_decode_VkRenderingInputAttachmentIndexInfo_temp(dec, (VkRenderingInputAttachmentIndexInfo *)args->pInputAttachmentIndexInfo);
+    } else {
+        args->pInputAttachmentIndexInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkCmdSetRenderingInputAttachmentIndices_args_handle(struct vn_command_vkCmdSetRenderingInputAttachmentIndices *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    if (args->pInputAttachmentIndexInfo)
+        vn_replace_VkRenderingInputAttachmentIndexInfo_handle((VkRenderingInputAttachmentIndexInfo *)args->pInputAttachmentIndexInfo);
+}
+
+static inline void vn_encode_vkCmdSetRenderingInputAttachmentIndices_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdSetRenderingInputAttachmentIndices *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdSetRenderingInputAttachmentIndices_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->pInputAttachmentIndexInfo */
 }
 
 static inline void vn_dispatch_vkAllocateCommandBuffers(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
@@ -8497,27 +8883,27 @@ static inline void vn_dispatch_vkCmdExecuteCommands(struct vn_dispatch_context *
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
 
-static inline void vn_dispatch_vkCmdPushDescriptorSetKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+static inline void vn_dispatch_vkCmdPushDescriptorSet(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
 {
-    struct vn_command_vkCmdPushDescriptorSetKHR args;
+    struct vn_command_vkCmdPushDescriptorSet args;
 
-    if (!ctx->dispatch_vkCmdPushDescriptorSetKHR) {
+    if (!ctx->dispatch_vkCmdPushDescriptorSet) {
         vn_cs_decoder_set_fatal(ctx->decoder);
         return;
     }
 
-    vn_decode_vkCmdPushDescriptorSetKHR_args_temp(ctx->decoder, &args);
+    vn_decode_vkCmdPushDescriptorSet_args_temp(ctx->decoder, &args);
     if (!args.commandBuffer) {
         vn_cs_decoder_set_fatal(ctx->decoder);
         return;
     }
 
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
-        ctx->dispatch_vkCmdPushDescriptorSetKHR(ctx, &args);
+        ctx->dispatch_vkCmdPushDescriptorSet(ctx, &args);
 
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
-            vn_encode_vkCmdPushDescriptorSetKHR_reply(ctx->encoder, &args);
+            vn_encode_vkCmdPushDescriptorSet_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }
@@ -8917,27 +9303,27 @@ static inline void vn_dispatch_vkCmdDrawIndirectByteCountEXT(struct vn_dispatch_
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
 
-static inline void vn_dispatch_vkCmdSetLineStippleKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+static inline void vn_dispatch_vkCmdSetLineStipple(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
 {
-    struct vn_command_vkCmdSetLineStippleKHR args;
+    struct vn_command_vkCmdSetLineStipple args;
 
-    if (!ctx->dispatch_vkCmdSetLineStippleKHR) {
+    if (!ctx->dispatch_vkCmdSetLineStipple) {
         vn_cs_decoder_set_fatal(ctx->decoder);
         return;
     }
 
-    vn_decode_vkCmdSetLineStippleKHR_args_temp(ctx->decoder, &args);
+    vn_decode_vkCmdSetLineStipple_args_temp(ctx->decoder, &args);
     if (!args.commandBuffer) {
         vn_cs_decoder_set_fatal(ctx->decoder);
         return;
     }
 
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
-        ctx->dispatch_vkCmdSetLineStippleKHR(ctx, &args);
+        ctx->dispatch_vkCmdSetLineStipple(ctx, &args);
 
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
-            vn_encode_vkCmdSetLineStippleKHR_reply(ctx->encoder, &args);
+            vn_encode_vkCmdSetLineStipple_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }
@@ -9085,27 +9471,27 @@ static inline void vn_dispatch_vkCmdSetScissorWithCount(struct vn_dispatch_conte
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
 
-static inline void vn_dispatch_vkCmdBindIndexBuffer2KHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+static inline void vn_dispatch_vkCmdBindIndexBuffer2(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
 {
-    struct vn_command_vkCmdBindIndexBuffer2KHR args;
+    struct vn_command_vkCmdBindIndexBuffer2 args;
 
-    if (!ctx->dispatch_vkCmdBindIndexBuffer2KHR) {
+    if (!ctx->dispatch_vkCmdBindIndexBuffer2) {
         vn_cs_decoder_set_fatal(ctx->decoder);
         return;
     }
 
-    vn_decode_vkCmdBindIndexBuffer2KHR_args_temp(ctx->decoder, &args);
+    vn_decode_vkCmdBindIndexBuffer2_args_temp(ctx->decoder, &args);
     if (!args.commandBuffer) {
         vn_cs_decoder_set_fatal(ctx->decoder);
         return;
     }
 
     if (!vn_cs_decoder_get_fatal(ctx->decoder))
-        ctx->dispatch_vkCmdBindIndexBuffer2KHR(ctx, &args);
+        ctx->dispatch_vkCmdBindIndexBuffer2(ctx, &args);
 
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
-            vn_encode_vkCmdBindIndexBuffer2KHR_reply(ctx->encoder, &args);
+            vn_encode_vkCmdBindIndexBuffer2_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }
@@ -10478,6 +10864,146 @@ static inline void vn_dispatch_vkCmdEndRendering(struct vn_dispatch_context *ctx
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
             vn_encode_vkCmdEndRendering_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdBindDescriptorSets2(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdBindDescriptorSets2 args;
+
+    if (!ctx->dispatch_vkCmdBindDescriptorSets2) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdBindDescriptorSets2_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdBindDescriptorSets2(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdBindDescriptorSets2_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdPushConstants2(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdPushConstants2 args;
+
+    if (!ctx->dispatch_vkCmdPushConstants2) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdPushConstants2_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdPushConstants2(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdPushConstants2_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdPushDescriptorSet2(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdPushDescriptorSet2 args;
+
+    if (!ctx->dispatch_vkCmdPushDescriptorSet2) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdPushDescriptorSet2_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdPushDescriptorSet2(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdPushDescriptorSet2_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdSetRenderingAttachmentLocations(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdSetRenderingAttachmentLocations args;
+
+    if (!ctx->dispatch_vkCmdSetRenderingAttachmentLocations) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdSetRenderingAttachmentLocations_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdSetRenderingAttachmentLocations(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdSetRenderingAttachmentLocations_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdSetRenderingInputAttachmentIndices(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdSetRenderingInputAttachmentIndices args;
+
+    if (!ctx->dispatch_vkCmdSetRenderingInputAttachmentIndices) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdSetRenderingInputAttachmentIndices_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdSetRenderingInputAttachmentIndices(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdSetRenderingInputAttachmentIndices_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }
