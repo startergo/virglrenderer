@@ -1088,6 +1088,27 @@ vkr_dispatch_vkCmdSetRenderingInputAttachmentIndices(
                 args->pInputAttachmentIndexInfo);
 }
 
+static void
+vkr_dispatch_vkCmdBindDescriptorSets2(UNUSED struct vn_dispatch_context *dispatch,
+                                      struct vn_command_vkCmdBindDescriptorSets2 *args)
+{
+   VKR_CMD_CALL(CmdBindDescriptorSets2, args, args->pBindDescriptorSetsInfo);
+}
+
+static void
+vkr_dispatch_vkCmdPushConstants2(UNUSED struct vn_dispatch_context *dispatch,
+                                 struct vn_command_vkCmdPushConstants2 *args)
+{
+   VKR_CMD_CALL(CmdPushConstants2, args, args->pPushConstantsInfo);
+}
+
+static void
+vkr_dispatch_vkCmdPushDescriptorSet2(UNUSED struct vn_dispatch_context *dispatch,
+                                     struct vn_command_vkCmdPushDescriptorSet2 *args)
+{
+   VKR_CMD_CALL(CmdPushDescriptorSet2, args, args->pPushDescriptorSetInfo);
+}
+
 void
 vkr_context_init_command_pool_dispatch(struct vkr_context *ctx)
 {
@@ -1295,4 +1316,10 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
       vkr_dispatch_vkCmdSetRenderingAttachmentLocations;
    dispatch->dispatch_vkCmdSetRenderingInputAttachmentIndices =
       vkr_dispatch_vkCmdSetRenderingInputAttachmentIndices;
+
+   /* VK_KHR_maintenance6 */
+   dispatch->dispatch_vkCmdBindDescriptorSets2 = vkr_dispatch_vkCmdBindDescriptorSets2;
+   dispatch->dispatch_vkCmdPushConstants2 = vkr_dispatch_vkCmdPushConstants2;
+   dispatch->dispatch_vkCmdPushDescriptorSet2 = vkr_dispatch_vkCmdPushDescriptorSet2;
+   dispatch->dispatch_vkCmdPushDescriptorSetWithTemplate2 = NULL;
 }

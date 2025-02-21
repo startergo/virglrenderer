@@ -99,6 +99,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .KHR_line_rasterization = true,
    .KHR_load_store_op_none = true,
    .KHR_maintenance5 = true,
+   .KHR_maintenance6 = true,
    .KHR_map_memory2 = false, /* implementation in driver */
    .KHR_push_descriptor = true,
    .KHR_shader_expect_assume = true,
