@@ -106,6 +106,16 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .KHR_shader_float_controls2 = true,
    .KHR_shader_subgroup_rotate = true,
    .KHR_vertex_attribute_divisor = true,
+   /* The implementation would be inefficient via venus due to too many memcpy and
+    * roundtrips. Venus favors device side copy and blits so that they can be batched for
+    * optimal performance. Meanwhile, supporting this extension requires new venus
+    * protocol level support to handle implicitly sized host pointers as well as filling
+    * returned blob inside "in" structs. e.g. info structs are usually "in" structs while
+    * properties structs are usually "out" structs. So venus won't implement host copy but
+    * will always emulate an additional queue that supports VK_QUEUE_TRANSFER_BIT to
+    * satisfy Vulkan 1.4 requirements.
+    */
+   .EXT_host_image_copy = false,
    .EXT_pipeline_protected_access = true,
    .EXT_pipeline_robustness = true,
    /* KHR extensions */
