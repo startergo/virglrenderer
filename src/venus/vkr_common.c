@@ -93,6 +93,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .EXT_tooling_info = false, /* implementation in driver */
    .EXT_ycbcr_2plane_444_formats = true,
    /* promoted to VK_VERSION_1_4 */
+   .KHR_dynamic_rendering_local_read = true,
    .KHR_global_priority = true,
    .KHR_index_type_uint8 = true,
    .KHR_line_rasterization = true,

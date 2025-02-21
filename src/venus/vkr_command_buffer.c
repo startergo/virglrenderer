@@ -1071,6 +1071,23 @@ vkr_dispatch_vkCmdSetSampleLocationsEXT(UNUSED struct vn_dispatch_context *dispa
    VKR_CMD_CALL(CmdSetSampleLocationsEXT, args, args->pSampleLocationsInfo);
 }
 
+static void
+vkr_dispatch_vkCmdSetRenderingAttachmentLocations(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdSetRenderingAttachmentLocations *args)
+{
+   VKR_CMD_CALL(CmdSetRenderingAttachmentLocations, args, args->pLocationInfo);
+}
+
+static void
+vkr_dispatch_vkCmdSetRenderingInputAttachmentIndices(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdSetRenderingInputAttachmentIndices *args)
+{
+   VKR_CMD_CALL(CmdSetRenderingInputAttachmentIndices, args,
+                args->pInputAttachmentIndexInfo);
+}
+
 void
 vkr_context_init_command_pool_dispatch(struct vkr_context *ctx)
 {
@@ -1272,4 +1289,10 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
    /* VK_EXT_sample_locations */
    dispatch->dispatch_vkCmdSetSampleLocationsEXT =
       vkr_dispatch_vkCmdSetSampleLocationsEXT;
+
+   /* VK_KHR_dynamic_rendering_local_read */
+   dispatch->dispatch_vkCmdSetRenderingAttachmentLocations =
+      vkr_dispatch_vkCmdSetRenderingAttachmentLocations;
+   dispatch->dispatch_vkCmdSetRenderingInputAttachmentIndices =
+      vkr_dispatch_vkCmdSetRenderingInputAttachmentIndices;
 }
