@@ -22,6 +22,7 @@
 #include "vkr_descriptor_set.h"
 #include "vkr_device.h"
 #include "vkr_device_memory.h"
+#include "vkr_host_copy.h"
 #include "vkr_image.h"
 #include "vkr_instance.h"
 #include "vkr_physical_device.h"
@@ -117,6 +118,8 @@ vkr_context_init_dispatch(struct vkr_context *ctx)
 
    vkr_context_init_command_pool_dispatch(ctx);
    vkr_context_init_command_buffer_dispatch(ctx);
+
+   vkr_context_init_host_copy_dispatch(ctx);
 }
 
 bool

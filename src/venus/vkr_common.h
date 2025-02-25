@@ -60,6 +60,25 @@
       .begin = (offset), .end = (offset) + (size)                                        \
    }
 
+/* below STACK_ARRAY* utils came from mesa/src/vulkan/util/vk_util.h */
+#define STACK_ARRAY_SIZE 8
+
+/* Sometimes gcc may claim -Wmaybe-uninitialized for the stack array in some
+ * places it can't verify that when size is 0 nobody down the call chain reads
+ * the array. Please don't try to fix it by zero-initializing the array here
+ * since it's used in a lot of different places. An "if (size == 0) return;"
+ * may work for you.
+ */
+#define STACK_ARRAY(type, name, size)                                                    \
+   type _stack_##name[STACK_ARRAY_SIZE];                                                 \
+   type *const name =                                                                    \
+      ((size) <= STACK_ARRAY_SIZE ? _stack_##name                                        \
+                                  : (type *)malloc((size) * sizeof(type)))
+
+#define STACK_ARRAY_FINISH(name)                                                         \
+   if (name != _stack_##name)                                                            \
+   free(name)
+
 struct vn_info_extension_table;
 struct vkr_context;
 struct vkr_ring;

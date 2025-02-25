@@ -101,6 +101,8 @@ venus_sources = [
    'venus/vkr_device.h',
    'venus/vkr_device_memory.c',
    'venus/vkr_device_memory.h',
+   'venus/vkr_host_copy.c',
+   'venus/vkr_host_copy.h',
    'venus/vkr_image.c',
    'venus/vkr_image.h',
    'venus/vkr_instance.c',
