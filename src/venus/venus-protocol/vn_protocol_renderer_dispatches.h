@@ -37,6 +37,7 @@
 #include "vn_protocol_renderer_command_pool.h"
 #include "vn_protocol_renderer_command_buffer.h"
 #include "vn_protocol_renderer_private_data_slot.h"
+#include "vn_protocol_renderer_host_copy.h"
 
 static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
 {
@@ -322,6 +323,8 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkSubmitVirtqueueSeqnoMESA_EXT: return "vkSubmitVirtqueueSeqnoMESA";
     case VK_COMMAND_TYPE_vkWaitVirtqueueSeqnoMESA_EXT: return "vkWaitVirtqueueSeqnoMESA";
     case VK_COMMAND_TYPE_vkWaitRingSeqnoMESA_EXT: return "vkWaitRingSeqnoMESA";
+    case VK_COMMAND_TYPE_vkCopyImageToMemoryMESA_EXT: return "vkCopyImageToMemoryMESA";
+    case VK_COMMAND_TYPE_vkCopyMemoryToImageMESA_EXT: return "vkCopyMemoryToImageMESA";
     case VK_COMMAND_TYPE_vkGetDeviceProcAddr_EXT: return "vkGetDeviceProcAddr";
     case VK_COMMAND_TYPE_vkGetInstanceProcAddr_EXT: return "vkGetInstanceProcAddr";
     case VK_COMMAND_TYPE_vkMapMemory_EXT: return "vkMapMemory";
@@ -341,7 +344,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     }
 }
 
-static void (*const vn_dispatch_table[297])(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags) = {
+static void (*const vn_dispatch_table[299])(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags) = {
     [VK_COMMAND_TYPE_vkCreateInstance_EXT] = vn_dispatch_vkCreateInstance,
     [VK_COMMAND_TYPE_vkDestroyInstance_EXT] = vn_dispatch_vkDestroyInstance,
     [VK_COMMAND_TYPE_vkEnumeratePhysicalDevices_EXT] = vn_dispatch_vkEnumeratePhysicalDevices,
@@ -623,6 +626,8 @@ static void (*const vn_dispatch_table[297])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkSubmitVirtqueueSeqnoMESA_EXT] = vn_dispatch_vkSubmitVirtqueueSeqnoMESA,
     [VK_COMMAND_TYPE_vkWaitVirtqueueSeqnoMESA_EXT] = vn_dispatch_vkWaitVirtqueueSeqnoMESA,
     [VK_COMMAND_TYPE_vkWaitRingSeqnoMESA_EXT] = vn_dispatch_vkWaitRingSeqnoMESA,
+    [VK_COMMAND_TYPE_vkCopyImageToMemoryMESA_EXT] = vn_dispatch_vkCopyImageToMemoryMESA,
+    [VK_COMMAND_TYPE_vkCopyMemoryToImageMESA_EXT] = vn_dispatch_vkCopyMemoryToImageMESA,
 };
 
 static inline void vn_dispatch_command(struct vn_dispatch_context *ctx)
@@ -634,7 +639,7 @@ static inline void vn_dispatch_command(struct vn_dispatch_context *ctx)
     vn_decode_VkFlags(ctx->decoder, &cmd_flags);
 
     {
-        if (cmd_type < 297 && vn_dispatch_table[cmd_type])
+        if (cmd_type < 299 && vn_dispatch_table[cmd_type])
             vn_dispatch_table[cmd_type](ctx, cmd_flags);
         else
             vn_cs_decoder_set_fatal(ctx->decoder);
