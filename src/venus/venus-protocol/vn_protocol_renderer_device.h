@@ -3520,6 +3520,312 @@ vn_replace_VkPhysicalDeviceShaderAtomicInt64Features_handle(VkPhysicalDeviceShad
     } while (pnext);
 }
 
+/* struct VkPhysicalDeviceShaderAtomicFloatFeaturesEXT chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->shaderBufferFloat32Atomics);
+    vn_encode_VkBool32(enc, &val->shaderBufferFloat32AtomicAdd);
+    vn_encode_VkBool32(enc, &val->shaderBufferFloat64Atomics);
+    vn_encode_VkBool32(enc, &val->shaderBufferFloat64AtomicAdd);
+    vn_encode_VkBool32(enc, &val->shaderSharedFloat32Atomics);
+    vn_encode_VkBool32(enc, &val->shaderSharedFloat32AtomicAdd);
+    vn_encode_VkBool32(enc, &val->shaderSharedFloat64Atomics);
+    vn_encode_VkBool32(enc, &val->shaderSharedFloat64AtomicAdd);
+    vn_encode_VkBool32(enc, &val->shaderImageFloat32Atomics);
+    vn_encode_VkBool32(enc, &val->shaderImageFloat32AtomicAdd);
+    vn_encode_VkBool32(enc, &val->sparseImageFloat32Atomics);
+    vn_encode_VkBool32(enc, &val->sparseImageFloat32AtomicAdd);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT });
+    vn_encode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->shaderBufferFloat32Atomics);
+    vn_decode_VkBool32(dec, &val->shaderBufferFloat32AtomicAdd);
+    vn_decode_VkBool32(dec, &val->shaderBufferFloat64Atomics);
+    vn_decode_VkBool32(dec, &val->shaderBufferFloat64AtomicAdd);
+    vn_decode_VkBool32(dec, &val->shaderSharedFloat32Atomics);
+    vn_decode_VkBool32(dec, &val->shaderSharedFloat32AtomicAdd);
+    vn_decode_VkBool32(dec, &val->shaderSharedFloat64Atomics);
+    vn_decode_VkBool32(dec, &val->shaderSharedFloat64AtomicAdd);
+    vn_decode_VkBool32(dec, &val->shaderImageFloat32Atomics);
+    vn_decode_VkBool32(dec, &val->shaderImageFloat32AtomicAdd);
+    vn_decode_VkBool32(dec, &val->sparseImageFloat32Atomics);
+    vn_decode_VkBool32(dec, &val->sparseImageFloat32AtomicAdd);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->shaderBufferFloat32Atomics */
+    /* skip val->shaderBufferFloat32AtomicAdd */
+    /* skip val->shaderBufferFloat64Atomics */
+    /* skip val->shaderBufferFloat64AtomicAdd */
+    /* skip val->shaderSharedFloat32Atomics */
+    /* skip val->shaderSharedFloat32AtomicAdd */
+    /* skip val->shaderSharedFloat64Atomics */
+    /* skip val->shaderSharedFloat64AtomicAdd */
+    /* skip val->shaderImageFloat32Atomics */
+    /* skip val->shaderImageFloat32AtomicAdd */
+    /* skip val->sparseImageFloat32Atomics */
+    /* skip val->sparseImageFloat32AtomicAdd */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_handle_self(VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->shaderBufferFloat32Atomics */
+    /* skip val->shaderBufferFloat32AtomicAdd */
+    /* skip val->shaderBufferFloat64Atomics */
+    /* skip val->shaderBufferFloat64AtomicAdd */
+    /* skip val->shaderSharedFloat32Atomics */
+    /* skip val->shaderSharedFloat32AtomicAdd */
+    /* skip val->shaderSharedFloat64Atomics */
+    /* skip val->shaderSharedFloat64AtomicAdd */
+    /* skip val->shaderImageFloat32Atomics */
+    /* skip val->shaderImageFloat32AtomicAdd */
+    /* skip val->sparseImageFloat32Atomics */
+    /* skip val->sparseImageFloat32AtomicAdd */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_handle(VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_handle_self((VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->shaderBufferFloat16Atomics);
+    vn_encode_VkBool32(enc, &val->shaderBufferFloat16AtomicAdd);
+    vn_encode_VkBool32(enc, &val->shaderBufferFloat16AtomicMinMax);
+    vn_encode_VkBool32(enc, &val->shaderBufferFloat32AtomicMinMax);
+    vn_encode_VkBool32(enc, &val->shaderBufferFloat64AtomicMinMax);
+    vn_encode_VkBool32(enc, &val->shaderSharedFloat16Atomics);
+    vn_encode_VkBool32(enc, &val->shaderSharedFloat16AtomicAdd);
+    vn_encode_VkBool32(enc, &val->shaderSharedFloat16AtomicMinMax);
+    vn_encode_VkBool32(enc, &val->shaderSharedFloat32AtomicMinMax);
+    vn_encode_VkBool32(enc, &val->shaderSharedFloat64AtomicMinMax);
+    vn_encode_VkBool32(enc, &val->shaderImageFloat32AtomicMinMax);
+    vn_encode_VkBool32(enc, &val->sparseImageFloat32AtomicMinMax);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT });
+    vn_encode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->shaderBufferFloat16Atomics);
+    vn_decode_VkBool32(dec, &val->shaderBufferFloat16AtomicAdd);
+    vn_decode_VkBool32(dec, &val->shaderBufferFloat16AtomicMinMax);
+    vn_decode_VkBool32(dec, &val->shaderBufferFloat32AtomicMinMax);
+    vn_decode_VkBool32(dec, &val->shaderBufferFloat64AtomicMinMax);
+    vn_decode_VkBool32(dec, &val->shaderSharedFloat16Atomics);
+    vn_decode_VkBool32(dec, &val->shaderSharedFloat16AtomicAdd);
+    vn_decode_VkBool32(dec, &val->shaderSharedFloat16AtomicMinMax);
+    vn_decode_VkBool32(dec, &val->shaderSharedFloat32AtomicMinMax);
+    vn_decode_VkBool32(dec, &val->shaderSharedFloat64AtomicMinMax);
+    vn_decode_VkBool32(dec, &val->shaderImageFloat32AtomicMinMax);
+    vn_decode_VkBool32(dec, &val->sparseImageFloat32AtomicMinMax);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->shaderBufferFloat16Atomics */
+    /* skip val->shaderBufferFloat16AtomicAdd */
+    /* skip val->shaderBufferFloat16AtomicMinMax */
+    /* skip val->shaderBufferFloat32AtomicMinMax */
+    /* skip val->shaderBufferFloat64AtomicMinMax */
+    /* skip val->shaderSharedFloat16Atomics */
+    /* skip val->shaderSharedFloat16AtomicAdd */
+    /* skip val->shaderSharedFloat16AtomicMinMax */
+    /* skip val->shaderSharedFloat32AtomicMinMax */
+    /* skip val->shaderSharedFloat64AtomicMinMax */
+    /* skip val->shaderImageFloat32AtomicMinMax */
+    /* skip val->sparseImageFloat32AtomicMinMax */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_handle_self(VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->shaderBufferFloat16Atomics */
+    /* skip val->shaderBufferFloat16AtomicAdd */
+    /* skip val->shaderBufferFloat16AtomicMinMax */
+    /* skip val->shaderBufferFloat32AtomicMinMax */
+    /* skip val->shaderBufferFloat64AtomicMinMax */
+    /* skip val->shaderSharedFloat16Atomics */
+    /* skip val->shaderSharedFloat16AtomicAdd */
+    /* skip val->shaderSharedFloat16AtomicMinMax */
+    /* skip val->shaderSharedFloat32AtomicMinMax */
+    /* skip val->shaderSharedFloat64AtomicMinMax */
+    /* skip val->shaderImageFloat32AtomicMinMax */
+    /* skip val->sparseImageFloat32AtomicMinMax */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_handle(VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_handle_self((VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkPhysicalDeviceVertexAttributeDivisorFeatures chain */
 
 static inline void
@@ -3737,6 +4043,228 @@ vn_replace_VkPhysicalDeviceTransformFeedbackFeaturesEXT_handle(VkPhysicalDeviceT
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceTransformFeedbackFeaturesEXT_handle_self((VkPhysicalDeviceTransformFeedbackFeaturesEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->computeDerivativeGroupQuads);
+    vn_encode_VkBool32(enc, &val->computeDerivativeGroupLinear);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR(struct vn_cs_encoder *enc, const VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR });
+    vn_encode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->computeDerivativeGroupQuads);
+    vn_decode_VkBool32(dec, &val->computeDerivativeGroupLinear);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->computeDerivativeGroupQuads */
+    /* skip val->computeDerivativeGroupLinear */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_handle_self(VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->computeDerivativeGroupQuads */
+    /* skip val->computeDerivativeGroupLinear */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_handle(VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_handle_self((VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->fragmentShaderBarycentric);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR(struct vn_cs_encoder *enc, const VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR });
+    vn_encode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->fragmentShaderBarycentric);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->fragmentShaderBarycentric */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_handle_self(VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->fragmentShaderBarycentric */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_handle(VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_handle_self((VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -4399,6 +4927,115 @@ vn_replace_VkPhysicalDeviceTextureCompressionASTCHDRFeatures_handle(VkPhysicalDe
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES:
             vn_replace_VkPhysicalDeviceTextureCompressionASTCHDRFeatures_handle_self((VkPhysicalDeviceTextureCompressionASTCHDRFeatures *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPhysicalDeviceYcbcrImageArraysFeaturesEXT chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->ycbcrImageArrays);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(struct vn_cs_encoder *enc, const VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT });
+    vn_encode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->ycbcrImageArrays);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->ycbcrImageArrays */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_handle_self(VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->ycbcrImageArrays */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_handle(VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_handle_self((VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -7128,6 +7765,115 @@ vn_replace_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures_handle(VkPhysic
     } while (pnext);
 }
 
+/* struct VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->shaderSubgroupUniformControlFlow);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR });
+    vn_encode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->shaderSubgroupUniformControlFlow);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->shaderSubgroupUniformControlFlow */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_handle_self(VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->shaderSubgroupUniformControlFlow */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_handle(VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_handle_self((VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkPhysicalDeviceRobustness2FeaturesEXT chain */
 
 static inline void
@@ -7354,6 +8100,127 @@ vn_replace_VkPhysicalDeviceImageRobustnessFeatures_handle(VkPhysicalDeviceImageR
     } while (pnext);
 }
 
+/* struct VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->workgroupMemoryExplicitLayout);
+    vn_encode_VkBool32(enc, &val->workgroupMemoryExplicitLayoutScalarBlockLayout);
+    vn_encode_VkBool32(enc, &val->workgroupMemoryExplicitLayout8BitAccess);
+    vn_encode_VkBool32(enc, &val->workgroupMemoryExplicitLayout16BitAccess);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR(struct vn_cs_encoder *enc, const VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR });
+    vn_encode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->workgroupMemoryExplicitLayout);
+    vn_decode_VkBool32(dec, &val->workgroupMemoryExplicitLayoutScalarBlockLayout);
+    vn_decode_VkBool32(dec, &val->workgroupMemoryExplicitLayout8BitAccess);
+    vn_decode_VkBool32(dec, &val->workgroupMemoryExplicitLayout16BitAccess);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->workgroupMemoryExplicitLayout */
+    /* skip val->workgroupMemoryExplicitLayoutScalarBlockLayout */
+    /* skip val->workgroupMemoryExplicitLayout8BitAccess */
+    /* skip val->workgroupMemoryExplicitLayout16BitAccess */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_handle_self(VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->workgroupMemoryExplicitLayout */
+    /* skip val->workgroupMemoryExplicitLayoutScalarBlockLayout */
+    /* skip val->workgroupMemoryExplicitLayout8BitAccess */
+    /* skip val->workgroupMemoryExplicitLayout16BitAccess */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_handle(VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_handle_self((VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkPhysicalDevice4444FormatsFeaturesEXT chain */
 
 static inline void
@@ -7458,6 +8325,119 @@ vn_replace_VkPhysicalDevice4444FormatsFeaturesEXT_handle(VkPhysicalDevice4444For
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
             vn_replace_VkPhysicalDevice4444FormatsFeaturesEXT_handle_self((VkPhysicalDevice4444FormatsFeaturesEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->shaderImageInt64Atomics);
+    vn_encode_VkBool32(enc, &val->sparseImageInt64Atomics);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT });
+    vn_encode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->shaderImageInt64Atomics);
+    vn_decode_VkBool32(dec, &val->sparseImageInt64Atomics);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->shaderImageInt64Atomics */
+    /* skip val->sparseImageInt64Atomics */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_handle_self(VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->shaderImageInt64Atomics */
+    /* skip val->sparseImageInt64Atomics */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_handle(VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_handle_self((VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -7797,6 +8777,115 @@ vn_replace_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT_handle(VkPhysicalDeviceIma
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_2D_VIEW_OF_3D_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT_handle_self((VkPhysicalDeviceImage2DViewOf3DFeaturesEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->legacyVertexAttributes);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT(struct vn_cs_encoder *enc, const VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT });
+    vn_encode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->legacyVertexAttributes);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->legacyVertexAttributes */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_handle_self(VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->legacyVertexAttributes */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_handle(VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_handle_self((VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -9788,6 +10877,115 @@ vn_replace_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_handle(VkPhys
     } while (pnext);
 }
 
+/* struct VkPhysicalDeviceDepthClampZeroOneFeaturesKHR chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->depthClampZeroOne);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR(struct vn_cs_encoder *enc, const VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR });
+    vn_encode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->depthClampZeroOne);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->depthClampZeroOne */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_handle_self(VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->depthClampZeroOne */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_handle(VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_handle_self((VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT chain */
 
 static inline void
@@ -9888,6 +11086,115 @@ vn_replace_VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT_handle(V
         switch ((int32_t)pnext->sType) {
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT_handle_self((VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->shaderMaximalReconvergence);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR });
+    vn_encode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->shaderMaximalReconvergence);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->shaderMaximalReconvergence */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_handle_self(VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->shaderMaximalReconvergence */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_handle(VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_handle_self((VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -10337,6 +11644,224 @@ vn_replace_VkPhysicalDeviceDynamicRenderingLocalReadFeatures_handle(VkPhysicalDe
     } while (pnext);
 }
 
+/* struct VkPhysicalDeviceShaderQuadControlFeaturesKHR chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderQuadControlFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->shaderQuadControl);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderQuadControlFeaturesKHR(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderQuadControlFeaturesKHR *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR });
+    vn_encode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderQuadControlFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->shaderQuadControl);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderQuadControlFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderQuadControlFeaturesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->shaderQuadControl */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderQuadControlFeaturesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderQuadControlFeaturesKHR_handle_self(VkPhysicalDeviceShaderQuadControlFeaturesKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->shaderQuadControl */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderQuadControlFeaturesKHR_handle(VkPhysicalDeviceShaderQuadControlFeaturesKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceShaderQuadControlFeaturesKHR_handle_self((VkPhysicalDeviceShaderQuadControlFeaturesKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->shaderReplicatedComposites);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT(struct vn_cs_encoder *enc, const VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT });
+    vn_encode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_self_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->shaderReplicatedComposites);
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_pnext_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_self_temp(dec, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->shaderReplicatedComposites */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_self_partial_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_handle_self(VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->shaderReplicatedComposites */
+}
+
+static inline void
+vn_replace_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_handle(VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_handle_self((VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkPhysicalDeviceFeatures2 chain */
 
 static inline void
@@ -10484,6 +12009,18 @@ vn_encode_VkPhysicalDeviceFeatures2_pnext(struct vn_cs_encoder *enc, const void 
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceShaderAtomicInt64Features_self(enc, (const VkPhysicalDeviceShaderAtomicInt64Features *)pnext);
             return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_self(enc, (const VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_self(enc, (const VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *)pnext);
+            return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES:
             vn_encode_simple_pointer(enc, pnext);
             vn_encode_VkStructureType(enc, &pnext->sType);
@@ -10495,6 +12032,18 @@ vn_encode_VkPhysicalDeviceFeatures2_pnext(struct vn_cs_encoder *enc, const void 
             vn_encode_VkStructureType(enc, &pnext->sType);
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceTransformFeedbackFeaturesEXT_self(enc, (const VkPhysicalDeviceTransformFeedbackFeaturesEXT *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_self(enc, (const VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_self(enc, (const VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *)pnext);
             return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
             vn_encode_simple_pointer(enc, pnext);
@@ -10531,6 +12080,12 @@ vn_encode_VkPhysicalDeviceFeatures2_pnext(struct vn_cs_encoder *enc, const void 
             vn_encode_VkStructureType(enc, &pnext->sType);
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceTextureCompressionASTCHDRFeatures_self(enc, (const VkPhysicalDeviceTextureCompressionASTCHDRFeatures *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_self(enc, (const VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *)pnext);
             return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR:
             vn_encode_simple_pointer(enc, pnext);
@@ -10652,6 +12207,12 @@ vn_encode_VkPhysicalDeviceFeatures2_pnext(struct vn_cs_encoder *enc, const void 
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures_self(enc, (const VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *)pnext);
             return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_self(enc, (const VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *)pnext);
+            return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
             vn_encode_simple_pointer(enc, pnext);
             vn_encode_VkStructureType(enc, &pnext->sType);
@@ -10664,11 +12225,23 @@ vn_encode_VkPhysicalDeviceFeatures2_pnext(struct vn_cs_encoder *enc, const void 
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceImageRobustnessFeatures_self(enc, (const VkPhysicalDeviceImageRobustnessFeatures *)pnext);
             return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_self(enc, (const VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *)pnext);
+            return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
             vn_encode_simple_pointer(enc, pnext);
             vn_encode_VkStructureType(enc, &pnext->sType);
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDevice4444FormatsFeaturesEXT_self(enc, (const VkPhysicalDevice4444FormatsFeaturesEXT *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_self(enc, (const VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *)pnext);
             return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR:
             vn_encode_simple_pointer(enc, pnext);
@@ -10687,6 +12260,12 @@ vn_encode_VkPhysicalDeviceFeatures2_pnext(struct vn_cs_encoder *enc, const void 
             vn_encode_VkStructureType(enc, &pnext->sType);
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT_self(enc, (const VkPhysicalDeviceImage2DViewOf3DFeaturesEXT *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_self(enc, (const VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *)pnext);
             return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT:
             vn_encode_simple_pointer(enc, pnext);
@@ -10796,11 +12375,23 @@ vn_encode_VkPhysicalDeviceFeatures2_pnext(struct vn_cs_encoder *enc, const void 
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self(enc, (const VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
             return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_self(enc, (const VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *)pnext);
+            return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
             vn_encode_simple_pointer(enc, pnext);
             vn_encode_VkStructureType(enc, &pnext->sType);
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT_self(enc, (const VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_self(enc, (const VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *)pnext);
             return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_ROTATE_FEATURES:
             vn_encode_simple_pointer(enc, pnext);
@@ -10825,6 +12416,18 @@ vn_encode_VkPhysicalDeviceFeatures2_pnext(struct vn_cs_encoder *enc, const void 
             vn_encode_VkStructureType(enc, &pnext->sType);
             vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceDynamicRenderingLocalReadFeatures_self(enc, (const VkPhysicalDeviceDynamicRenderingLocalReadFeatures *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_self(enc, (const VkPhysicalDeviceShaderQuadControlFeaturesKHR *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceFeatures2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_self(enc, (const VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *)pnext);
             return;
         default:
             /* ignore unknown/unsupported struct */
@@ -11047,6 +12650,22 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkPhysicalDeviceShaderAtomicInt64Features_self_temp(dec, (VkPhysicalDeviceShaderAtomicInt64Features *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderAtomicFloatFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_self_temp(dec, (VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_self_temp(dec, (VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceVertexAttributeDivisorFeatures));
         if (pnext) {
@@ -11061,6 +12680,22 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceTransformFeedbackFeaturesEXT_self_temp(dec, (VkPhysicalDeviceTransformFeedbackFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_self_temp(dec, (VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_self_temp(dec, (VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
@@ -11109,6 +12744,14 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceTextureCompressionASTCHDRFeatures_self_temp(dec, (VkPhysicalDeviceTextureCompressionASTCHDRFeatures *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceYcbcrImageArraysFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_self_temp(dec, (VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR:
@@ -11271,6 +12914,14 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures_self_temp(dec, (VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_self_temp(dec, (VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceRobustness2FeaturesEXT));
         if (pnext) {
@@ -11287,12 +12938,28 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkPhysicalDeviceImageRobustnessFeatures_self_temp(dec, (VkPhysicalDeviceImageRobustnessFeatures *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_self_temp(dec, (VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDevice4444FormatsFeaturesEXT));
         if (pnext) {
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
             vn_decode_VkPhysicalDevice4444FormatsFeaturesEXT_self_temp(dec, (VkPhysicalDevice4444FormatsFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_self_temp(dec, (VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR:
@@ -11317,6 +12984,14 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT_self_temp(dec, (VkPhysicalDeviceImage2DViewOf3DFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_self_temp(dec, (VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT:
@@ -11463,12 +13138,28 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self_temp(dec, (VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceDepthClampZeroOneFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_self_temp(dec, (VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT));
         if (pnext) {
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT_self_temp(dec, (VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_self_temp(dec, (VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_ROTATE_FEATURES:
@@ -11501,6 +13192,22 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceDynamicRenderingLocalReadFeatures_self_temp(dec, (VkPhysicalDeviceDynamicRenderingLocalReadFeatures *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderQuadControlFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_self_temp(dec, (VkPhysicalDeviceShaderQuadControlFeaturesKHR *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_self_temp(dec, (VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *)pnext);
         }
         break;
     default:
@@ -11728,6 +13435,22 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(struct vn_cs_decoder *dec
             vn_decode_VkPhysicalDeviceShaderAtomicInt64Features_self_partial_temp(dec, (VkPhysicalDeviceShaderAtomicInt64Features *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderAtomicFloatFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceVertexAttributeDivisorFeatures));
         if (pnext) {
@@ -11742,6 +13465,22 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(struct vn_cs_decoder *dec
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
             vn_decode_VkPhysicalDeviceTransformFeedbackFeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceTransformFeedbackFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_self_partial_temp(dec, (VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_self_partial_temp(dec, (VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
@@ -11790,6 +13529,14 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(struct vn_cs_decoder *dec
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
             vn_decode_VkPhysicalDeviceTextureCompressionASTCHDRFeatures_self_partial_temp(dec, (VkPhysicalDeviceTextureCompressionASTCHDRFeatures *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceYcbcrImageArraysFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR:
@@ -11952,6 +13699,14 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(struct vn_cs_decoder *dec
             vn_decode_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures_self_partial_temp(dec, (VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_self_partial_temp(dec, (VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceRobustness2FeaturesEXT));
         if (pnext) {
@@ -11968,12 +13723,28 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(struct vn_cs_decoder *dec
             vn_decode_VkPhysicalDeviceImageRobustnessFeatures_self_partial_temp(dec, (VkPhysicalDeviceImageRobustnessFeatures *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_self_partial_temp(dec, (VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDevice4444FormatsFeaturesEXT));
         if (pnext) {
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
             vn_decode_VkPhysicalDevice4444FormatsFeaturesEXT_self_partial_temp(dec, (VkPhysicalDevice4444FormatsFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR:
@@ -11998,6 +13769,14 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(struct vn_cs_decoder *dec
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
             vn_decode_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceImage2DViewOf3DFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT:
@@ -12144,12 +13923,28 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(struct vn_cs_decoder *dec
             vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceDepthClampZeroOneFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_self_partial_temp(dec, (VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT));
         if (pnext) {
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
             vn_decode_VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_self_partial_temp(dec, (VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_ROTATE_FEATURES:
@@ -12182,6 +13977,22 @@ vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(struct vn_cs_decoder *dec
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
             vn_decode_VkPhysicalDeviceDynamicRenderingLocalReadFeatures_self_partial_temp(dec, (VkPhysicalDeviceDynamicRenderingLocalReadFeatures *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderQuadControlFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_self_partial_temp(dec, (VkPhysicalDeviceShaderQuadControlFeaturesKHR *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceFeatures2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_self_partial_temp(dec, (VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *)pnext);
         }
         break;
     default:
@@ -12301,11 +14112,23 @@ vn_replace_VkPhysicalDeviceFeatures2_handle(VkPhysicalDeviceFeatures2 *val)
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES:
             vn_replace_VkPhysicalDeviceShaderAtomicInt64Features_handle_self((VkPhysicalDeviceShaderAtomicInt64Features *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_handle_self((VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_handle_self((VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *)pnext);
+            break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES:
             vn_replace_VkPhysicalDeviceVertexAttributeDivisorFeatures_handle_self((VkPhysicalDeviceVertexAttributeDivisorFeatures *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceTransformFeedbackFeaturesEXT_handle_self((VkPhysicalDeviceTransformFeedbackFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_handle_self((VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_handle_self((VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
             vn_replace_VkPhysicalDeviceScalarBlockLayoutFeatures_handle_self((VkPhysicalDeviceScalarBlockLayoutFeatures *)pnext);
@@ -12324,6 +14147,9 @@ vn_replace_VkPhysicalDeviceFeatures2_handle(VkPhysicalDeviceFeatures2 *val)
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES:
             vn_replace_VkPhysicalDeviceTextureCompressionASTCHDRFeatures_handle_self((VkPhysicalDeviceTextureCompressionASTCHDRFeatures *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_handle_self((VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR:
             vn_replace_VkPhysicalDeviceShaderClockFeaturesKHR_handle_self((VkPhysicalDeviceShaderClockFeaturesKHR *)pnext);
@@ -12385,14 +14211,23 @@ vn_replace_VkPhysicalDeviceFeatures2_handle(VkPhysicalDeviceFeatures2 *val)
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES:
             vn_replace_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures_handle_self((VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_handle_self((VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *)pnext);
+            break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceRobustness2FeaturesEXT_handle_self((VkPhysicalDeviceRobustness2FeaturesEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES:
             vn_replace_VkPhysicalDeviceImageRobustnessFeatures_handle_self((VkPhysicalDeviceImageRobustnessFeatures *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_handle_self((VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *)pnext);
+            break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
             vn_replace_VkPhysicalDevice4444FormatsFeaturesEXT_handle_self((VkPhysicalDevice4444FormatsFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_handle_self((VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR:
             vn_replace_VkPhysicalDeviceFragmentShadingRateFeaturesKHR_handle_self((VkPhysicalDeviceFragmentShadingRateFeaturesKHR *)pnext);
@@ -12402,6 +14237,9 @@ vn_replace_VkPhysicalDeviceFeatures2_handle(VkPhysicalDeviceFeatures2 *val)
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_2D_VIEW_OF_3D_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT_handle_self((VkPhysicalDeviceImage2DViewOf3DFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_handle_self((VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT_handle_self((VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT *)pnext);
@@ -12457,8 +14295,14 @@ vn_replace_VkPhysicalDeviceFeatures2_handle(VkPhysicalDeviceFeatures2 *val)
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_handle_self((VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_handle_self((VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *)pnext);
+            break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT_handle_self((VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_handle_self((VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_ROTATE_FEATURES:
             vn_replace_VkPhysicalDeviceShaderSubgroupRotateFeatures_handle_self((VkPhysicalDeviceShaderSubgroupRotateFeatures *)pnext);
@@ -12471,6 +14315,12 @@ vn_replace_VkPhysicalDeviceFeatures2_handle(VkPhysicalDeviceFeatures2 *val)
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES:
             vn_replace_VkPhysicalDeviceDynamicRenderingLocalReadFeatures_handle_self((VkPhysicalDeviceDynamicRenderingLocalReadFeatures *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceShaderQuadControlFeaturesKHR_handle_self((VkPhysicalDeviceShaderQuadControlFeaturesKHR *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_handle_self((VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -12772,6 +14622,22 @@ vn_decode_VkDeviceCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkPhysicalDeviceShaderAtomicInt64Features_self_temp(dec, (VkPhysicalDeviceShaderAtomicInt64Features *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderAtomicFloatFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_self_temp(dec, (VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_self_temp(dec, (VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceVertexAttributeDivisorFeatures));
         if (pnext) {
@@ -12786,6 +14652,22 @@ vn_decode_VkDeviceCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceTransformFeedbackFeaturesEXT_self_temp(dec, (VkPhysicalDeviceTransformFeedbackFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_self_temp(dec, (VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_self_temp(dec, (VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
@@ -12834,6 +14716,14 @@ vn_decode_VkDeviceCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceTextureCompressionASTCHDRFeatures_self_temp(dec, (VkPhysicalDeviceTextureCompressionASTCHDRFeatures *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceYcbcrImageArraysFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_self_temp(dec, (VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR:
@@ -12996,6 +14886,14 @@ vn_decode_VkDeviceCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures_self_temp(dec, (VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_self_temp(dec, (VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceRobustness2FeaturesEXT));
         if (pnext) {
@@ -13012,12 +14910,28 @@ vn_decode_VkDeviceCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkPhysicalDeviceImageRobustnessFeatures_self_temp(dec, (VkPhysicalDeviceImageRobustnessFeatures *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_self_temp(dec, (VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDevice4444FormatsFeaturesEXT));
         if (pnext) {
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
             vn_decode_VkPhysicalDevice4444FormatsFeaturesEXT_self_temp(dec, (VkPhysicalDevice4444FormatsFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_self_temp(dec, (VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR:
@@ -13042,6 +14956,14 @@ vn_decode_VkDeviceCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT_self_temp(dec, (VkPhysicalDeviceImage2DViewOf3DFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_self_temp(dec, (VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT:
@@ -13188,12 +15110,28 @@ vn_decode_VkDeviceCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_self_temp(dec, (VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceDepthClampZeroOneFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_self_temp(dec, (VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT));
         if (pnext) {
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT_self_temp(dec, (VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_self_temp(dec, (VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_ROTATE_FEATURES:
@@ -13226,6 +15164,22 @@ vn_decode_VkDeviceCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
             vn_decode_VkPhysicalDeviceDynamicRenderingLocalReadFeatures_self_temp(dec, (VkPhysicalDeviceDynamicRenderingLocalReadFeatures *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderQuadControlFeaturesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderQuadControlFeaturesKHR_self_temp(dec, (VkPhysicalDeviceShaderQuadControlFeaturesKHR *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDeviceCreateInfo_pnext_temp(dec);
+            vn_decode_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_self_temp(dec, (VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *)pnext);
         }
         break;
     default:
@@ -13413,11 +15367,23 @@ vn_replace_VkDeviceCreateInfo_handle(VkDeviceCreateInfo *val)
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES:
             vn_replace_VkPhysicalDeviceShaderAtomicInt64Features_handle_self((VkPhysicalDeviceShaderAtomicInt64Features *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT_handle_self((VkPhysicalDeviceShaderAtomicFloatFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT_handle_self((VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT *)pnext);
+            break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES:
             vn_replace_VkPhysicalDeviceVertexAttributeDivisorFeatures_handle_self((VkPhysicalDeviceVertexAttributeDivisorFeatures *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceTransformFeedbackFeaturesEXT_handle_self((VkPhysicalDeviceTransformFeedbackFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR_handle_self((VkPhysicalDeviceComputeShaderDerivativesFeaturesKHR *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR_handle_self((VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
             vn_replace_VkPhysicalDeviceScalarBlockLayoutFeatures_handle_self((VkPhysicalDeviceScalarBlockLayoutFeatures *)pnext);
@@ -13436,6 +15402,9 @@ vn_replace_VkDeviceCreateInfo_handle(VkDeviceCreateInfo *val)
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES:
             vn_replace_VkPhysicalDeviceTextureCompressionASTCHDRFeatures_handle_self((VkPhysicalDeviceTextureCompressionASTCHDRFeatures *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT_handle_self((VkPhysicalDeviceYcbcrImageArraysFeaturesEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR:
             vn_replace_VkPhysicalDeviceShaderClockFeaturesKHR_handle_self((VkPhysicalDeviceShaderClockFeaturesKHR *)pnext);
@@ -13497,14 +15466,23 @@ vn_replace_VkDeviceCreateInfo_handle(VkDeviceCreateInfo *val)
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES:
             vn_replace_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures_handle_self((VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR_handle_self((VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR *)pnext);
+            break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceRobustness2FeaturesEXT_handle_self((VkPhysicalDeviceRobustness2FeaturesEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES:
             vn_replace_VkPhysicalDeviceImageRobustnessFeatures_handle_self((VkPhysicalDeviceImageRobustnessFeatures *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR_handle_self((VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR *)pnext);
+            break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
             vn_replace_VkPhysicalDevice4444FormatsFeaturesEXT_handle_self((VkPhysicalDevice4444FormatsFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT_handle_self((VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR:
             vn_replace_VkPhysicalDeviceFragmentShadingRateFeaturesKHR_handle_self((VkPhysicalDeviceFragmentShadingRateFeaturesKHR *)pnext);
@@ -13514,6 +15492,9 @@ vn_replace_VkDeviceCreateInfo_handle(VkDeviceCreateInfo *val)
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_2D_VIEW_OF_3D_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceImage2DViewOf3DFeaturesEXT_handle_self((VkPhysicalDeviceImage2DViewOf3DFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT_handle_self((VkPhysicalDeviceLegacyVertexAttributesFeaturesEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT_handle_self((VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT *)pnext);
@@ -13569,8 +15550,14 @@ vn_replace_VkDeviceCreateInfo_handle(VkDeviceCreateInfo *val)
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT_handle_self((VkPhysicalDeviceAttachmentFeedbackLoopLayoutFeaturesEXT *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceDepthClampZeroOneFeaturesKHR_handle_self((VkPhysicalDeviceDepthClampZeroOneFeaturesKHR *)pnext);
+            break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT:
             vn_replace_VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT_handle_self((VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR_handle_self((VkPhysicalDeviceShaderMaximalReconvergenceFeaturesKHR *)pnext);
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_ROTATE_FEATURES:
             vn_replace_VkPhysicalDeviceShaderSubgroupRotateFeatures_handle_self((VkPhysicalDeviceShaderSubgroupRotateFeatures *)pnext);
@@ -13583,6 +15570,12 @@ vn_replace_VkDeviceCreateInfo_handle(VkDeviceCreateInfo *val)
             break;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES:
             vn_replace_VkPhysicalDeviceDynamicRenderingLocalReadFeatures_handle_self((VkPhysicalDeviceDynamicRenderingLocalReadFeatures *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR:
+            vn_replace_VkPhysicalDeviceShaderQuadControlFeaturesKHR_handle_self((VkPhysicalDeviceShaderQuadControlFeaturesKHR *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT:
+            vn_replace_VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT_handle_self((VkPhysicalDeviceShaderReplicatedCompositesFeaturesEXT *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */
@@ -15158,6 +17151,60 @@ vn_decode_VkPhysicalDeviceTransformFeedbackPropertiesEXT_partial_temp(struct vn_
     vn_decode_VkPhysicalDeviceTransformFeedbackPropertiesEXT_self_partial_temp(dec, val);
 }
 
+/* struct VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->meshAndTaskShaderDerivatives);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR(struct vn_cs_encoder *enc, const VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_PROPERTIES_KHR);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_PROPERTIES_KHR });
+    vn_encode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->meshAndTaskShaderDerivatives */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_PROPERTIES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_self_partial_temp(dec, val);
+}
+
 /* struct VkPhysicalDeviceTexelBufferAlignmentProperties chain */
 
 static inline void
@@ -16094,6 +18141,60 @@ vn_decode_VkPhysicalDeviceFragmentShadingRatePropertiesKHR_partial_temp(struct v
     vn_decode_VkPhysicalDeviceFragmentShadingRatePropertiesKHR_self_partial_temp(dec, val);
 }
 
+/* struct VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->nativeUnalignedPerformance);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT(struct vn_cs_encoder *enc, const VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_PROPERTIES_EXT);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_PROPERTIES_EXT });
+    vn_encode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->nativeUnalignedPerformance */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_PROPERTIES_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_self_partial_temp(dec, val);
+}
+
 /* struct VkPhysicalDeviceHostImageCopyProperties chain */
 
 static inline void
@@ -16349,6 +18450,60 @@ vn_decode_VkPhysicalDeviceShaderIntegerDotProductProperties_partial_temp(struct 
     val->sType = stype;
     val->pNext = vn_decode_VkPhysicalDeviceShaderIntegerDotProductProperties_pnext_partial_temp(dec);
     vn_decode_VkPhysicalDeviceShaderIntegerDotProductProperties_self_partial_temp(dec, val);
+}
+
+/* struct VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR chain */
+
+static inline void
+vn_encode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_pnext(struct vn_cs_encoder *enc, const void *val)
+{
+    /* no known/supported struct */
+    vn_encode_simple_pointer(enc, NULL);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_self(struct vn_cs_encoder *enc, const VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_encode_VkBool32(enc, &val->triStripVertexOrderIndependentOfProvokingVertex);
+}
+
+static inline void
+vn_encode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR(struct vn_cs_encoder *enc, const VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR *val)
+{
+    assert(val->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_PROPERTIES_KHR);
+    vn_encode_VkStructureType(enc, &(VkStructureType){ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_PROPERTIES_KHR });
+    vn_encode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_pnext(enc, val->pNext);
+    vn_encode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_self(enc, val);
+}
+
+static inline void *
+vn_decode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_pnext_partial_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_self_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    /* skip val->triStripVertexOrderIndependentOfProvokingVertex */
+}
+
+static inline void
+vn_decode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_partial_temp(struct vn_cs_decoder *dec, VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_PROPERTIES_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_pnext_partial_temp(dec);
+    vn_decode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_self_partial_temp(dec, val);
 }
 
 /* struct VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT chain */
@@ -16626,6 +18781,12 @@ vn_encode_VkPhysicalDeviceProperties2_pnext(struct vn_cs_encoder *enc, const voi
             vn_encode_VkPhysicalDeviceProperties2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceTransformFeedbackPropertiesEXT_self(enc, (const VkPhysicalDeviceTransformFeedbackPropertiesEXT *)pnext);
             return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_PROPERTIES_KHR:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceProperties2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_self(enc, (const VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR *)pnext);
+            return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES:
             vn_encode_simple_pointer(enc, pnext);
             vn_encode_VkStructureType(enc, &pnext->sType);
@@ -16692,6 +18853,12 @@ vn_encode_VkPhysicalDeviceProperties2_pnext(struct vn_cs_encoder *enc, const voi
             vn_encode_VkPhysicalDeviceProperties2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceFragmentShadingRatePropertiesKHR_self(enc, (const VkPhysicalDeviceFragmentShadingRatePropertiesKHR *)pnext);
             return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_PROPERTIES_EXT:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceProperties2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_self(enc, (const VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT *)pnext);
+            return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES:
             vn_encode_simple_pointer(enc, pnext);
             vn_encode_VkStructureType(enc, &pnext->sType);
@@ -16709,6 +18876,12 @@ vn_encode_VkPhysicalDeviceProperties2_pnext(struct vn_cs_encoder *enc, const voi
             vn_encode_VkStructureType(enc, &pnext->sType);
             vn_encode_VkPhysicalDeviceProperties2_pnext(enc, pnext->pNext);
             vn_encode_VkPhysicalDeviceShaderIntegerDotProductProperties_self(enc, (const VkPhysicalDeviceShaderIntegerDotProductProperties *)pnext);
+            return;
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_PROPERTIES_KHR:
+            vn_encode_simple_pointer(enc, pnext);
+            vn_encode_VkStructureType(enc, &pnext->sType);
+            vn_encode_VkPhysicalDeviceProperties2_pnext(enc, pnext->pNext);
+            vn_encode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_self(enc, (const VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR *)pnext);
             return;
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT:
             vn_encode_simple_pointer(enc, pnext);
@@ -16959,6 +19132,14 @@ vn_decode_VkPhysicalDeviceProperties2_pnext_partial_temp(struct vn_cs_decoder *d
             vn_decode_VkPhysicalDeviceTransformFeedbackPropertiesEXT_self_partial_temp(dec, (VkPhysicalDeviceTransformFeedbackPropertiesEXT *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_PROPERTIES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceProperties2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR_self_partial_temp(dec, (VkPhysicalDeviceComputeShaderDerivativesPropertiesKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceTexelBufferAlignmentProperties));
         if (pnext) {
@@ -17047,6 +19228,14 @@ vn_decode_VkPhysicalDeviceProperties2_pnext_partial_temp(struct vn_cs_decoder *d
             vn_decode_VkPhysicalDeviceFragmentShadingRatePropertiesKHR_self_partial_temp(dec, (VkPhysicalDeviceFragmentShadingRatePropertiesKHR *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_PROPERTIES_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceProperties2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT_self_partial_temp(dec, (VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceHostImageCopyProperties));
         if (pnext) {
@@ -17069,6 +19258,14 @@ vn_decode_VkPhysicalDeviceProperties2_pnext_partial_temp(struct vn_cs_decoder *d
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkPhysicalDeviceProperties2_pnext_partial_temp(dec);
             vn_decode_VkPhysicalDeviceShaderIntegerDotProductProperties_self_partial_temp(dec, (VkPhysicalDeviceShaderIntegerDotProductProperties *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_PROPERTIES_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkPhysicalDeviceProperties2_pnext_partial_temp(dec);
+            vn_decode_VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR_self_partial_temp(dec, (VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR *)pnext);
         }
         break;
     case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT:
