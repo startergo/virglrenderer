@@ -112,6 +112,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    /* KHR extensions */
    .KHR_calibrated_timestamps = true,
    .KHR_compute_shader_derivatives = true,
+   .KHR_deferred_host_operations = false, /* implementation in driver */
    .KHR_depth_clamp_zero_one = true,
    .KHR_external_fence_fd = true,
    .KHR_external_memory_fd = true,
