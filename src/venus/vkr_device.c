@@ -271,6 +271,10 @@ vkr_device_object_destroy(struct vkr_context *ctx,
          vk->DestroyDescriptorUpdateTemplate(
             device, obj->handle.descriptor_update_template, NULL);
          break;
+      case VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR:
+         vk->DestroyAccelerationStructureKHR(device, obj->handle.acceleration_structure,
+                                             NULL);
+         break;
       default:
          vkr_log("Unhandled vkr_object(%p) with VkObjectType(%u)", obj,
                  (uint32_t)obj->type);

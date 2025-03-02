@@ -313,5 +313,21 @@
                 "destroy_obj": "framebuffer"
             }
         ]
+    },
+    {
+        "filename": "vkr_acceleration_structure_gen.h",
+        "objects": [
+            {
+                "vkr_type": "acceleration_structure",
+                "vk_type": "VkAccelerationStructureKHR",
+                "vk_enum": "VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR",
+                "generator": "simple-object",
+                "create_cmd": "vkCreateAccelerationStructureKHR",
+                "create_info": "pCreateInfo",
+                "create_obj": "pAccelerationStructure",
+                "destroy_cmd": "vkDestroyAccelerationStructureKHR",
+                "destroy_obj": "accelerationStructure"
+            }
+        ]
     }
 ]

@@ -1109,6 +1109,59 @@ vkr_dispatch_vkCmdPushDescriptorSet2(UNUSED struct vn_dispatch_context *dispatch
    VKR_CMD_CALL(CmdPushDescriptorSet2, args, args->pPushDescriptorSetInfo);
 }
 
+static void
+vkr_dispatch_vkCmdBuildAccelerationStructuresIndirectKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdBuildAccelerationStructuresIndirectKHR *args)
+{
+   VKR_CMD_CALL(CmdBuildAccelerationStructuresIndirectKHR, args, args->infoCount,
+                args->pInfos, args->pIndirectDeviceAddresses, args->pIndirectStrides,
+                args->ppMaxPrimitiveCounts);
+}
+
+static void
+vkr_dispatch_vkCmdBuildAccelerationStructuresKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdBuildAccelerationStructuresKHR *args)
+{
+   VKR_CMD_CALL(CmdBuildAccelerationStructuresKHR, args, args->infoCount, args->pInfos,
+                args->ppBuildRangeInfos);
+}
+
+static void
+vkr_dispatch_vkCmdCopyAccelerationStructureKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdCopyAccelerationStructureKHR *args)
+{
+   VKR_CMD_CALL(CmdCopyAccelerationStructureKHR, args, args->pInfo);
+}
+
+static void
+vkr_dispatch_vkCmdCopyAccelerationStructureToMemoryKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdCopyAccelerationStructureToMemoryKHR *args)
+{
+   VKR_CMD_CALL(CmdCopyAccelerationStructureToMemoryKHR, args, args->pInfo);
+}
+
+static void
+vkr_dispatch_vkCmdCopyMemoryToAccelerationStructureKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdCopyMemoryToAccelerationStructureKHR *args)
+{
+   VKR_CMD_CALL(CmdCopyMemoryToAccelerationStructureKHR, args, args->pInfo);
+}
+
+static void
+vkr_dispatch_vkCmdWriteAccelerationStructuresPropertiesKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdWriteAccelerationStructuresPropertiesKHR *args)
+{
+   VKR_CMD_CALL(CmdWriteAccelerationStructuresPropertiesKHR, args,
+                args->accelerationStructureCount, args->pAccelerationStructures,
+                args->queryType, args->queryPool, args->firstQuery);
+}
+
 void
 vkr_context_init_command_pool_dispatch(struct vkr_context *ctx)
 {
@@ -1322,4 +1375,18 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
    dispatch->dispatch_vkCmdPushConstants2 = vkr_dispatch_vkCmdPushConstants2;
    dispatch->dispatch_vkCmdPushDescriptorSet2 = vkr_dispatch_vkCmdPushDescriptorSet2;
    dispatch->dispatch_vkCmdPushDescriptorSetWithTemplate2 = NULL;
+
+   /* VK_KHR_acceleration_structure */
+   dispatch->dispatch_vkCmdBuildAccelerationStructuresIndirectKHR =
+      vkr_dispatch_vkCmdBuildAccelerationStructuresIndirectKHR;
+   dispatch->dispatch_vkCmdBuildAccelerationStructuresKHR =
+      vkr_dispatch_vkCmdBuildAccelerationStructuresKHR;
+   dispatch->dispatch_vkCmdCopyAccelerationStructureKHR =
+      vkr_dispatch_vkCmdCopyAccelerationStructureKHR;
+   dispatch->dispatch_vkCmdCopyAccelerationStructureToMemoryKHR =
+      vkr_dispatch_vkCmdCopyAccelerationStructureToMemoryKHR;
+   dispatch->dispatch_vkCmdCopyMemoryToAccelerationStructureKHR =
+      vkr_dispatch_vkCmdCopyMemoryToAccelerationStructureKHR;
+   dispatch->dispatch_vkCmdWriteAccelerationStructuresPropertiesKHR =
+      vkr_dispatch_vkCmdWriteAccelerationStructuresPropertiesKHR;
 }

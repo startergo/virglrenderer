@@ -109,6 +109,7 @@ struct vkr_pipeline_cache;
 struct vkr_pipeline;
 struct vkr_command_pool;
 struct vkr_command_buffer;
+struct vkr_acceleration_structure;
 
 typedef uint64_t vkr_object_id;
 
@@ -153,6 +154,8 @@ struct vkr_object {
       VkCommandPool command_pool;
       VkSamplerYcbcrConversion sampler_ycbcr_conversion;
       VkDescriptorUpdateTemplate descriptor_update_template;
+
+      VkAccelerationStructureKHR acceleration_structure;
    } handle;
 
    struct list_head track_head;
@@ -271,6 +274,8 @@ vkr_is_recognized_object_type(VkObjectType type)
    /* VK_VERSION_1_1 */
    case VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION:
    case VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE:
+   /* VK_KHR_acceleration_structure */
+   case VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR:
       return true;
    default:
       vkr_log("unrecognized object type %u", type);

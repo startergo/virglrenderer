@@ -110,6 +110,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .EXT_pipeline_protected_access = true,
    .EXT_pipeline_robustness = true,
    /* KHR extensions */
+   .KHR_acceleration_structure = true,
    .KHR_calibrated_timestamps = true,
    .KHR_compute_shader_derivatives = true,
    .KHR_deferred_host_operations = false, /* implementation in driver */

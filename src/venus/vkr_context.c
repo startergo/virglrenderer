@@ -15,6 +15,7 @@
 #define XXH_INLINE_ALL
 #include "util/xxhash.h"
 
+#include "vkr_acceleration_structure.h"
 #include "vkr_buffer.h"
 #include "vkr_command_buffer.h"
 #include "vkr_context.h"
@@ -120,6 +121,8 @@ vkr_context_init_dispatch(struct vkr_context *ctx)
    vkr_context_init_command_buffer_dispatch(ctx);
 
    vkr_context_init_host_copy_dispatch(ctx);
+
+   vkr_context_init_acceleration_structure_dispatch(ctx);
 }
 
 bool
