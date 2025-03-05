@@ -142,6 +142,63 @@ vkr_dispatch_vkDestroyPipeline(struct vn_dispatch_context *dispatch,
    vkr_pipeline_destroy_and_remove(dispatch->data, args);
 }
 
+static void
+vkr_dispatch_vkCreateRayTracingPipelinesKHR(
+   struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCreateRayTracingPipelinesKHR *args)
+{
+   TRACE_FUNC();
+   struct vkr_context *ctx = dispatch->data;
+   struct vkr_device *dev = vkr_device_from_handle(args->device);
+   struct object_array arr;
+
+   if (vkr_ray_tracing_pipeline_create_array(ctx, args, &arr) < VK_SUCCESS)
+      return;
+
+   vkr_pipeline_add_array(ctx, dev, &arr, args->pPipelines);
+}
+
+static void
+vkr_dispatch_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR *args)
+{
+   struct vkr_device *dev = vkr_device_from_handle(args->device);
+   struct vn_device_proc_table *vk = &dev->proc_table;
+
+   vn_replace_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_args_handle(args);
+   args->ret = vk->GetRayTracingCaptureReplayShaderGroupHandlesKHR(
+      args->device, args->pipeline, args->firstGroup, args->groupCount, args->dataSize,
+      args->pData);
+}
+
+static void
+vkr_dispatch_vkGetRayTracingShaderGroupHandlesKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkGetRayTracingShaderGroupHandlesKHR *args)
+{
+   struct vkr_device *dev = vkr_device_from_handle(args->device);
+   struct vn_device_proc_table *vk = &dev->proc_table;
+
+   vn_replace_vkGetRayTracingShaderGroupHandlesKHR_args_handle(args);
+   args->ret = vk->GetRayTracingShaderGroupHandlesKHR(args->device, args->pipeline,
+                                                      args->firstGroup, args->groupCount,
+                                                      args->dataSize, args->pData);
+}
+
+static void
+vkr_dispatch_vkGetRayTracingShaderGroupStackSizeKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkGetRayTracingShaderGroupStackSizeKHR *args)
+{
+   struct vkr_device *dev = vkr_device_from_handle(args->device);
+   struct vn_device_proc_table *vk = &dev->proc_table;
+
+   vn_replace_vkGetRayTracingShaderGroupStackSizeKHR_args_handle(args);
+   args->ret = vk->GetRayTracingShaderGroupStackSizeKHR(args->device, args->pipeline,
+                                                        args->group, args->groupShader);
+}
+
 void
 vkr_context_init_shader_module_dispatch(struct vkr_context *ctx)
 {
@@ -179,4 +236,14 @@ vkr_context_init_pipeline_dispatch(struct vkr_context *ctx)
    dispatch->dispatch_vkCreateGraphicsPipelines = vkr_dispatch_vkCreateGraphicsPipelines;
    dispatch->dispatch_vkCreateComputePipelines = vkr_dispatch_vkCreateComputePipelines;
    dispatch->dispatch_vkDestroyPipeline = vkr_dispatch_vkDestroyPipeline;
+
+   /* VK_KHR_ray_tracing_pipeline */
+   dispatch->dispatch_vkCreateRayTracingPipelinesKHR =
+      vkr_dispatch_vkCreateRayTracingPipelinesKHR;
+   dispatch->dispatch_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR =
+      vkr_dispatch_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR;
+   dispatch->dispatch_vkGetRayTracingShaderGroupHandlesKHR =
+      vkr_dispatch_vkGetRayTracingShaderGroupHandlesKHR;
+   dispatch->dispatch_vkGetRayTracingShaderGroupStackSizeKHR =
+      vkr_dispatch_vkGetRayTracingShaderGroupStackSizeKHR;
 }

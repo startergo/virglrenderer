@@ -1162,6 +1162,33 @@ vkr_dispatch_vkCmdWriteAccelerationStructuresPropertiesKHR(
                 args->queryType, args->queryPool, args->firstQuery);
 }
 
+static void
+vkr_dispatch_vkCmdSetRayTracingPipelineStackSizeKHR(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdSetRayTracingPipelineStackSizeKHR *args)
+{
+   VKR_CMD_CALL(CmdSetRayTracingPipelineStackSizeKHR, args, args->pipelineStackSize);
+}
+
+static void
+vkr_dispatch_vkCmdTraceRaysIndirectKHR(UNUSED struct vn_dispatch_context *dispatch,
+                                       struct vn_command_vkCmdTraceRaysIndirectKHR *args)
+{
+   VKR_CMD_CALL(CmdTraceRaysIndirectKHR, args, args->pRaygenShaderBindingTable,
+                args->pMissShaderBindingTable, args->pHitShaderBindingTable,
+                args->pCallableShaderBindingTable, args->indirectDeviceAddress);
+}
+
+static void
+vkr_dispatch_vkCmdTraceRaysKHR(UNUSED struct vn_dispatch_context *dispatch,
+                               struct vn_command_vkCmdTraceRaysKHR *args)
+{
+   VKR_CMD_CALL(CmdTraceRaysKHR, args, args->pRaygenShaderBindingTable,
+                args->pMissShaderBindingTable, args->pHitShaderBindingTable,
+                args->pCallableShaderBindingTable, args->width, args->height,
+                args->depth);
+}
+
 void
 vkr_context_init_command_pool_dispatch(struct vkr_context *ctx)
 {
@@ -1389,4 +1416,10 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
       vkr_dispatch_vkCmdCopyMemoryToAccelerationStructureKHR;
    dispatch->dispatch_vkCmdWriteAccelerationStructuresPropertiesKHR =
       vkr_dispatch_vkCmdWriteAccelerationStructuresPropertiesKHR;
+
+   /* VK_KHR_ray_tracing_pipeline */
+   dispatch->dispatch_vkCmdSetRayTracingPipelineStackSizeKHR =
+      vkr_dispatch_vkCmdSetRayTracingPipelineStackSizeKHR;
+   dispatch->dispatch_vkCmdTraceRaysIndirectKHR = vkr_dispatch_vkCmdTraceRaysIndirectKHR;
+   dispatch->dispatch_vkCmdTraceRaysKHR = vkr_dispatch_vkCmdTraceRaysKHR;
 }

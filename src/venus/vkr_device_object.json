@@ -218,6 +218,7 @@
                 "generator": "pipeline-object",
                 "create_func_name": "graphics_pipeline",
                 "create_cmd": "vkCreateGraphicsPipelines",
+                "create_hop": "",
                 "create_cache": "pipelineCache",
                 "create_count": "createInfoCount",
                 "create_info": "pCreateInfos",
@@ -228,6 +229,11 @@
                     {
                         "create_func_name": "compute_pipeline",
                         "create_cmd": "vkCreateComputePipelines"
+                    },
+                    {
+                        "create_func_name": "ray_tracing_pipeline",
+                        "create_cmd": "vkCreateRayTracingPipelinesKHR",
+                        "create_hop": "deferredOperation"
                     }
                 ]
             }
