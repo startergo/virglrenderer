@@ -123,6 +123,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .KHR_pipeline_library = true,
    .KHR_ray_query = true,
    .KHR_ray_tracing_pipeline = true,
+   .KHR_ray_tracing_position_fetch = true,
    .KHR_shader_clock = true,
    .KHR_shader_maximal_reconvergence = true,
    .KHR_shader_quad_control = true,
