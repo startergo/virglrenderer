@@ -1189,6 +1189,13 @@ vkr_dispatch_vkCmdTraceRaysKHR(UNUSED struct vn_dispatch_context *dispatch,
                 args->depth);
 }
 
+static void
+vkr_dispatch_vkCmdTraceRaysIndirect2KHR(UNUSED struct vn_dispatch_context *dispatch,
+                                        struct vn_command_vkCmdTraceRaysIndirect2KHR *args)
+{
+   VKR_CMD_CALL(CmdTraceRaysIndirect2KHR, args, args->indirectDeviceAddress);
+}
+
 void
 vkr_context_init_command_pool_dispatch(struct vkr_context *ctx)
 {
@@ -1422,4 +1429,8 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
       vkr_dispatch_vkCmdSetRayTracingPipelineStackSizeKHR;
    dispatch->dispatch_vkCmdTraceRaysIndirectKHR = vkr_dispatch_vkCmdTraceRaysIndirectKHR;
    dispatch->dispatch_vkCmdTraceRaysKHR = vkr_dispatch_vkCmdTraceRaysKHR;
+
+   /* VK_KHR_ray_tracing_maintenance1 */
+   dispatch->dispatch_vkCmdTraceRaysIndirect2KHR =
+      vkr_dispatch_vkCmdTraceRaysIndirect2KHR;
 }
