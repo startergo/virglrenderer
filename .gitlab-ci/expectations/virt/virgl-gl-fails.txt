@@ -507,7 +507,6 @@ spec@!opengl 2.0@vertex-program-two-side front back back2@gs-out and fs,Fail
 spec@!opengl 2.0@vertex-program-two-side front back front2@gs-out and fs,Fail
 spec@!opengl 2.0@vertex-program-two-side front back@gs-out and fs,Fail
 spec@!opengl 2.0@vertex-program-two-side front front2 back2@gs-out and fs,Fail
-spec@!opengl 3.2@layered-rendering@clear-color-mismatched-layer-count,Fail
 spec@!opengl 1.1@line-smooth-stipple,Fail
 
 spec@arb_gl_spirv@execution@ssbo@unsized-array,Fail
