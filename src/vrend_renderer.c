@@ -889,7 +889,7 @@ static void vrend_destroy_program(struct vrend_linked_shader_program *ent);
 static void vrend_apply_sampler_state(struct vrend_sub_context *sub_ctx,
                                       struct vrend_resource *res,
                                       struct vrend_sampler_state *sampler_state,
-                                      int sampler_id,
+                                      GLuint sampler_id,
                                       struct vrend_sampler_view *tview);
 static void vrend_object_bind_dsa_to_sub_context(struct vrend_sub_context *sub_ctx,
                                                  uint32_t handle);
@@ -1778,7 +1778,7 @@ static void bind_virgl_block_loc(struct vrend_linked_shader_program *sprog,
 
       if (sprog->virgl_block_bind == GL_INVALID_INDEX) {
          sprog->virgl_block_bind = virgl_block_ubo_id;
-         if (sprog->ubo_sysval_buffer_id == 0) {
+         if (sprog->ubo_sysval_buffer_id == GL_INVALID_INDEX) {
              glGenBuffers(1, &sprog->ubo_sysval_buffer_id);
              created_virgl_block_buffer = true;
          }
@@ -2176,7 +2176,7 @@ static struct vrend_linked_shader_program *add_shader_program(struct vrend_sub_c
    list_addtail(&sprog->head, &sub_ctx->gl_programs[vs->id & VREND_PROGRAM_NQUEUE_MASK]);
 
    sprog->virgl_block_bind = GL_INVALID_INDEX;
-   sprog->ubo_sysval_buffer_id = 0;
+   sprog->ubo_sysval_buffer_id = GL_INVALID_INDEX;
    sprog->sysvalue_data_cookie = UINT32_MAX;
 
    vrend_use_program(sub_ctx, sprog);
@@ -2266,7 +2266,7 @@ static void vrend_destroy_program(struct vrend_linked_shader_program *ent)
    if (ent->ref_context && ent->ref_context->prog == ent)
       ent->ref_context->prog = NULL;
 
-   if (ent->ubo_sysval_buffer_id != 0) {
+   if (ent->ubo_sysval_buffer_id != GL_INVALID_INDEX) {
        glDeleteBuffers(1, &ent->ubo_sysval_buffer_id);
    }
 
@@ -5255,9 +5255,9 @@ static void vrend_draw_bind_vertex_binding(struct vrend_context *ctx,
    }
 }
 
-static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
-                                           int shader_type,
-                                           int next_sampler_id)
+static GLuint vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
+                                              int shader_type,
+                                              GLuint next_sampler_id)
 {
    struct vrend_linked_shader_program *sprog = sub_ctx->prog;
    struct vrend_shader_view *shader_view = &sub_ctx->views[shader_type];
@@ -5342,8 +5342,8 @@ static int vrend_draw_bind_samplers_shader(struct vrend_sub_context *sub_ctx,
    return next_sampler_id;
 }
 
-static int vrend_draw_bind_ubo_shader(struct vrend_sub_context *sub_ctx,
-                                      int shader_type, unsigned next_ubo_id)
+static GLuint vrend_draw_bind_ubo_shader(struct vrend_sub_context *sub_ctx,
+                                         int shader_type, GLuint next_ubo_id)
 {
    uint32_t mask, dirty, update;
    struct pipe_constant_buffer *cb;
@@ -5591,7 +5591,7 @@ vrend_fill_sysval_uniform_block (struct vrend_sub_context *sub_ctx)
 
 static void vrend_draw_bind_objects(struct vrend_sub_context *sub_ctx, bool new_program)
 {
-   int next_ubo_id = 0, next_sampler_id = 0;
+   GLuint next_ubo_id = 0, next_sampler_id = 0;
    for (int shader_type = PIPE_SHADER_VERTEX; shader_type <= sub_ctx->last_shader_idx; shader_type++) {
       vrend_set_active_pipeline_stage(sub_ctx->prog, shader_type);
 
@@ -7096,7 +7096,7 @@ void vrend_bind_sampler_states(struct vrend_context *ctx,
 static void vrend_apply_sampler_state(struct vrend_sub_context *sub_ctx,
                                       struct vrend_resource *res,
                                       struct vrend_sampler_state *sampler_state,
-                                      int sampler_id,
+                                      GLuint sampler_id,
                                       struct vrend_sampler_view *tview)
 {
    struct vrend_texture *tex = (struct vrend_texture *)res;
