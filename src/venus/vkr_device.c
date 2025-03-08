@@ -85,6 +85,7 @@ vkr_dispatch_vkCreateDevice(struct vn_dispatch_context *dispatch,
 
    struct vkr_physical_device *physical_dev =
       vkr_physical_device_from_handle(args->physicalDevice);
+   struct vn_physical_device_proc_table *vk = &physical_dev->proc_table;
 
    /* there can be at most two members sharing a queueFamilyIndex (one
     * protected-capable, one not), in which case their summed queueCount must
@@ -162,8 +163,8 @@ vkr_dispatch_vkCreateDevice(struct vn_dispatch_context *dispatch,
    }
 
    vn_replace_vkCreateDevice_args_handle(args);
-   args->ret = vkCreateDevice(args->physicalDevice, args->pCreateInfo, NULL,
-                              &dev->base.handle.device);
+   args->ret = vk->CreateDevice(args->physicalDevice, args->pCreateInfo, NULL,
+                                &dev->base.handle.device);
    if (args->ret != VK_SUCCESS) {
       free(exts);
       free(dev);
@@ -181,7 +182,8 @@ vkr_dispatch_vkCreateDevice(struct vn_dispatch_context *dispatch,
    args->ret = vkr_device_create_queues(ctx, dev, args->pCreateInfo->queueCreateInfoCount,
                                         args->pCreateInfo->pQueueCreateInfos);
    if (args->ret != VK_SUCCESS) {
-      vkDestroyDevice(dev->base.handle.device, NULL);
+      struct vn_device_proc_table *vk = &dev->proc_table;
+      vk->DestroyDevice(dev->base.handle.device, NULL);
       free(dev);
       return;
    }
