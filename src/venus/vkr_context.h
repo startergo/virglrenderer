@@ -9,6 +9,7 @@
 #include "vkr_common.h"
 
 #include "venus-protocol/vn_protocol_renderer_defines.h"
+#include "venus-protocol/vn_protocol_renderer_util.h"
 #include "virgl_resource.h"
 
 #include "vkr_cs.h"
@@ -90,6 +91,9 @@ struct vkr_context {
    struct vkr_cs_encoder encoder;
    struct vkr_cs_decoder decoder;
    struct vn_dispatch_context dispatch;
+
+   PFN_vkGetInstanceProcAddr get_proc_addr;
+   struct vn_global_proc_table proc_table;
 
    struct vkr_queue *sync_queues[64];
 

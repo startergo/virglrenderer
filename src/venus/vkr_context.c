@@ -125,6 +125,14 @@ vkr_context_init_dispatch(struct vkr_context *ctx)
    vkr_context_init_acceleration_structure_dispatch(ctx);
 }
 
+static inline void
+vkr_context_init_proc_table(struct vkr_context *ctx)
+{
+   /* TODO dlsym vkGetInstanceProcAddr directly from libvulkan */
+   ctx->get_proc_addr = vkGetInstanceProcAddr;
+   vn_util_init_global_proc_table(ctx->get_proc_addr, &ctx->proc_table);
+}
+
 bool
 vkr_context_submit_fence(struct vkr_context *ctx,
                          uint32_t flags,
@@ -709,6 +717,7 @@ vkr_context_create(uint32_t ctx_id,
       goto err_cs_encoder_init;
 
    vkr_context_init_dispatch(ctx);
+   vkr_context_init_proc_table(ctx);
 
    if (mtx_init(&ctx->ring_mutex, mtx_plain) != thrd_success)
       goto err_ctx_ring_mutex;

@@ -104,9 +104,10 @@ vkr_instance_enumerate_physical_devices(struct vkr_instance *instance)
    if (instance->physical_device_count)
       return VK_SUCCESS;
 
+   struct vn_instance_proc_table *vk = &instance->proc_table;
    uint32_t count;
    VkResult result =
-      vkEnumeratePhysicalDevices(instance->base.handle.instance, &count, NULL);
+      vk->EnumeratePhysicalDevices(instance->base.handle.instance, &count, NULL);
    if (result != VK_SUCCESS)
       return result;
 
@@ -118,7 +119,7 @@ vkr_instance_enumerate_physical_devices(struct vkr_instance *instance)
       return VK_ERROR_OUT_OF_HOST_MEMORY;
    }
 
-   result = vkEnumeratePhysicalDevices(instance->base.handle.instance, &count, handles);
+   result = vk->EnumeratePhysicalDevices(instance->base.handle.instance, &count, handles);
    if (result != VK_SUCCESS) {
       free(physical_devs);
       free(handles);
@@ -311,7 +312,7 @@ vkr_physical_device_init_proc_table(struct vkr_physical_device *physical_dev,
                                     struct vkr_instance *instance)
 {
    vn_util_init_physical_device_proc_table(
-      instance->base.handle.instance, vkGetInstanceProcAddr, &physical_dev->proc_table);
+      instance->base.handle.instance, instance->get_proc_addr, &physical_dev->proc_table);
 }
 
 static void
@@ -453,10 +454,11 @@ vkr_dispatch_vkEnumeratePhysicalDeviceGroups(
       }
    }
 
+   struct vn_instance_proc_table *vk = &instance->proc_table;
    vn_replace_vkEnumeratePhysicalDeviceGroups_args_handle(args);
    args->ret =
-      vkEnumeratePhysicalDeviceGroups(args->instance, args->pPhysicalDeviceGroupCount,
-                                      args->pPhysicalDeviceGroupProperties);
+      vk->EnumeratePhysicalDeviceGroups(args->instance, args->pPhysicalDeviceGroupCount,
+                                        args->pPhysicalDeviceGroupProperties);
    if (args->ret != VK_SUCCESS)
       return;
 

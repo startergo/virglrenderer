@@ -14,10 +14,13 @@ static void
 vkr_dispatch_vkEnumerateInstanceVersion(UNUSED struct vn_dispatch_context *dispatch,
                                         struct vn_command_vkEnumerateInstanceVersion *args)
 {
+   struct vkr_context *ctx = dispatch->data;
+   struct vn_global_proc_table *vk = &ctx->proc_table;
+
    vn_replace_vkEnumerateInstanceVersion_args_handle(args);
 
    uint32_t version = 0;
-   args->ret = vkEnumerateInstanceVersion(&version);
+   args->ret = vk->EnumerateInstanceVersion(&version);
    if (args->ret == VK_SUCCESS)
       version = vkr_api_version_cap_minor(version, VKR_MAX_API_VERSION);
 
@@ -78,11 +81,20 @@ vkr_validation_callback(UNUSED VkDebugUtilsMessageSeverityFlagBitsEXT messageSev
    return true;
 }
 
+static inline void
+vkr_instance_init_proc_table(struct vkr_instance *instance, struct vkr_context *ctx)
+{
+   instance->get_proc_addr = ctx->get_proc_addr;
+   vn_util_init_instance_proc_table(instance->base.handle.instance, ctx->get_proc_addr,
+                                    &instance->proc_table);
+}
+
 static void
 vkr_dispatch_vkCreateInstance(struct vn_dispatch_context *dispatch,
                               struct vn_command_vkCreateInstance *args)
 {
    struct vkr_context *ctx = dispatch->data;
+   struct vn_global_proc_table *vk = &ctx->proc_table;
 
    if (ctx->instance) {
       vkr_context_set_fatal(ctx);
@@ -100,7 +112,7 @@ vkr_dispatch_vkCreateInstance(struct vn_dispatch_context *dispatch,
    }
 
    uint32_t instance_version;
-   args->ret = vkEnumerateInstanceVersion(&instance_version);
+   args->ret = vk->EnumerateInstanceVersion(&instance_version);
    if (args->ret != VK_SUCCESS)
       return;
 
@@ -195,18 +207,20 @@ vkr_dispatch_vkCreateInstance(struct vn_dispatch_context *dispatch,
    instance->api_version = app_info.apiVersion;
 
    vn_replace_vkCreateInstance_args_handle(args);
-   args->ret = vkCreateInstance(create_info, NULL, &instance->base.handle.instance);
+   args->ret = vk->CreateInstance(create_info, NULL, &instance->base.handle.instance);
    if (args->ret != VK_SUCCESS) {
       free(instance);
       return;
    }
 
+   vkr_instance_init_proc_table(instance, ctx);
+
    if (ctx->validate_level != VKR_CONTEXT_VALIDATE_NONE) {
       instance->create_debug_utils_messenger =
-         (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+         (PFN_vkCreateDebugUtilsMessengerEXT)ctx->get_proc_addr(
             instance->base.handle.instance, "vkCreateDebugUtilsMessengerEXT");
       instance->destroy_debug_utils_messenger =
-         (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+         (PFN_vkDestroyDebugUtilsMessengerEXT)ctx->get_proc_addr(
             instance->base.handle.instance, "vkDestroyDebugUtilsMessengerEXT");
 
       messenger_create_info.pNext = NULL;
@@ -214,7 +228,8 @@ vkr_dispatch_vkCreateInstance(struct vn_dispatch_context *dispatch,
                                                          &messenger_create_info, NULL,
                                                          &instance->validation_messenger);
       if (args->ret != VK_SUCCESS) {
-         vkDestroyInstance(instance->base.handle.instance, NULL);
+         struct vn_instance_proc_table *vk = &instance->proc_table;
+         vk->DestroyInstance(instance->base.handle.instance, NULL);
          free(instance);
          return;
       }
@@ -228,6 +243,8 @@ vkr_instance_destroy(struct vkr_context *ctx,
                      struct vkr_instance *instance,
                      bool destroy_vk)
 {
+   struct vn_instance_proc_table *vk = &instance->proc_table;
+
    for (uint32_t i = 0; i < instance->physical_device_count; i++) {
       struct vkr_physical_device *physical_dev = instance->physical_devices[i];
       if (!physical_dev)
@@ -242,7 +259,7 @@ vkr_instance_destroy(struct vkr_context *ctx,
    }
 
    if (destroy_vk || ctx->on_worker_thread)
-      vkDestroyInstance(instance->base.handle.instance, NULL);
+      vk->DestroyInstance(instance->base.handle.instance, NULL);
 
    free(instance->physical_device_handles);
    free(instance->physical_devices);

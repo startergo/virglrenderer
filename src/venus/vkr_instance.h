@@ -8,8 +8,13 @@
 
 #include "vkr_common.h"
 
+#include "venus-protocol/vn_protocol_renderer_util.h"
+
 struct vkr_instance {
    struct vkr_object base;
+
+   PFN_vkGetInstanceProcAddr get_proc_addr;
+   struct vn_instance_proc_table proc_table;
 
    uint32_t api_version;
    PFN_vkCreateDebugUtilsMessengerEXT create_debug_utils_messenger;
