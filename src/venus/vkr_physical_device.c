@@ -302,12 +302,12 @@ vkr_physical_device_init_properties(struct vkr_physical_device *physical_dev)
    props->apiVersion = vkr_api_version_cap_minor(props->apiVersion, VKR_MAX_API_VERSION);
 }
 
-static void
+static inline void
 vkr_physical_device_init_proc_table(struct vkr_physical_device *physical_dev,
                                     struct vkr_instance *instance)
 {
-   vn_util_init_physical_device_proc_table(instance->base.handle.instance,
-                                           &physical_dev->proc_table);
+   vn_util_init_physical_device_proc_table(
+      instance->base.handle.instance, vkGetInstanceProcAddr, &physical_dev->proc_table);
 }
 
 static void

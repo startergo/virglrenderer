@@ -67,11 +67,14 @@ vkr_device_init_proc_table(struct vkr_device *dev,
                            const char *const *exts,
                            uint32_t count)
 {
+   assert(dev->physical_device);
+   struct vn_physical_device_proc_table *vk = &dev->physical_device->proc_table;
+
    struct vn_info_extension_table ext_table;
    vkr_extension_table_init(&ext_table, exts, count);
 
-   vn_util_init_device_proc_table(dev->base.handle.device, api_version, &ext_table,
-                                  &dev->proc_table);
+   vn_util_init_device_proc_table(dev->base.handle.device, vk->GetDeviceProcAddr,
+                                  api_version, &ext_table, &dev->proc_table);
 }
 
 static void

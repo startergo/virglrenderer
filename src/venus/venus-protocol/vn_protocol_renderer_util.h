@@ -11,10 +11,44 @@
 
 #include "vn_protocol_renderer_info.h"
 
+struct vn_global_proc_table {
+   PFN_vkCreateInstance CreateInstance;
+   PFN_vkEnumerateInstanceExtensionProperties EnumerateInstanceExtensionProperties;
+   PFN_vkEnumerateInstanceLayerProperties EnumerateInstanceLayerProperties;
+   PFN_vkEnumerateInstanceVersion EnumerateInstanceVersion;
+};
+
+struct vn_instance_proc_table {
+   PFN_vkDestroyInstance DestroyInstance;
+   PFN_vkEnumeratePhysicalDeviceGroups EnumeratePhysicalDeviceGroups;
+   PFN_vkEnumeratePhysicalDevices EnumeratePhysicalDevices;
+};
+
 struct vn_physical_device_proc_table {
+   PFN_vkCreateDevice CreateDevice;
+   PFN_vkEnumerateDeviceExtensionProperties EnumerateDeviceExtensionProperties;
+   PFN_vkEnumerateDeviceLayerProperties EnumerateDeviceLayerProperties;
+   PFN_vkGetDeviceProcAddr GetDeviceProcAddr;
    PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR GetPhysicalDeviceCalibrateableTimeDomainsKHR;
+   PFN_vkGetPhysicalDeviceExternalBufferProperties GetPhysicalDeviceExternalBufferProperties;
+   PFN_vkGetPhysicalDeviceExternalFenceProperties GetPhysicalDeviceExternalFenceProperties;
+   PFN_vkGetPhysicalDeviceExternalSemaphoreProperties GetPhysicalDeviceExternalSemaphoreProperties;
+   PFN_vkGetPhysicalDeviceFeatures GetPhysicalDeviceFeatures;
+   PFN_vkGetPhysicalDeviceFeatures2 GetPhysicalDeviceFeatures2;
+   PFN_vkGetPhysicalDeviceFormatProperties GetPhysicalDeviceFormatProperties;
+   PFN_vkGetPhysicalDeviceFormatProperties2 GetPhysicalDeviceFormatProperties2;
    PFN_vkGetPhysicalDeviceFragmentShadingRatesKHR GetPhysicalDeviceFragmentShadingRatesKHR;
+   PFN_vkGetPhysicalDeviceImageFormatProperties GetPhysicalDeviceImageFormatProperties;
+   PFN_vkGetPhysicalDeviceImageFormatProperties2 GetPhysicalDeviceImageFormatProperties2;
+   PFN_vkGetPhysicalDeviceMemoryProperties GetPhysicalDeviceMemoryProperties;
+   PFN_vkGetPhysicalDeviceMemoryProperties2 GetPhysicalDeviceMemoryProperties2;
    PFN_vkGetPhysicalDeviceMultisamplePropertiesEXT GetPhysicalDeviceMultisamplePropertiesEXT;
+   PFN_vkGetPhysicalDeviceProperties GetPhysicalDeviceProperties;
+   PFN_vkGetPhysicalDeviceProperties2 GetPhysicalDeviceProperties2;
+   PFN_vkGetPhysicalDeviceQueueFamilyProperties GetPhysicalDeviceQueueFamilyProperties;
+   PFN_vkGetPhysicalDeviceQueueFamilyProperties2 GetPhysicalDeviceQueueFamilyProperties2;
+   PFN_vkGetPhysicalDeviceSparseImageFormatProperties GetPhysicalDeviceSparseImageFormatProperties;
+   PFN_vkGetPhysicalDeviceSparseImageFormatProperties2 GetPhysicalDeviceSparseImageFormatProperties2;
    PFN_vkGetPhysicalDeviceToolProperties GetPhysicalDeviceToolProperties;
 };
 
@@ -245,7 +279,6 @@ struct vn_device_proc_table {
    PFN_vkGetDeviceImageSubresourceLayout GetDeviceImageSubresourceLayout;
    PFN_vkGetDeviceMemoryCommitment GetDeviceMemoryCommitment;
    PFN_vkGetDeviceMemoryOpaqueCaptureAddress GetDeviceMemoryOpaqueCaptureAddress;
-   PFN_vkGetDeviceProcAddr GetDeviceProcAddr;
    PFN_vkGetDeviceQueue GetDeviceQueue;
    PFN_vkGetDeviceQueue2 GetDeviceQueue2;
    PFN_vkGetEventStatus GetEventStatus;
@@ -301,15 +334,83 @@ struct vn_device_proc_table {
 };
 
 static inline void
+vn_util_init_global_proc_table(PFN_vkGetInstanceProcAddr get_proc_addr,
+                               struct vn_global_proc_table *proc_table)
+{
+#define VN_GIPA(cmd) (PFN_ ## cmd)get_proc_addr(VK_NULL_HANDLE, #cmd)
+   proc_table->CreateInstance = VN_GIPA(vkCreateInstance);
+   proc_table->EnumerateInstanceExtensionProperties = VN_GIPA(vkEnumerateInstanceExtensionProperties);
+   proc_table->EnumerateInstanceLayerProperties = VN_GIPA(vkEnumerateInstanceLayerProperties);
+   proc_table->EnumerateInstanceVersion = VN_GIPA(vkEnumerateInstanceVersion);
+#undef VN_GIPA
+}
+
+static inline void
+vn_util_init_instance_proc_table(VkInstance instance,
+                                 PFN_vkGetInstanceProcAddr get_proc_addr,
+                                 struct vn_instance_proc_table *proc_table)
+{
+#define VN_GIPA(instance, cmd) (PFN_ ## cmd)get_proc_addr(instance, #cmd)
+   proc_table->DestroyInstance = VN_GIPA(instance, vkDestroyInstance);
+   proc_table->EnumeratePhysicalDeviceGroups = VN_GIPA(instance, vkEnumeratePhysicalDeviceGroups);
+   if (!proc_table->EnumeratePhysicalDeviceGroups)
+      proc_table->EnumeratePhysicalDeviceGroups = VN_GIPA(instance, vkEnumeratePhysicalDeviceGroupsKHR);
+   proc_table->EnumeratePhysicalDevices = VN_GIPA(instance, vkEnumeratePhysicalDevices);
+#undef VN_GIPA
+}
+
+static inline void
 vn_util_init_physical_device_proc_table(VkInstance instance,
+                                        PFN_vkGetInstanceProcAddr get_proc_addr,
                                         struct vn_physical_device_proc_table *proc_table)
 {
-#define VN_GIPA(instance, cmd) (PFN_ ## cmd)vkGetInstanceProcAddr(instance, #cmd)
+#define VN_GIPA(instance, cmd) (PFN_ ## cmd)get_proc_addr(instance, #cmd)
+   proc_table->CreateDevice = VN_GIPA(instance, vkCreateDevice);
+   proc_table->EnumerateDeviceExtensionProperties = VN_GIPA(instance, vkEnumerateDeviceExtensionProperties);
+   proc_table->EnumerateDeviceLayerProperties = VN_GIPA(instance, vkEnumerateDeviceLayerProperties);
+   proc_table->GetDeviceProcAddr = VN_GIPA(instance, vkGetDeviceProcAddr);
    proc_table->GetPhysicalDeviceCalibrateableTimeDomainsKHR = VN_GIPA(instance, vkGetPhysicalDeviceCalibrateableTimeDomainsKHR);
    if (!proc_table->GetPhysicalDeviceCalibrateableTimeDomainsKHR)
       proc_table->GetPhysicalDeviceCalibrateableTimeDomainsKHR = VN_GIPA(instance, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT);
+   proc_table->GetPhysicalDeviceExternalBufferProperties = VN_GIPA(instance, vkGetPhysicalDeviceExternalBufferProperties);
+   if (!proc_table->GetPhysicalDeviceExternalBufferProperties)
+      proc_table->GetPhysicalDeviceExternalBufferProperties = VN_GIPA(instance, vkGetPhysicalDeviceExternalBufferPropertiesKHR);
+   proc_table->GetPhysicalDeviceExternalFenceProperties = VN_GIPA(instance, vkGetPhysicalDeviceExternalFenceProperties);
+   if (!proc_table->GetPhysicalDeviceExternalFenceProperties)
+      proc_table->GetPhysicalDeviceExternalFenceProperties = VN_GIPA(instance, vkGetPhysicalDeviceExternalFencePropertiesKHR);
+   proc_table->GetPhysicalDeviceExternalSemaphoreProperties = VN_GIPA(instance, vkGetPhysicalDeviceExternalSemaphoreProperties);
+   if (!proc_table->GetPhysicalDeviceExternalSemaphoreProperties)
+      proc_table->GetPhysicalDeviceExternalSemaphoreProperties = VN_GIPA(instance, vkGetPhysicalDeviceExternalSemaphorePropertiesKHR);
+   proc_table->GetPhysicalDeviceFeatures = VN_GIPA(instance, vkGetPhysicalDeviceFeatures);
+   proc_table->GetPhysicalDeviceFeatures2 = VN_GIPA(instance, vkGetPhysicalDeviceFeatures2);
+   if (!proc_table->GetPhysicalDeviceFeatures2)
+      proc_table->GetPhysicalDeviceFeatures2 = VN_GIPA(instance, vkGetPhysicalDeviceFeatures2KHR);
+   proc_table->GetPhysicalDeviceFormatProperties = VN_GIPA(instance, vkGetPhysicalDeviceFormatProperties);
+   proc_table->GetPhysicalDeviceFormatProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceFormatProperties2);
+   if (!proc_table->GetPhysicalDeviceFormatProperties2)
+      proc_table->GetPhysicalDeviceFormatProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceFormatProperties2KHR);
    proc_table->GetPhysicalDeviceFragmentShadingRatesKHR = VN_GIPA(instance, vkGetPhysicalDeviceFragmentShadingRatesKHR);
+   proc_table->GetPhysicalDeviceImageFormatProperties = VN_GIPA(instance, vkGetPhysicalDeviceImageFormatProperties);
+   proc_table->GetPhysicalDeviceImageFormatProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceImageFormatProperties2);
+   if (!proc_table->GetPhysicalDeviceImageFormatProperties2)
+      proc_table->GetPhysicalDeviceImageFormatProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceImageFormatProperties2KHR);
+   proc_table->GetPhysicalDeviceMemoryProperties = VN_GIPA(instance, vkGetPhysicalDeviceMemoryProperties);
+   proc_table->GetPhysicalDeviceMemoryProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceMemoryProperties2);
+   if (!proc_table->GetPhysicalDeviceMemoryProperties2)
+      proc_table->GetPhysicalDeviceMemoryProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceMemoryProperties2KHR);
    proc_table->GetPhysicalDeviceMultisamplePropertiesEXT = VN_GIPA(instance, vkGetPhysicalDeviceMultisamplePropertiesEXT);
+   proc_table->GetPhysicalDeviceProperties = VN_GIPA(instance, vkGetPhysicalDeviceProperties);
+   proc_table->GetPhysicalDeviceProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceProperties2);
+   if (!proc_table->GetPhysicalDeviceProperties2)
+      proc_table->GetPhysicalDeviceProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceProperties2KHR);
+   proc_table->GetPhysicalDeviceQueueFamilyProperties = VN_GIPA(instance, vkGetPhysicalDeviceQueueFamilyProperties);
+   proc_table->GetPhysicalDeviceQueueFamilyProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceQueueFamilyProperties2);
+   if (!proc_table->GetPhysicalDeviceQueueFamilyProperties2)
+      proc_table->GetPhysicalDeviceQueueFamilyProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceQueueFamilyProperties2KHR);
+   proc_table->GetPhysicalDeviceSparseImageFormatProperties = VN_GIPA(instance, vkGetPhysicalDeviceSparseImageFormatProperties);
+   proc_table->GetPhysicalDeviceSparseImageFormatProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceSparseImageFormatProperties2);
+   if (!proc_table->GetPhysicalDeviceSparseImageFormatProperties2)
+      proc_table->GetPhysicalDeviceSparseImageFormatProperties2 = VN_GIPA(instance, vkGetPhysicalDeviceSparseImageFormatProperties2KHR);
    proc_table->GetPhysicalDeviceToolProperties = VN_GIPA(instance, vkGetPhysicalDeviceToolProperties);
    if (!proc_table->GetPhysicalDeviceToolProperties)
       proc_table->GetPhysicalDeviceToolProperties = VN_GIPA(instance, vkGetPhysicalDeviceToolPropertiesEXT);
@@ -319,11 +420,12 @@ vn_util_init_physical_device_proc_table(VkInstance instance,
 
 static inline void
 vn_util_init_device_proc_table(VkDevice dev,
+                               PFN_vkGetDeviceProcAddr get_proc_addr,
                                uint32_t api_version,
                                const struct vn_info_extension_table *ext_table,
                                struct vn_device_proc_table *proc_table)
 {
-#define VN_GDPA(dev, cmd) (PFN_ ## cmd)vkGetDeviceProcAddr(dev, #cmd)
+#define VN_GDPA(dev, cmd) (PFN_ ## cmd)get_proc_addr(dev, #cmd)
    proc_table->AllocateCommandBuffers = VN_GDPA(dev, vkAllocateCommandBuffers);
    proc_table->AllocateDescriptorSets = VN_GDPA(dev, vkAllocateDescriptorSets);
    proc_table->AllocateMemory = VN_GDPA(dev, vkAllocateMemory);
@@ -880,7 +982,6 @@ vn_util_init_device_proc_table(VkDevice dev,
       api_version >= VK_API_VERSION_1_2 ? VN_GDPA(dev, vkGetDeviceMemoryOpaqueCaptureAddress) :
       ext_table->KHR_buffer_device_address ? VN_GDPA(dev, vkGetDeviceMemoryOpaqueCaptureAddressKHR) :
       NULL;
-   proc_table->GetDeviceProcAddr = VN_GDPA(dev, vkGetDeviceProcAddr);
    proc_table->GetDeviceQueue = VN_GDPA(dev, vkGetDeviceQueue);
    proc_table->GetDeviceQueue2 =
       api_version >= VK_API_VERSION_1_1 ? VN_GDPA(dev, vkGetDeviceQueue2) :
