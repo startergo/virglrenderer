@@ -120,6 +120,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .KHR_external_semaphore_fd = true,
    .KHR_fragment_shader_barycentric = true,
    .KHR_fragment_shading_rate = true,
+   .KHR_maintenance7 = true,
    .KHR_pipeline_library = true,
    .KHR_ray_query = true,
    .KHR_ray_tracing_maintenance1 = true,
