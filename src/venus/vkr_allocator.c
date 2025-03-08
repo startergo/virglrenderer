@@ -42,7 +42,26 @@
  */
 #define VKR_ALLOCATOR_MAX_DEVICE_COUNT 4
 
+struct vkr_inst_proc_table {
+   PFN_vkCreateInstance CreateInstance;
+   PFN_vkDestroyInstance DestroyInstance;
+   PFN_vkEnumeratePhysicalDevices EnumeratePhysicalDevices;
+   PFN_vkGetPhysicalDeviceProperties2 GetPhysicalDeviceProperties2;
+   PFN_vkCreateDevice CreateDevice;
+   PFN_vkGetDeviceProcAddr GetDeviceProcAddr;
+};
+
+struct vkr_dev_proc_table {
+   PFN_vkDestroyDevice DestroyDevice;
+   PFN_vkAllocateMemory AllocateMemory;
+   PFN_vkFreeMemory FreeMemory;
+   PFN_vkMapMemory MapMemory;
+   PFN_vkUnmapMemory UnmapMemory;
+};
+
 struct vkr_opaque_fd_mem_info {
+   struct vkr_dev_proc_table *vk;
+
    VkDevice device;
    VkDeviceMemory device_memory;
    uint32_t res_id;
@@ -52,8 +71,10 @@ struct vkr_opaque_fd_mem_info {
 };
 
 static struct vkr_allocator {
+   struct vkr_inst_proc_table proc_table;
    VkInstance instance;
 
+   struct vkr_dev_proc_table proc_tables[VKR_ALLOCATOR_MAX_DEVICE_COUNT];
    VkPhysicalDevice physical_devices[VKR_ALLOCATOR_MAX_DEVICE_COUNT];
    VkDevice devices[VKR_ALLOCATOR_MAX_DEVICE_COUNT];
    uint8_t device_uuids[VKR_ALLOCATOR_MAX_DEVICE_COUNT][VK_UUID_SIZE];
@@ -67,29 +88,32 @@ static bool vkr_allocator_initialized;
 static void
 vkr_allocator_free_memory(struct vkr_opaque_fd_mem_info *mem_info)
 {
-   vkFreeMemory(mem_info->device, mem_info->device_memory, NULL);
+   mem_info->vk->FreeMemory(mem_info->device, mem_info->device_memory, NULL);
    list_del(&mem_info->head);
    free(mem_info);
 }
 
-static VkDevice
-vkr_allocator_get_device(struct virgl_resource *res)
+static uint32_t
+vkr_allocator_get_dev_idx(struct virgl_resource *res)
 {
    for (uint32_t i = 0; i < vkr_allocator.device_count; ++i) {
       if (memcmp(vkr_allocator.device_uuids[i], res->vulkan_info.device_uuid,
                  VK_UUID_SIZE) == 0)
-         return vkr_allocator.devices[i];
+         return i;
    }
 
-   return VK_NULL_HANDLE;
+   return VKR_ALLOCATOR_MAX_DEVICE_COUNT;
 }
 
 static struct vkr_opaque_fd_mem_info *
 vkr_allocator_allocate_memory(struct virgl_resource *res)
 {
-   VkDevice dev_handle = vkr_allocator_get_device(res);
-   if (dev_handle == VK_NULL_HANDLE)
+   const uint32_t idx = vkr_allocator_get_dev_idx(res);
+   if (idx == VKR_ALLOCATOR_MAX_DEVICE_COUNT)
       return NULL;
+
+   VkDevice dev_handle = vkr_allocator.devices[idx];
+   struct vkr_dev_proc_table *vk = &vkr_allocator.proc_tables[idx];
 
    int fd = -1;
    if (virgl_resource_export_fd(res, &fd) != VIRGL_RESOURCE_FD_OPAQUE) {
@@ -110,17 +134,18 @@ vkr_allocator_allocate_memory(struct virgl_resource *res)
    };
 
    VkDeviceMemory mem_handle;
-   if (vkAllocateMemory(dev_handle, &alloc_info, NULL, &mem_handle) != VK_SUCCESS) {
+   if (vk->AllocateMemory(dev_handle, &alloc_info, NULL, &mem_handle) != VK_SUCCESS) {
       close(fd);
       return NULL;
    }
 
    struct vkr_opaque_fd_mem_info *mem_info = calloc(1, sizeof(*mem_info));
    if (!mem_info) {
-      vkFreeMemory(dev_handle, mem_handle, NULL);
+      vk->FreeMemory(dev_handle, mem_handle, NULL);
       return NULL;
    }
 
+   mem_info->vk = vk;
    mem_info->device = dev_handle;
    mem_info->device_memory = mem_handle;
    mem_info->res_id = res->res_id;
@@ -140,20 +165,55 @@ vkr_allocator_fini(void)
    list_for_each_entry_safe (struct vkr_opaque_fd_mem_info, mem_info, &vkr_allocator.memories, head)
       vkr_allocator_free_memory(mem_info);
 
-   for (uint32_t i = 0; i < vkr_allocator.device_count; ++i) {
-      vkDestroyDevice(vkr_allocator.devices[i], NULL);
+   for (uint32_t i = 0; i < vkr_allocator.device_count; i++) {
+      struct vkr_dev_proc_table *vk = &vkr_allocator.proc_tables[i];
+      vk->DestroyDevice(vkr_allocator.devices[i], NULL);
    }
-   vkDestroyInstance(vkr_allocator.instance, NULL);
+
+   struct vkr_inst_proc_table *vk = &vkr_allocator.proc_table;
+   vk->DestroyInstance(vkr_allocator.instance, NULL);
 
    memset(&vkr_allocator, 0, sizeof(vkr_allocator));
 
    vkr_allocator_initialized = false;
 }
 
+static void
+vkr_allocator_inst_proc_table_init(VkInstance inst_handle,
+                                   PFN_vkGetInstanceProcAddr get_proc_addr,
+                                   struct vkr_inst_proc_table *vk)
+{
+#define VN_GIPA(cmd) (PFN_##cmd) get_proc_addr(inst_handle, #cmd)
+   vk->DestroyInstance = VN_GIPA(vkDestroyInstance);
+   vk->EnumeratePhysicalDevices = VN_GIPA(vkEnumeratePhysicalDevices);
+   vk->GetPhysicalDeviceProperties2 = VN_GIPA(vkGetPhysicalDeviceProperties2);
+   vk->CreateDevice = VN_GIPA(vkCreateDevice);
+   vk->GetDeviceProcAddr = VN_GIPA(vkGetDeviceProcAddr);
+#undef VN_GIPA
+}
+
+static void
+vkr_allocator_dev_proc_table_init(VkDevice dev_handle,
+                                  PFN_vkGetDeviceProcAddr get_proc_addr,
+                                  struct vkr_dev_proc_table *vk)
+{
+#define VN_GDPA(cmd) (PFN_##cmd) get_proc_addr(dev_handle, #cmd)
+   vk->DestroyDevice = VN_GDPA(vkDestroyDevice);
+   vk->AllocateMemory = VN_GDPA(vkAllocateMemory);
+   vk->FreeMemory = VN_GDPA(vkFreeMemory);
+   vk->MapMemory = VN_GDPA(vkMapMemory);
+   vk->UnmapMemory = VN_GDPA(vkUnmapMemory);
+#undef VN_GDPA
+}
+
 int
 vkr_allocator_init(void)
 {
+   struct vkr_inst_proc_table *vk = &vkr_allocator.proc_table;
    VkResult res;
+
+   /* TODO dlsym vkGetInstanceProcAddr directly from libvulkan */
+   PFN_vkGetInstanceProcAddr get_proc_addr = vkGetInstanceProcAddr;
 
    VkApplicationInfo app_info = {
       .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -165,14 +225,18 @@ vkr_allocator_init(void)
       .pApplicationInfo = &app_info,
    };
 
-   res = vkCreateInstance(&inst_info, NULL, &vkr_allocator.instance);
+   vk->CreateInstance =
+      (PFN_vkCreateInstance)get_proc_addr(VK_NULL_HANDLE, "vkCreateInstance");
+   res = vk->CreateInstance(&inst_info, NULL, &vkr_allocator.instance);
    if (res != VK_SUCCESS)
       goto fail;
 
+   vkr_allocator_inst_proc_table_init(vkr_allocator.instance, get_proc_addr, vk);
+
    vkr_allocator.device_count = VKR_ALLOCATOR_MAX_DEVICE_COUNT;
 
-   res = vkEnumeratePhysicalDevices(vkr_allocator.instance, &vkr_allocator.device_count,
-                                    vkr_allocator.physical_devices);
+   res = vk->EnumeratePhysicalDevices(vkr_allocator.instance, &vkr_allocator.device_count,
+                                      vkr_allocator.physical_devices);
    if (res != VK_SUCCESS && res != VK_INCOMPLETE)
       goto fail;
 
@@ -185,7 +249,7 @@ vkr_allocator_init(void)
       VkPhysicalDeviceProperties2 props2 = {
          .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = &id_props
       };
-      vkGetPhysicalDeviceProperties2(physical_dev_handle, &props2);
+      vk->GetPhysicalDeviceProperties2(physical_dev_handle, &props2);
 
       memcpy(vkr_allocator.device_uuids[i], id_props.deviceUUID, VK_UUID_SIZE);
 
@@ -205,10 +269,13 @@ vkr_allocator_init(void)
          .pQueueCreateInfos = &queue_info,
       };
 
-      res =
-         vkCreateDevice(physical_dev_handle, &dev_info, NULL, &vkr_allocator.devices[i]);
+      res = vk->CreateDevice(physical_dev_handle, &dev_info, NULL,
+                             &vkr_allocator.devices[i]);
       if (res != VK_SUCCESS)
          goto fail;
+
+      vkr_allocator_dev_proc_table_init(vkr_allocator.devices[i], vk->GetDeviceProcAddr,
+                                        &vkr_allocator.proc_tables[i]);
    }
 
    list_inithead(&vkr_allocator.memories);
@@ -217,9 +284,10 @@ vkr_allocator_init(void)
 
 fail:
    for (uint32_t i = 0; i < vkr_allocator.device_count; ++i) {
-      vkDestroyDevice(vkr_allocator.devices[i], NULL);
+      struct vkr_dev_proc_table *dev_vk = &vkr_allocator.proc_tables[i];
+      dev_vk->DestroyDevice(vkr_allocator.devices[i], NULL);
    }
-   vkDestroyInstance(vkr_allocator.instance, NULL);
+   vk->DestroyInstance(vkr_allocator.instance, NULL);
 
    memset(&vkr_allocator, 0, sizeof(vkr_allocator));
 
@@ -242,8 +310,8 @@ vkr_allocator_resource_map(struct virgl_resource *res, void **map, uint64_t *out
       return -EINVAL;
 
    void *ptr;
-   if (vkMapMemory(mem_info->device, mem_info->device_memory, 0, mem_info->size, 0,
-                   &ptr) != VK_SUCCESS) {
+   if (mem_info->vk->MapMemory(mem_info->device, mem_info->device_memory, 0,
+                               mem_info->size, 0, &ptr) != VK_SUCCESS) {
       vkr_allocator_free_memory(mem_info);
       return -EINVAL;
    }
@@ -273,7 +341,7 @@ vkr_allocator_resource_unmap(struct virgl_resource *res)
    if (!mem_info)
       return -EINVAL;
 
-   vkUnmapMemory(mem_info->device, mem_info->device_memory);
+   mem_info->vk->UnmapMemory(mem_info->device, mem_info->device_memory);
 
    vkr_allocator_free_memory(mem_info);
 
