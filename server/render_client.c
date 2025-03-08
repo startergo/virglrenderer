@@ -6,7 +6,8 @@
 #include "render_client.h"
 
 #include <unistd.h>
-#include <vulkan/vulkan.h>
+
+#include "venus-protocol/vulkan.h"
 
 #include "render_context.h"
 #include "render_server.h"
@@ -224,9 +225,17 @@ render_client_dispatch_init(struct render_client *client,
 {
    client->init_flags = req->init.flags;
 
-   /* this makes the Vulkan loader loads ICDs */
-   uint32_t unused_count;
-   vkEnumerateInstanceExtensionProperties(NULL, &unused_count, NULL);
+   /* TODO dlsym vkGetInstanceProcAddr directly from libvulkan */
+   PFN_vkGetInstanceProcAddr get_proc_addr = vkGetInstanceProcAddr;
+
+   PFN_vkEnumerateInstanceExtensionProperties enumerate_inst_ext_props =
+      (PFN_vkEnumerateInstanceExtensionProperties)get_proc_addr(
+         VK_NULL_HANDLE, "vkEnumerateInstanceExtensionProperties");
+   if (enumerate_inst_ext_props) {
+      /* this makes the Vulkan loader loads ICDs */
+      uint32_t unused_count;
+      vkEnumerateInstanceExtensionProperties(NULL, &unused_count, NULL);
+   }
 
    return true;
 }
