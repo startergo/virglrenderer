@@ -31,7 +31,7 @@ static const struct backend {
    uint32_t context_type;
    const char *name;
    int (*probe)(int fd, struct virgl_renderer_capset_drm *capset);
-   struct virgl_context *(*create)(int fd, size_t debug_len, const char *debug_name);
+   struct virgl_context *(*create)(int fd, int flags, size_t debug_len, const char *debug_name);
 } backends[] = {
 #ifdef ENABLE_DRM_MSM
    {
@@ -128,7 +128,7 @@ drm_renderer_capset(void *_c)
 }
 
 struct virgl_context *
-drm_renderer_create(size_t debug_len, const char *debug_name)
+drm_renderer_create(size_t debug_len, const char *debug_name, int flags)
 {
    for (unsigned i = 0; i < ARRAY_SIZE(backends); i++) {
       const struct backend *b = &backends[i];
@@ -148,7 +148,7 @@ drm_renderer_create(size_t debug_len, const char *debug_name)
          drmIoctl(fd, DRM_IOCTL_SET_CLIENT_NAME, &n);
       }
 
-      return b->create(fd, debug_len, debug_name);
+      return b->create(fd, flags, debug_len, debug_name);
    }
 
    return NULL;

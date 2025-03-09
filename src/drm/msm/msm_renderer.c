@@ -1044,7 +1044,7 @@ msm_renderer_submit_fence(struct virgl_context *vctx, uint32_t flags, uint32_t r
 }
 
 struct virgl_context *
-msm_renderer_create(int fd, UNUSED size_t debug_len, UNUSED const char *debug_name)
+msm_renderer_create(int fd, int flags, UNUSED size_t debug_len, UNUSED const char *debug_name)
 {
    struct msm_context *mctx;
 
@@ -1054,7 +1054,7 @@ msm_renderer_create(int fd, UNUSED size_t debug_len, UNUSED const char *debug_na
    if (!mctx)
       return NULL;
 
-   if (!drm_context_init(&mctx->base, fd, ccmd_dispatch, ARRAY_SIZE(ccmd_dispatch))) {
+   if (!drm_context_init(&mctx->base, fd, ccmd_dispatch, ARRAY_SIZE(ccmd_dispatch), flags)) {
       free(mctx);
       return NULL;
    }

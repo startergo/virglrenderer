@@ -24,7 +24,8 @@ void drm_renderer_reset(void);
 
 size_t drm_renderer_capset(void *capset);
 
-struct virgl_context *drm_renderer_create(size_t debug_len, const char *debug_name);
+struct virgl_context *drm_renderer_create(size_t debug_len, const char *debug_name,
+                                          int flags);
 
 #else /* ENABLE_DRM_MSM */
 

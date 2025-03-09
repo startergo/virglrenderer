@@ -169,6 +169,36 @@ struct virgl_renderer_callbacks {
 /* Blob allocations must be done by guest from dedicated heap (Host visible memory). */
 #define VIRGL_RENDERER_USE_GUEST_VRAM (1 << 14)
 
+/* Enable restricted content playback in supporting renderers.
+ * Restricted content is subject to hardware-enforced digital
+ * restrictions management and is not accessible to software in
+ * cleartext.  If the renderer does not support restricted content,
+ * this flag is silently ignored.
+ *
+ * Displaying restricted content requires special support from the
+ * Wayland compositor and breaks screen recording.  Furthermore,
+ * restricted content support involves highly privileged coprocessors
+ * and therefore is a potential attack surface that a malicious guest
+ * might try to exploit.  Therefore, if restricted content will not
+ * work, it is best to disable it altogether, rather than letting
+ * it display as (encrypted) garbage.
+ *
+ * The Linux kernel drivers for Intel and AMD GPUs have full restricted
+ * content support.  However, most Wayland compositors do not support
+ * restricted content, and most desktop Linux systems do not run the
+ * (proprietary) userspace needed to decode it.  Therefore, the default
+ * is to **block** attempts to display restricted content.  When
+ * restricted content is blocked, a guest that tries to display
+ * restricted content will receive an error when it submits commands to
+ * the GPU.
+ *
+ * Some compositors, such as Weston and Chrome OS's Exo, do have
+ * restricted content support, and some guests may run the proprietary
+ * userspace needed to decode it.  VMMs that wish to allow playing
+ * restricted content should pass this flag.
+ */
+#define VIRGL_RENDERER_RESTRICTED_CONTENT (1 << 15)
+
 VIRGL_EXPORT int virgl_renderer_init(void *cookie, int flags, struct virgl_renderer_callbacks *cb);
 VIRGL_EXPORT void virgl_renderer_poll(void); /* force fences */
 

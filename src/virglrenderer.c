@@ -247,7 +247,7 @@ int virgl_renderer_context_create_with_flags(uint32_t ctx_id,
    case VIRGL_RENDERER_CAPSET_DRM:
       if (!state.drm_initialized)
          return EINVAL;
-      ctx = drm_renderer_create(nlen, name);
+      ctx = drm_renderer_create(nlen, name, state.flags);
       break;
    default:
       return EINVAL;

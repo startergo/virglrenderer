@@ -20,6 +20,7 @@
 
 int amdgpu_renderer_probe(int fd, struct virgl_renderer_capset_drm *capset);
 
-struct virgl_context *amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name);
+struct virgl_context *amdgpu_renderer_create(int fd, int flags,
+                                             size_t debug_len, const char *debug_name);
 
 #endif /* AMDGPU_RENDERER_H_ */

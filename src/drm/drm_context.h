@@ -44,6 +44,8 @@ struct drm_context {
    uint8_t *rsp_mem;
    uint32_t rsp_mem_sz;
 
+   int flags;
+
    struct vdrm_ccmd_rsp *current_rsp;
 
    struct hash_table *blob_table;
@@ -62,7 +64,8 @@ struct drm_context {
 DEFINE_CAST(virgl_context, drm_context)
 
 bool drm_context_init(struct drm_context *dctx, int fd,
-                      const struct drm_ccmd *ccmd_dispatch, unsigned int dispatch_size);
+                      const struct drm_ccmd *ccmd_dispatch, unsigned int dispatch_size,
+                      int flags);
 
 void drm_context_deinit(struct drm_context *dctx);
 

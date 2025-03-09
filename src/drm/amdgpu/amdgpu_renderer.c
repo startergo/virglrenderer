@@ -53,6 +53,9 @@
 #pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 #endif
 
+#define RESTRICTED_CONTENT_ERR ", but restricted content is disabled.  \
+To enable it, pass VIRGL_RENDERER_RESTRICTED_CONTENT to virgl_renderer_init()."
+
 #if 0
 #define print(level, fmt, ...) do {       \
    if (ctx->debug >= level) { \
@@ -427,6 +430,46 @@ amdgpu_renderer_get_blob(struct virgl_context *vctx, uint32_t res_id, uint64_t b
    return 0;
 }
 
+static int validate_ip_block(struct amdgpu_context *ctx, uint32_t ip_type,
+                             uint32_t flags)
+{
+   switch (ip_type) {
+   case AMDGPU_HW_IP_GFX:
+   case AMDGPU_HW_IP_COMPUTE:
+   case AMDGPU_HW_IP_DMA:
+#ifndef AMDGPU_HW_IP_VPE
+#define AMDGPU_HW_IP_VPE 9
+#endif
+   case AMDGPU_HW_IP_VPE:
+      /* Submitting to graphics, compute, DMA, and copy engines is always allowed. */
+      return 0;
+   case AMDGPU_HW_IP_UVD:
+   case AMDGPU_HW_IP_VCE:
+   case AMDGPU_HW_IP_UVD_ENC:
+   case AMDGPU_HW_IP_VCN_DEC:
+   case AMDGPU_HW_IP_VCN_ENC:
+   case AMDGPU_HW_IP_VCN_JPEG:
+      /* Submitting to media engines is only allowed if VIRGL_RENDERER_USE_VIDEO is set. */
+      if ((flags & VIRGL_RENDERER_USE_VIDEO) == 0) {
+         /* Log a message here, but only if the ip_type is from the
+          * guest, not when it comes from virglrenderer itself. */
+         if (ctx != NULL) {
+            print(0, "Attempted to submit to video processing HW block of type %" PRIu32
+                  ", but video processing is disabled", ip_type);
+         }
+         return -EPERM;
+      }
+      return 0;
+   default:
+      /* Submitting to unknown engines is never allowed. */
+      if (ctx != NULL) {
+         print(0, "Attempted to submit to HW IP block of type %" PRIu32
+               ", but it does not exist.", ip_type);
+      }
+      return -EINVAL;
+   }
+}
+
 static int
 amdgpu_ccmd_query_info(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
 {
@@ -451,7 +494,15 @@ amdgpu_ccmd_query_info(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
    memcpy(&request, &req->info, sizeof(request));
    request.return_pointer = (uintptr_t)value;
 
-   int r = drmCommandWrite(amdgpu_device_get_fd(ctx->dev), DRM_AMDGPU_INFO, &request, sizeof(request));
+   int r = 0;
+
+   if (request.query == AMDGPU_INFO_HW_IP_INFO) {
+      /* Check if the IP block type is one the guest is allowed to used. */
+      r = validate_ip_block(ctx, request.query_hw_ip.type, ctx->base.flags);
+   }
+
+   if (r == 0)
+      r = drmCommandWrite(amdgpu_device_get_fd(ctx->dev), DRM_AMDGPU_INFO, &request, sizeof(request));
 
    rsp->hdr.ret = r;
 
@@ -491,6 +542,18 @@ amdgpu_ccmd_gem_new(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       .preferred_heap = req->r.preferred_heap,
       .flags = req->r.flags,
    };
+
+   /* Disable restricted content unless allowed by the VMM. */
+   if ((r.flags & AMDGPU_GEM_CREATE_ENCRYPTED) != 0 &&
+       (ctx->base.flags & VIRGL_RENDERER_RESTRICTED_CONTENT) == 0) {
+      print(0, "Encrypted buffer requested" RESTRICTED_CONTENT_ERR);
+      /* Indicate that paramters are valid, but operation was
+       * intentionally prohibited by host.
+       */
+      ret = -EPERM;
+      goto alloc_failed;
+   }
+
    amdgpu_bo_handle bo_handle;
    ret = amdgpu_bo_alloc(ctx->dev, &r, &bo_handle);
 
@@ -761,7 +824,7 @@ static bool validate_chunk_inputs(size_t offset, size_t len, struct amdgpu_conte
       return false; /* misaligned */
    }
    size_t total_len = size_mul(size, count);
-   if (total_len > len) {
+   if (total_len != len) {
       print(0, "Length 0x%zx cannot hold 0x%zx entries of size 0x%zx",
             len, count, size);
       return false;
@@ -797,6 +860,9 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       rsp->ret = -EINVAL;
       return -1;
    }
+
+   /* TODO: check that the timeline is correct for the IP block type being
+    * submitted to. */
    if (req->ring_idx == 0 || ctx->timeline_count < req->ring_idx) {
       print(0, "Invalid ring_idx value: %d (must be in [1, %d] range)",
          req->ring_idx,
@@ -846,14 +912,14 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
       }
       /* This macro must be used to validate the offset AND count.  Even if
        * the count is trusted, the offset must still be validated! */
-#define validate_chunk_inputs(count, type) \
-   validate_chunk_inputs(offset, len, ctx, count, sizeof(type), alignof(type))
+#define validate_chunk_inputs(count, ptr) \
+   validate_chunk_inputs(offset, len, ctx, count, sizeof(*(ptr)), alignof(typeof(*(ptr))))
 
       const void *input = (const char *)req + offset;
 
       if (chunk_id == AMDGPU_CHUNK_ID_BO_HANDLES) {
          uint32_t bo_count = len / sizeof(*bo_handles_in);
-         if (!validate_chunk_inputs(bo_count, typeof(*bo_handles_in))) {
+         if (!validate_chunk_inputs(bo_count, bo_handles_in)) {
             r = -EINVAL;
             goto end;
          }
@@ -895,13 +961,13 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
          chunks[num_chunks].chunk_data = (uintptr_t)&bo_list_in;
       } else if (chunk_id == AMDGPU_CHUNK_ID_FENCE) {
          const struct drm_amdgpu_cs_chunk_fence *in;
-         if (!validate_chunk_inputs(1, typeof(*in))) {
+         if (!validate_chunk_inputs(1, in)) {
             r = -EINVAL;
             goto end;
          }
          in = input;
          if (in->offset % sizeof(uint64_t)) {
-            print(0, "Invalid chunk offset %" PRIu32 " (not multiple of 8)", in->offset);
+            print(0, "Invalid fence offset %" PRIu32 " (not multiple of 8)", in->offset);
             r = -EINVAL;
             goto end;
          }
@@ -919,15 +985,41 @@ amdgpu_ccmd_cs_submit(struct drm_context *dctx, struct vdrm_ccmd_req *hdr)
          chunks[num_chunks].length_dw = sizeof(struct drm_amdgpu_cs_chunk_fence) / 4;
          chunks[num_chunks].chunk_data = (uintptr_t)&user_fence;
       } else if (chunk_id == AMDGPU_CHUNK_ID_DEPENDENCIES) {
-         chunks[num_chunks].length_dw = descriptors[i].length_dw;
-         chunks[num_chunks].chunk_data = (uintptr_t)input;
-      } else if (chunk_id == AMDGPU_CHUNK_ID_IB) {
-         chunks[num_chunks].length_dw = descriptors[i].length_dw;
-         chunks[num_chunks].chunk_data = (uintptr_t)input;
-         if (chunks[num_chunks].length_dw != sizeof(struct drm_amdgpu_cs_chunk_ib) / 4) {
+         int status;
+         const struct drm_amdgpu_cs_chunk_dep *dep;
+         if (!validate_chunk_inputs(1, dep)) {
             r = -EINVAL;
             goto end;
          }
+         dep = input;
+         status = validate_ip_block(ctx, dep->ip_type, ctx->base.flags);
+         if (status != 0) {
+            r = status;
+            goto end;
+         }
+         chunks[num_chunks].length_dw = descriptors[i].length_dw;
+         chunks[num_chunks].chunk_data = (uintptr_t)input;
+      } else if (chunk_id == AMDGPU_CHUNK_ID_IB) {
+         int status;
+         const struct drm_amdgpu_cs_chunk_ib *ib;
+         if (!validate_chunk_inputs(1, ib)) {
+            r = -EINVAL;
+            goto end;
+         }
+         ib = input;
+         if ((ib->flags & AMDGPU_IB_FLAGS_SECURE) != 0 &&
+             (ctx->base.flags & VIRGL_RENDERER_RESTRICTED_CONTENT) == 0) {
+            print(0, "AMDGPU_IB_FLAGS_SECURE set" RESTRICTED_CONTENT_ERR);
+            r = -EPERM;
+            goto end;
+         }
+         status = validate_ip_block(ctx, ib->ip_type, ctx->base.flags);
+         if (status != 0) {
+            r = status;
+            goto end;
+         }
+         chunks[num_chunks].length_dw = descriptors[i].length_dw;
+         chunks[num_chunks].chunk_data = (uintptr_t)input;
       } else {
          print(0, "Unsupported chunk_id %d received", chunk_id);
          r = -EINVAL;
@@ -1140,7 +1232,7 @@ amdgpu_renderer_submit_fence(struct virgl_context *vctx, uint32_t flags,
 }
 
 struct virgl_context *
-amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
+amdgpu_renderer_create(int fd, int flags, size_t debug_len, const char *debug_name)
 {
    struct amdgpu_context *ctx;
    amdgpu_device_handle dev;
@@ -1167,6 +1259,10 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
    uint32_t timeline_count = 0;
    for (unsigned ip_type = 0; ip_type < AMDGPU_HW_IP_NUM; ip_type++) {
       struct drm_amdgpu_info_hw_ip ip_info = {0};
+
+      /* Only expose IP blocks that the guest is allowed to use. */
+      if (validate_ip_block(NULL, ip_type, flags) != 0)
+         continue;
 
       int r = amdgpu_query_hw_ip_info(dev, ip_type, 0, &ip_info);
       if (r < 0)
@@ -1196,7 +1292,7 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
    print(1, "amdgpu_renderer_create name=%s fd=%d (from %d) -> dev=%p", ctx->debug_name, fd,
          amdgpu_device_get_fd(ctx->dev), (void*)ctx->dev);
 
-   if (!drm_context_init(&ctx->base, -1, ccmd_dispatch, ARRAY_SIZE(ccmd_dispatch)))
+   if (!drm_context_init(&ctx->base, -1, ccmd_dispatch, ARRAY_SIZE(ccmd_dispatch), flags))
       goto fail_init;
 
    ctx->base.base.destroy = amdgpu_renderer_destroy;
@@ -1218,6 +1314,10 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
    uint32_t ring_idx = 1;
    for (unsigned ip_type = 0; ip_type < AMDGPU_HW_IP_NUM; ip_type++) {
       struct drm_amdgpu_info_hw_ip ip_info = {0};
+
+      /* Only expose IP blocks that the guest is allowed to use. */
+      if (validate_ip_block(NULL, ip_type, flags) != 0)
+         continue;
 
       int r = amdgpu_query_hw_ip_info(dev, ip_type, 0, &ip_info);
       if (r < 0)
