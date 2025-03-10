@@ -1196,6 +1196,29 @@ vkr_dispatch_vkCmdTraceRaysIndirect2KHR(UNUSED struct vn_dispatch_context *dispa
    VKR_CMD_CALL(CmdTraceRaysIndirect2KHR, args, args->indirectDeviceAddress);
 }
 
+static void
+vkr_dispatch_vkCmdSetDepthBias2EXT(UNUSED struct vn_dispatch_context *dispatch,
+                                   struct vn_command_vkCmdSetDepthBias2EXT *args)
+{
+   VKR_CMD_CALL(CmdSetDepthBias2EXT, args, args->pDepthBiasInfo);
+}
+
+static void
+vkr_dispatch_vkCmdSetDepthClampRangeEXT(UNUSED struct vn_dispatch_context *dispatch,
+                                        struct vn_command_vkCmdSetDepthClampRangeEXT *args)
+{
+   VKR_CMD_CALL(CmdSetDepthClampRangeEXT, args, args->depthClampMode,
+                args->pDepthClampRange);
+}
+
+static void
+vkr_dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdSetAttachmentFeedbackLoopEnableEXT *args)
+{
+   VKR_CMD_CALL(CmdSetAttachmentFeedbackLoopEnableEXT, args, args->aspectMask);
+}
+
 void
 vkr_context_init_command_pool_dispatch(struct vkr_context *ctx)
 {
@@ -1433,4 +1456,15 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
    /* VK_KHR_ray_tracing_maintenance1 */
    dispatch->dispatch_vkCmdTraceRaysIndirect2KHR =
       vkr_dispatch_vkCmdTraceRaysIndirect2KHR;
+
+   /* VK_EXT_depth_bias_control */
+   dispatch->dispatch_vkCmdSetDepthBias2EXT = vkr_dispatch_vkCmdSetDepthBias2EXT;
+
+   /* VK_EXT_depth_clamp_control */
+   dispatch->dispatch_vkCmdSetDepthClampRangeEXT =
+      vkr_dispatch_vkCmdSetDepthClampRangeEXT;
+
+   /* VK_EXT_attachment_feedback_loop_dynamic_state */
+   dispatch->dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT =
+      vkr_dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT;
 }
