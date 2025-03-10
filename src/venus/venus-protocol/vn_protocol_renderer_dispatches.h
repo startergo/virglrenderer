@@ -137,6 +137,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkEndCommandBuffer_EXT: return "vkEndCommandBuffer";
     case VK_COMMAND_TYPE_vkResetCommandBuffer_EXT: return "vkResetCommandBuffer";
     case VK_COMMAND_TYPE_vkCmdBindPipeline_EXT: return "vkCmdBindPipeline";
+    case VK_COMMAND_TYPE_vkCmdSetAttachmentFeedbackLoopEnableEXT_EXT: return "vkCmdSetAttachmentFeedbackLoopEnableEXT";
     case VK_COMMAND_TYPE_vkCmdSetViewport_EXT: return "vkCmdSetViewport";
     case VK_COMMAND_TYPE_vkCmdSetScissor_EXT: return "vkCmdSetScissor";
     case VK_COMMAND_TYPE_vkCmdSetLineWidth_EXT: return "vkCmdSetLineWidth";
@@ -329,6 +330,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkCmdBeginRendering_EXT: return "vkCmdBeginRendering";
     case VK_COMMAND_TYPE_vkCmdEndRendering_EXT: return "vkCmdEndRendering";
     case VK_COMMAND_TYPE_vkGetImageSubresourceLayout2_EXT: return "vkGetImageSubresourceLayout2";
+    case VK_COMMAND_TYPE_vkCmdSetDepthBias2EXT_EXT: return "vkCmdSetDepthBias2EXT";
     case VK_COMMAND_TYPE_vkGetDeviceImageSubresourceLayout_EXT: return "vkGetDeviceImageSubresourceLayout";
     case VK_COMMAND_TYPE_vkUnmapMemory2_EXT: return "vkUnmapMemory2";
     case VK_COMMAND_TYPE_vkCmdBindDescriptorSets2_EXT: return "vkCmdBindDescriptorSets2";
@@ -336,6 +338,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkCmdPushDescriptorSet2_EXT: return "vkCmdPushDescriptorSet2";
     case VK_COMMAND_TYPE_vkCmdSetRenderingAttachmentLocations_EXT: return "vkCmdSetRenderingAttachmentLocations";
     case VK_COMMAND_TYPE_vkCmdSetRenderingInputAttachmentIndices_EXT: return "vkCmdSetRenderingInputAttachmentIndices";
+    case VK_COMMAND_TYPE_vkCmdSetDepthClampRangeEXT_EXT: return "vkCmdSetDepthClampRangeEXT";
     case VK_COMMAND_TYPE_vkSetReplyCommandStreamMESA_EXT: return "vkSetReplyCommandStreamMESA";
     case VK_COMMAND_TYPE_vkSeekReplyCommandStreamMESA_EXT: return "vkSeekReplyCommandStreamMESA";
     case VK_COMMAND_TYPE_vkExecuteCommandStreamsMESA_EXT: return "vkExecuteCommandStreamsMESA";
@@ -374,7 +377,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     }
 }
 
-static void (*const vn_dispatch_table[328])(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags) = {
+static void (*const vn_dispatch_table[331])(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags) = {
     [VK_COMMAND_TYPE_vkCreateInstance_EXT] = vn_dispatch_vkCreateInstance,
     [VK_COMMAND_TYPE_vkDestroyInstance_EXT] = vn_dispatch_vkDestroyInstance,
     [VK_COMMAND_TYPE_vkEnumeratePhysicalDevices_EXT] = vn_dispatch_vkEnumeratePhysicalDevices,
@@ -469,6 +472,7 @@ static void (*const vn_dispatch_table[328])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkEndCommandBuffer_EXT] = vn_dispatch_vkEndCommandBuffer,
     [VK_COMMAND_TYPE_vkResetCommandBuffer_EXT] = vn_dispatch_vkResetCommandBuffer,
     [VK_COMMAND_TYPE_vkCmdBindPipeline_EXT] = vn_dispatch_vkCmdBindPipeline,
+    [VK_COMMAND_TYPE_vkCmdSetAttachmentFeedbackLoopEnableEXT_EXT] = vn_dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT,
     [VK_COMMAND_TYPE_vkCmdSetViewport_EXT] = vn_dispatch_vkCmdSetViewport,
     [VK_COMMAND_TYPE_vkCmdSetScissor_EXT] = vn_dispatch_vkCmdSetScissor,
     [VK_COMMAND_TYPE_vkCmdSetLineWidth_EXT] = vn_dispatch_vkCmdSetLineWidth,
@@ -661,6 +665,7 @@ static void (*const vn_dispatch_table[328])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkCmdBeginRendering_EXT] = vn_dispatch_vkCmdBeginRendering,
     [VK_COMMAND_TYPE_vkCmdEndRendering_EXT] = vn_dispatch_vkCmdEndRendering,
     [VK_COMMAND_TYPE_vkGetImageSubresourceLayout2_EXT] = vn_dispatch_vkGetImageSubresourceLayout2,
+    [VK_COMMAND_TYPE_vkCmdSetDepthBias2EXT_EXT] = vn_dispatch_vkCmdSetDepthBias2EXT,
     [VK_COMMAND_TYPE_vkGetDeviceImageSubresourceLayout_EXT] = vn_dispatch_vkGetDeviceImageSubresourceLayout,
     [VK_COMMAND_TYPE_vkUnmapMemory2_EXT] = vn_dispatch_vkUnmapMemory2,
     [VK_COMMAND_TYPE_vkCmdBindDescriptorSets2_EXT] = vn_dispatch_vkCmdBindDescriptorSets2,
@@ -668,6 +673,7 @@ static void (*const vn_dispatch_table[328])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkCmdPushDescriptorSet2_EXT] = vn_dispatch_vkCmdPushDescriptorSet2,
     [VK_COMMAND_TYPE_vkCmdSetRenderingAttachmentLocations_EXT] = vn_dispatch_vkCmdSetRenderingAttachmentLocations,
     [VK_COMMAND_TYPE_vkCmdSetRenderingInputAttachmentIndices_EXT] = vn_dispatch_vkCmdSetRenderingInputAttachmentIndices,
+    [VK_COMMAND_TYPE_vkCmdSetDepthClampRangeEXT_EXT] = vn_dispatch_vkCmdSetDepthClampRangeEXT,
     [VK_COMMAND_TYPE_vkSetReplyCommandStreamMESA_EXT] = vn_dispatch_vkSetReplyCommandStreamMESA,
     [VK_COMMAND_TYPE_vkSeekReplyCommandStreamMESA_EXT] = vn_dispatch_vkSeekReplyCommandStreamMESA,
     [VK_COMMAND_TYPE_vkExecuteCommandStreamsMESA_EXT] = vn_dispatch_vkExecuteCommandStreamsMESA,
@@ -695,7 +701,7 @@ static inline void vn_dispatch_command(struct vn_dispatch_context *ctx)
     vn_decode_VkFlags(ctx->decoder, &cmd_flags);
 
     {
-        if (cmd_type < 328 && vn_dispatch_table[cmd_type])
+        if (cmd_type < 331 && vn_dispatch_table[cmd_type])
             vn_dispatch_table[cmd_type](ctx, cmd_flags);
         else
             vn_cs_decoder_set_fatal(ctx->decoder);

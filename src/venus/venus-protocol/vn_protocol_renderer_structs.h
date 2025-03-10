@@ -725,6 +725,81 @@ vn_replace_VkRect2D_handle(VkRect2D *val)
     vn_replace_VkExtent2D_handle(&val->extent);
 }
 
+/* struct VkDepthClampRangeEXT */
+
+static inline void
+vn_decode_VkDepthClampRangeEXT_temp(struct vn_cs_decoder *dec, VkDepthClampRangeEXT *val)
+{
+    vn_decode_float(dec, &val->minDepthClamp);
+    vn_decode_float(dec, &val->maxDepthClamp);
+}
+
+static inline void
+vn_replace_VkDepthClampRangeEXT_handle(VkDepthClampRangeEXT *val)
+{
+    /* skip val->minDepthClamp */
+    /* skip val->maxDepthClamp */
+}
+
+/* struct VkDepthBiasRepresentationInfoEXT chain */
+
+static inline void *
+vn_decode_VkDepthBiasRepresentationInfoEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkDepthBiasRepresentationInfoEXT_self_temp(struct vn_cs_decoder *dec, VkDepthBiasRepresentationInfoEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkDepthBiasRepresentationEXT(dec, &val->depthBiasRepresentation);
+    vn_decode_VkBool32(dec, &val->depthBiasExact);
+}
+
+static inline void
+vn_decode_VkDepthBiasRepresentationInfoEXT_temp(struct vn_cs_decoder *dec, VkDepthBiasRepresentationInfoEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkDepthBiasRepresentationInfoEXT_pnext_temp(dec);
+    vn_decode_VkDepthBiasRepresentationInfoEXT_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkDepthBiasRepresentationInfoEXT_handle_self(VkDepthBiasRepresentationInfoEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->depthBiasRepresentation */
+    /* skip val->depthBiasExact */
+}
+
+static inline void
+vn_replace_VkDepthBiasRepresentationInfoEXT_handle(VkDepthBiasRepresentationInfoEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT:
+            vn_replace_VkDepthBiasRepresentationInfoEXT_handle_self((VkDepthBiasRepresentationInfoEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkSampleLocationEXT */
 
 static inline void

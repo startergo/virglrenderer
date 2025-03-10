@@ -12,10 +12,11 @@
 
 struct vn_info_extension_table {
    union {
-      bool enabled[163];
+      bool enabled[173];
       struct {
          bool ARM_rasterization_order_attachment_access;
          bool EXT_4444_formats;
+         bool EXT_attachment_feedback_loop_dynamic_state;
          bool EXT_attachment_feedback_loop_layout;
          bool EXT_blend_operation_advanced;
          bool EXT_border_color_swizzle;
@@ -25,6 +26,8 @@ struct vn_info_extension_table {
          bool EXT_conditional_rendering;
          bool EXT_conservative_rasterization;
          bool EXT_custom_border_color;
+         bool EXT_depth_bias_control;
+         bool EXT_depth_clamp_control;
          bool EXT_depth_clamp_zero_one;
          bool EXT_depth_clip_control;
          bool EXT_depth_clip_enable;
@@ -36,6 +39,7 @@ struct vn_info_extension_table {
          bool EXT_extended_dynamic_state3;
          bool EXT_external_memory_acquire_unmodified;
          bool EXT_external_memory_dma_buf;
+         bool EXT_filter_cubic;
          bool EXT_fragment_shader_interlock;
          bool EXT_global_priority;
          bool EXT_global_priority_query;
@@ -48,12 +52,14 @@ struct vn_info_extension_table {
          bool EXT_image_view_min_lod;
          bool EXT_index_type_uint8;
          bool EXT_inline_uniform_block;
+         bool EXT_legacy_dithering;
          bool EXT_legacy_vertex_attributes;
          bool EXT_line_rasterization;
          bool EXT_load_store_op_none;
          bool EXT_memory_budget;
          bool EXT_multi_draw;
          bool EXT_mutable_descriptor_type;
+         bool EXT_nested_command_buffer;
          bool EXT_non_seamless_cube_map;
          bool EXT_pci_bus_info;
          bool EXT_pipeline_creation_cache_control;
@@ -90,6 +96,10 @@ struct vn_info_extension_table {
          bool EXT_vertex_input_dynamic_state;
          bool EXT_ycbcr_2plane_444_formats;
          bool EXT_ycbcr_image_arrays;
+         bool GOOGLE_decorate_string;
+         bool GOOGLE_hlsl_functionality1;
+         bool GOOGLE_user_type;
+         bool IMG_filter_cubic;
          bool KHR_16bit_storage;
          bool KHR_8bit_storage;
          bool KHR_acceleration_structure;
@@ -190,10 +200,11 @@ struct vn_info_extension {
 };
 
 /* sorted by extension names for bsearch */
-static const uint32_t _vn_info_extension_count = 163;
-static const struct vn_info_extension _vn_info_extensions[163] = {
+static const uint32_t _vn_info_extension_count = 173;
+static const struct vn_info_extension _vn_info_extensions[173] = {
    { "VK_ARM_rasterization_order_attachment_access", 343, 1 },
    { "VK_EXT_4444_formats", 341, 1 },
+   { "VK_EXT_attachment_feedback_loop_dynamic_state", 525, 1 },
    { "VK_EXT_attachment_feedback_loop_layout", 340, 2 },
    { "VK_EXT_blend_operation_advanced", 149, 2 },
    { "VK_EXT_border_color_swizzle", 412, 1 },
@@ -203,6 +214,8 @@ static const struct vn_info_extension _vn_info_extensions[163] = {
    { "VK_EXT_conditional_rendering", 82, 2 },
    { "VK_EXT_conservative_rasterization", 102, 1 },
    { "VK_EXT_custom_border_color", 288, 12 },
+   { "VK_EXT_depth_bias_control", 284, 1 },
+   { "VK_EXT_depth_clamp_control", 583, 1 },
    { "VK_EXT_depth_clamp_zero_one", 422, 1 },
    { "VK_EXT_depth_clip_control", 356, 1 },
    { "VK_EXT_depth_clip_enable", 103, 1 },
@@ -214,6 +227,7 @@ static const struct vn_info_extension _vn_info_extensions[163] = {
    { "VK_EXT_extended_dynamic_state3", 456, 2 },
    { "VK_EXT_external_memory_acquire_unmodified", 454, 1 },
    { "VK_EXT_external_memory_dma_buf", 126, 1 },
+   { "VK_EXT_filter_cubic", 171, 3 },
    { "VK_EXT_fragment_shader_interlock", 252, 1 },
    { "VK_EXT_global_priority", 175, 2 },
    { "VK_EXT_global_priority_query", 389, 1 },
@@ -226,12 +240,14 @@ static const struct vn_info_extension _vn_info_extensions[163] = {
    { "VK_EXT_image_view_min_lod", 392, 1 },
    { "VK_EXT_index_type_uint8", 266, 1 },
    { "VK_EXT_inline_uniform_block", 139, 1 },
+   { "VK_EXT_legacy_dithering", 466, 2 },
    { "VK_EXT_legacy_vertex_attributes", 496, 1 },
    { "VK_EXT_line_rasterization", 260, 1 },
    { "VK_EXT_load_store_op_none", 401, 1 },
    { "VK_EXT_memory_budget", 238, 1 },
    { "VK_EXT_multi_draw", 393, 1 },
    { "VK_EXT_mutable_descriptor_type", 495, 1 },
+   { "VK_EXT_nested_command_buffer", 452, 1 },
    { "VK_EXT_non_seamless_cube_map", 423, 1 },
    { "VK_EXT_pci_bus_info", 213, 2 },
    { "VK_EXT_pipeline_creation_cache_control", 298, 3 },
@@ -268,6 +284,10 @@ static const struct vn_info_extension _vn_info_extensions[163] = {
    { "VK_EXT_vertex_input_dynamic_state", 353, 2 },
    { "VK_EXT_ycbcr_2plane_444_formats", 331, 1 },
    { "VK_EXT_ycbcr_image_arrays", 253, 1 },
+   { "VK_GOOGLE_decorate_string", 225, 1 },
+   { "VK_GOOGLE_hlsl_functionality1", 224, 1 },
+   { "VK_GOOGLE_user_type", 290, 1 },
+   { "VK_IMG_filter_cubic", 16, 1 },
    { "VK_KHR_16bit_storage", 84, 1 },
    { "VK_KHR_8bit_storage", 178, 1 },
    { "VK_KHR_acceleration_structure", 151, 13 },

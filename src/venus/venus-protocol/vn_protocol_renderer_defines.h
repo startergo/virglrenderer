@@ -417,6 +417,7 @@ typedef enum VkCommandTypeEXT {
     VK_COMMAND_TYPE_vkGetDeferredOperationMaxConcurrencyKHR_EXT = 301,
     VK_COMMAND_TYPE_vkGetDeferredOperationResultKHR_EXT = 302,
     VK_COMMAND_TYPE_vkDeferredOperationJoinKHR_EXT = 303,
+    VK_COMMAND_TYPE_vkCmdSetDepthBias2EXT_EXT = 328,
     VK_COMMAND_TYPE_vkCmdSetVertexInputEXT_EXT = 255,
     VK_COMMAND_TYPE_vkCmdSetPatchControlPointsEXT_EXT = 233,
     VK_COMMAND_TYPE_vkCmdSetLogicOpEXT_EXT = 234,
@@ -445,6 +446,8 @@ typedef enum VkCommandTypeEXT {
     VK_COMMAND_TYPE_vkCmdSetLineRasterizationModeEXT_EXT = 274,
     VK_COMMAND_TYPE_vkCmdSetLineStippleEnableEXT_EXT = 275,
     VK_COMMAND_TYPE_vkCmdSetDepthClipNegativeOneToOneEXT_EXT = 276,
+    VK_COMMAND_TYPE_vkCmdSetAttachmentFeedbackLoopEnableEXT_EXT = 329,
+    VK_COMMAND_TYPE_vkCmdSetDepthClampRangeEXT_EXT = 330,
     VK_COMMAND_TYPE_vkSetReplyCommandStreamMESA_EXT = 178,
     VK_COMMAND_TYPE_vkSeekReplyCommandStreamMESA_EXT = 179,
     VK_COMMAND_TYPE_vkExecuteCommandStreamsMESA_EXT = 180,
@@ -1320,6 +1323,11 @@ struct vn_command_vkCmdBindPipeline {
     VkCommandBuffer commandBuffer;
     VkPipelineBindPoint pipelineBindPoint;
     VkPipeline pipeline;
+};
+
+struct vn_command_vkCmdSetAttachmentFeedbackLoopEnableEXT {
+    VkCommandBuffer commandBuffer;
+    VkImageAspectFlags aspectMask;
 };
 
 struct vn_command_vkCmdSetViewport {
@@ -2762,6 +2770,11 @@ struct vn_command_vkGetImageSubresourceLayout2 {
     VkSubresourceLayout2* pLayout;
 };
 
+struct vn_command_vkCmdSetDepthBias2EXT {
+    VkCommandBuffer commandBuffer;
+    const VkDepthBiasInfoEXT* pDepthBiasInfo;
+};
+
 struct vn_command_vkGetDeviceImageSubresourceLayout {
     VkDevice device;
     const VkDeviceImageSubresourceInfo* pInfo;
@@ -2811,6 +2824,12 @@ struct vn_command_vkCmdSetRenderingAttachmentLocations {
 struct vn_command_vkCmdSetRenderingInputAttachmentIndices {
     VkCommandBuffer commandBuffer;
     const VkRenderingInputAttachmentIndexInfo* pInputAttachmentIndexInfo;
+};
+
+struct vn_command_vkCmdSetDepthClampRangeEXT {
+    VkCommandBuffer commandBuffer;
+    VkDepthClampModeEXT depthClampMode;
+    const VkDepthClampRangeEXT* pDepthClampRange;
 };
 
 struct vn_command_vkSetReplyCommandStreamMESA {
@@ -3008,6 +3027,7 @@ struct vn_dispatch_context {
     void (*dispatch_vkEndCommandBuffer)(struct vn_dispatch_context *ctx, struct vn_command_vkEndCommandBuffer *args);
     void (*dispatch_vkResetCommandBuffer)(struct vn_dispatch_context *ctx, struct vn_command_vkResetCommandBuffer *args);
     void (*dispatch_vkCmdBindPipeline)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdBindPipeline *args);
+    void (*dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetAttachmentFeedbackLoopEnableEXT *args);
     void (*dispatch_vkCmdSetViewport)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetViewport *args);
     void (*dispatch_vkCmdSetScissor)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetScissor *args);
     void (*dispatch_vkCmdSetLineWidth)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetLineWidth *args);
@@ -3213,6 +3233,7 @@ struct vn_dispatch_context {
     void (*dispatch_vkCmdBeginRendering)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdBeginRendering *args);
     void (*dispatch_vkCmdEndRendering)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdEndRendering *args);
     void (*dispatch_vkGetImageSubresourceLayout2)(struct vn_dispatch_context *ctx, struct vn_command_vkGetImageSubresourceLayout2 *args);
+    void (*dispatch_vkCmdSetDepthBias2EXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetDepthBias2EXT *args);
     void (*dispatch_vkGetDeviceImageSubresourceLayout)(struct vn_dispatch_context *ctx, struct vn_command_vkGetDeviceImageSubresourceLayout *args);
     void (*dispatch_vkMapMemory2)(struct vn_dispatch_context *ctx, struct vn_command_vkMapMemory2 *args);
     void (*dispatch_vkUnmapMemory2)(struct vn_dispatch_context *ctx, struct vn_command_vkUnmapMemory2 *args);
@@ -3222,6 +3243,7 @@ struct vn_dispatch_context {
     void (*dispatch_vkCmdPushDescriptorSetWithTemplate2)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdPushDescriptorSetWithTemplate2 *args);
     void (*dispatch_vkCmdSetRenderingAttachmentLocations)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetRenderingAttachmentLocations *args);
     void (*dispatch_vkCmdSetRenderingInputAttachmentIndices)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetRenderingInputAttachmentIndices *args);
+    void (*dispatch_vkCmdSetDepthClampRangeEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetDepthClampRangeEXT *args);
     void (*dispatch_vkSetReplyCommandStreamMESA)(struct vn_dispatch_context *ctx, struct vn_command_vkSetReplyCommandStreamMESA *args);
     void (*dispatch_vkSeekReplyCommandStreamMESA)(struct vn_dispatch_context *ctx, struct vn_command_vkSeekReplyCommandStreamMESA *args);
     void (*dispatch_vkExecuteCommandStreamsMESA)(struct vn_dispatch_context *ctx, struct vn_command_vkExecuteCommandStreamsMESA *args);

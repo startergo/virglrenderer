@@ -3075,6 +3075,90 @@ vn_replace_VkRenderingInfo_handle(VkRenderingInfo *val)
     } while (pnext);
 }
 
+/* struct VkDepthBiasInfoEXT chain */
+
+static inline void *
+vn_decode_VkDepthBiasInfoEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkDepthBiasRepresentationInfoEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkDepthBiasInfoEXT_pnext_temp(dec);
+            vn_decode_VkDepthBiasRepresentationInfoEXT_self_temp(dec, (VkDepthBiasRepresentationInfoEXT *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
+        vn_cs_decoder_set_fatal(dec);
+        break;
+    }
+
+    return pnext;
+}
+
+static inline void
+vn_decode_VkDepthBiasInfoEXT_self_temp(struct vn_cs_decoder *dec, VkDepthBiasInfoEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_float(dec, &val->depthBiasConstantFactor);
+    vn_decode_float(dec, &val->depthBiasClamp);
+    vn_decode_float(dec, &val->depthBiasSlopeFactor);
+}
+
+static inline void
+vn_decode_VkDepthBiasInfoEXT_temp(struct vn_cs_decoder *dec, VkDepthBiasInfoEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_DEPTH_BIAS_INFO_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkDepthBiasInfoEXT_pnext_temp(dec);
+    vn_decode_VkDepthBiasInfoEXT_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkDepthBiasInfoEXT_handle_self(VkDepthBiasInfoEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->depthBiasConstantFactor */
+    /* skip val->depthBiasClamp */
+    /* skip val->depthBiasSlopeFactor */
+}
+
+static inline void
+vn_replace_VkDepthBiasInfoEXT_handle(VkDepthBiasInfoEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_DEPTH_BIAS_INFO_EXT:
+            vn_replace_VkDepthBiasInfoEXT_handle_self((VkDepthBiasInfoEXT *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT:
+            vn_replace_VkDepthBiasRepresentationInfoEXT_handle_self((VkDepthBiasRepresentationInfoEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkBindDescriptorSetsInfo chain */
 
 static inline void *
@@ -3557,6 +3641,26 @@ static inline void vn_encode_vkCmdBindPipeline_reply(struct vn_cs_encoder *enc, 
     /* skip args->commandBuffer */
     /* skip args->pipelineBindPoint */
     /* skip args->pipeline */
+}
+
+static inline void vn_decode_vkCmdSetAttachmentFeedbackLoopEnableEXT_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetAttachmentFeedbackLoopEnableEXT *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    vn_decode_VkFlags(dec, &args->aspectMask);
+}
+
+static inline void vn_replace_vkCmdSetAttachmentFeedbackLoopEnableEXT_args_handle(struct vn_command_vkCmdSetAttachmentFeedbackLoopEnableEXT *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    /* skip args->aspectMask */
+}
+
+static inline void vn_encode_vkCmdSetAttachmentFeedbackLoopEnableEXT_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdSetAttachmentFeedbackLoopEnableEXT *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdSetAttachmentFeedbackLoopEnableEXT_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->aspectMask */
 }
 
 static inline void vn_decode_vkCmdSetViewport_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetViewport *args)
@@ -7689,6 +7793,34 @@ static inline void vn_encode_vkCmdEndRendering_reply(struct vn_cs_encoder *enc, 
     /* skip args->commandBuffer */
 }
 
+static inline void vn_decode_vkCmdSetDepthBias2EXT_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetDepthBias2EXT *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pDepthBiasInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pDepthBiasInfo));
+        if (!args->pDepthBiasInfo) return;
+        vn_decode_VkDepthBiasInfoEXT_temp(dec, (VkDepthBiasInfoEXT *)args->pDepthBiasInfo);
+    } else {
+        args->pDepthBiasInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkCmdSetDepthBias2EXT_args_handle(struct vn_command_vkCmdSetDepthBias2EXT *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    if (args->pDepthBiasInfo)
+        vn_replace_VkDepthBiasInfoEXT_handle((VkDepthBiasInfoEXT *)args->pDepthBiasInfo);
+}
+
+static inline void vn_encode_vkCmdSetDepthBias2EXT_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdSetDepthBias2EXT *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdSetDepthBias2EXT_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->pDepthBiasInfo */
+}
+
 static inline void vn_decode_vkCmdBindDescriptorSets2_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdBindDescriptorSets2 *args)
 {
     vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
@@ -7827,6 +7959,36 @@ static inline void vn_encode_vkCmdSetRenderingInputAttachmentIndices_reply(struc
 
     /* skip args->commandBuffer */
     /* skip args->pInputAttachmentIndexInfo */
+}
+
+static inline void vn_decode_vkCmdSetDepthClampRangeEXT_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdSetDepthClampRangeEXT *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    vn_decode_VkDepthClampModeEXT(dec, &args->depthClampMode);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pDepthClampRange = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pDepthClampRange));
+        if (!args->pDepthClampRange) return;
+        vn_decode_VkDepthClampRangeEXT_temp(dec, (VkDepthClampRangeEXT *)args->pDepthClampRange);
+    } else {
+        args->pDepthClampRange = NULL;
+    }
+}
+
+static inline void vn_replace_vkCmdSetDepthClampRangeEXT_args_handle(struct vn_command_vkCmdSetDepthClampRangeEXT *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    /* skip args->depthClampMode */
+    if (args->pDepthClampRange)
+        vn_replace_VkDepthClampRangeEXT_handle((VkDepthClampRangeEXT *)args->pDepthClampRange);
+}
+
+static inline void vn_encode_vkCmdSetDepthClampRangeEXT_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdSetDepthClampRangeEXT *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdSetDepthClampRangeEXT_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->depthClampMode */
+    /* skip args->pDepthClampRange */
 }
 
 static inline void vn_dispatch_vkAllocateCommandBuffers(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
@@ -8010,6 +8172,34 @@ static inline void vn_dispatch_vkCmdBindPipeline(struct vn_dispatch_context *ctx
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
             vn_encode_vkCmdBindPipeline_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdSetAttachmentFeedbackLoopEnableEXT args;
+
+    if (!ctx->dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdSetAttachmentFeedbackLoopEnableEXT_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdSetAttachmentFeedbackLoopEnableEXT_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }
@@ -11601,6 +11791,34 @@ static inline void vn_dispatch_vkCmdEndRendering(struct vn_dispatch_context *ctx
     vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
 
+static inline void vn_dispatch_vkCmdSetDepthBias2EXT(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdSetDepthBias2EXT args;
+
+    if (!ctx->dispatch_vkCmdSetDepthBias2EXT) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdSetDepthBias2EXT_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdSetDepthBias2EXT(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdSetDepthBias2EXT_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
 static inline void vn_dispatch_vkCmdBindDescriptorSets2(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
 {
     struct vn_command_vkCmdBindDescriptorSets2 args;
@@ -11734,6 +11952,34 @@ static inline void vn_dispatch_vkCmdSetRenderingInputAttachmentIndices(struct vn
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
             vn_encode_vkCmdSetRenderingInputAttachmentIndices_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdSetDepthClampRangeEXT(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdSetDepthClampRangeEXT args;
+
+    if (!ctx->dispatch_vkCmdSetDepthClampRangeEXT) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdSetDepthClampRangeEXT_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdSetDepthClampRangeEXT(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdSetDepthClampRangeEXT_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }

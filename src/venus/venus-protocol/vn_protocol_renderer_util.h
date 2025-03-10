@@ -134,6 +134,7 @@ struct vn_device_proc_table {
    PFN_vkCmdResolveImage2 CmdResolveImage2;
    PFN_vkCmdSetAlphaToCoverageEnableEXT CmdSetAlphaToCoverageEnableEXT;
    PFN_vkCmdSetAlphaToOneEnableEXT CmdSetAlphaToOneEnableEXT;
+   PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT CmdSetAttachmentFeedbackLoopEnableEXT;
    PFN_vkCmdSetBlendConstants CmdSetBlendConstants;
    PFN_vkCmdSetColorBlendAdvancedEXT CmdSetColorBlendAdvancedEXT;
    PFN_vkCmdSetColorBlendEnableEXT CmdSetColorBlendEnableEXT;
@@ -143,10 +144,12 @@ struct vn_device_proc_table {
    PFN_vkCmdSetConservativeRasterizationModeEXT CmdSetConservativeRasterizationModeEXT;
    PFN_vkCmdSetCullMode CmdSetCullMode;
    PFN_vkCmdSetDepthBias CmdSetDepthBias;
+   PFN_vkCmdSetDepthBias2EXT CmdSetDepthBias2EXT;
    PFN_vkCmdSetDepthBiasEnable CmdSetDepthBiasEnable;
    PFN_vkCmdSetDepthBounds CmdSetDepthBounds;
    PFN_vkCmdSetDepthBoundsTestEnable CmdSetDepthBoundsTestEnable;
    PFN_vkCmdSetDepthClampEnableEXT CmdSetDepthClampEnableEXT;
+   PFN_vkCmdSetDepthClampRangeEXT CmdSetDepthClampRangeEXT;
    PFN_vkCmdSetDepthClipEnableEXT CmdSetDepthClipEnableEXT;
    PFN_vkCmdSetDepthClipNegativeOneToOneEXT CmdSetDepthClipNegativeOneToOneEXT;
    PFN_vkCmdSetDepthCompareOp CmdSetDepthCompareOp;
@@ -622,6 +625,9 @@ vn_util_init_device_proc_table(VkDevice dev,
    proc_table->CmdSetAlphaToOneEnableEXT =
       ext_table->EXT_extended_dynamic_state3 ? VN_GDPA(dev, vkCmdSetAlphaToOneEnableEXT) :
       NULL;
+   proc_table->CmdSetAttachmentFeedbackLoopEnableEXT =
+      ext_table->EXT_attachment_feedback_loop_dynamic_state ? VN_GDPA(dev, vkCmdSetAttachmentFeedbackLoopEnableEXT) :
+      NULL;
    proc_table->CmdSetBlendConstants = VN_GDPA(dev, vkCmdSetBlendConstants);
    proc_table->CmdSetColorBlendAdvancedEXT =
       ext_table->EXT_extended_dynamic_state3 ? VN_GDPA(dev, vkCmdSetColorBlendAdvancedEXT) :
@@ -646,6 +652,9 @@ vn_util_init_device_proc_table(VkDevice dev,
       ext_table->EXT_extended_dynamic_state ? VN_GDPA(dev, vkCmdSetCullModeEXT) :
       NULL;
    proc_table->CmdSetDepthBias = VN_GDPA(dev, vkCmdSetDepthBias);
+   proc_table->CmdSetDepthBias2EXT =
+      ext_table->EXT_depth_bias_control ? VN_GDPA(dev, vkCmdSetDepthBias2EXT) :
+      NULL;
    proc_table->CmdSetDepthBiasEnable =
       api_version >= VK_API_VERSION_1_3 ? VN_GDPA(dev, vkCmdSetDepthBiasEnable) :
       ext_table->EXT_extended_dynamic_state2 ? VN_GDPA(dev, vkCmdSetDepthBiasEnableEXT) :
@@ -657,6 +666,9 @@ vn_util_init_device_proc_table(VkDevice dev,
       NULL;
    proc_table->CmdSetDepthClampEnableEXT =
       ext_table->EXT_extended_dynamic_state3 ? VN_GDPA(dev, vkCmdSetDepthClampEnableEXT) :
+      NULL;
+   proc_table->CmdSetDepthClampRangeEXT =
+      ext_table->EXT_depth_clamp_control ? VN_GDPA(dev, vkCmdSetDepthClampRangeEXT) :
       NULL;
    proc_table->CmdSetDepthClipEnableEXT =
       ext_table->EXT_extended_dynamic_state3 ? VN_GDPA(dev, vkCmdSetDepthClipEnableEXT) :
