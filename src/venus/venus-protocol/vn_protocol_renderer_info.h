@@ -12,7 +12,7 @@
 
 struct vn_info_extension_table {
    union {
-      bool enabled[173];
+      bool enabled[175];
       struct {
          bool ARM_rasterization_order_attachment_access;
          bool EXT_4444_formats;
@@ -49,6 +49,7 @@ struct vn_info_extension_table {
          bool EXT_image_2d_view_of_3d;
          bool EXT_image_drm_format_modifier;
          bool EXT_image_robustness;
+         bool EXT_image_sliced_view_of_3d;
          bool EXT_image_view_min_lod;
          bool EXT_index_type_uint8;
          bool EXT_inline_uniform_block;
@@ -64,6 +65,7 @@ struct vn_info_extension_table {
          bool EXT_pci_bus_info;
          bool EXT_pipeline_creation_cache_control;
          bool EXT_pipeline_creation_feedback;
+         bool EXT_pipeline_library_group_handles;
          bool EXT_pipeline_protected_access;
          bool EXT_pipeline_robustness;
          bool EXT_post_depth_coverage;
@@ -200,8 +202,8 @@ struct vn_info_extension {
 };
 
 /* sorted by extension names for bsearch */
-static const uint32_t _vn_info_extension_count = 173;
-static const struct vn_info_extension _vn_info_extensions[173] = {
+static const uint32_t _vn_info_extension_count = 175;
+static const struct vn_info_extension _vn_info_extensions[175] = {
    { "VK_ARM_rasterization_order_attachment_access", 343, 1 },
    { "VK_EXT_4444_formats", 341, 1 },
    { "VK_EXT_attachment_feedback_loop_dynamic_state", 525, 1 },
@@ -237,6 +239,7 @@ static const struct vn_info_extension _vn_info_extensions[173] = {
    { "VK_EXT_image_2d_view_of_3d", 394, 1 },
    { "VK_EXT_image_drm_format_modifier", 159, 2 },
    { "VK_EXT_image_robustness", 336, 1 },
+   { "VK_EXT_image_sliced_view_of_3d", 419, 1 },
    { "VK_EXT_image_view_min_lod", 392, 1 },
    { "VK_EXT_index_type_uint8", 266, 1 },
    { "VK_EXT_inline_uniform_block", 139, 1 },
@@ -252,6 +255,7 @@ static const struct vn_info_extension _vn_info_extensions[173] = {
    { "VK_EXT_pci_bus_info", 213, 2 },
    { "VK_EXT_pipeline_creation_cache_control", 298, 3 },
    { "VK_EXT_pipeline_creation_feedback", 193, 1 },
+   { "VK_EXT_pipeline_library_group_handles", 499, 1 },
    { "VK_EXT_pipeline_protected_access", 467, 1 },
    { "VK_EXT_pipeline_robustness", 69, 1 },
    { "VK_EXT_post_depth_coverage", 156, 1 },
