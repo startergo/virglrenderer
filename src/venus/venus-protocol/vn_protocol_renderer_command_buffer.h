@@ -6202,10 +6202,15 @@ static inline void vn_decode_vkCmdBuildAccelerationStructuresIndirectKHR_args_te
         args->pIndirectStrides = NULL;
     }
     if (vn_peek_array_size(dec)) {
-        const size_t array_size = vn_decode_array_size(dec, args->infoCount);
-        args->ppMaxPrimitiveCounts = vn_cs_decoder_alloc_temp_array(dec, sizeof(*args->ppMaxPrimitiveCounts), array_size);
+        const uint32_t iter_count = vn_decode_array_size(dec, args->infoCount);
+        args->ppMaxPrimitiveCounts = vn_cs_decoder_alloc_temp_array(dec, sizeof(*args->ppMaxPrimitiveCounts), iter_count);
         if (!args->ppMaxPrimitiveCounts) return;
-        vn_decode_uint32_t_array(dec, *(uint32_t **)args->ppMaxPrimitiveCounts, array_size);
+        for (uint32_t i = 0; i < iter_count; i++) {
+            const size_t array_size = vn_decode_array_size(dec, (args->pInfos ? args->pInfos[i].geometryCount : 0));
+            ((uint32_t **)args->ppMaxPrimitiveCounts)[i] = vn_cs_decoder_alloc_temp_array(dec, sizeof(*args->ppMaxPrimitiveCounts[i]), array_size);
+            if (!args->ppMaxPrimitiveCounts[i]) return;
+            vn_decode_uint32_t_array(dec, ((uint32_t **)args->ppMaxPrimitiveCounts)[i], array_size);
+        }
     } else {
         vn_decode_array_size(dec, args->infoCount);
         args->ppMaxPrimitiveCounts = NULL;
