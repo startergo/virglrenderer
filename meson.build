@@ -107,7 +107,7 @@ endif
 
 with_drm_renderers = drm_renderers.length() > 0
 
-libdrm_dep = dependency('libdrm', version : '>=2.4.50', required: with_drm_renderers or get_option('venus'))
+libdrm_dep = dependency('libdrm', version : '>=2.4.50', required: with_drm_renderers or get_option('venus') or get_option('video'))
 libdrm_amdgpu_dep = dependency('libdrm_amdgpu', version : '>=2.4.121', required: with_drm_amdgpu)
 conf_data.set('ENABLE_DRM', libdrm_dep.found())
 
@@ -367,6 +367,9 @@ endif
 
 with_video = get_option('video')
 if with_video
+  if not have_egl
+     error('video require EGL, but it is not available')
+  endif
   conf_data.set('ENABLE_VIDEO', 1)
   libva_dep = dependency('libva')
   libvadrm_dep = dependency('libva-drm')
