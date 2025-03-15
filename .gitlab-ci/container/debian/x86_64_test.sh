@@ -2,7 +2,6 @@
 
 set -ex
 
-alias curl="curl -L --retry 4 -f --retry-all-errors --retry-delay 60"
 MESA_CI_PROJECT_DIR="/builds/${MESA_PROJECT_PATH}"
 mkdir -p ${MESA_CI_PROJECT_DIR}
 cd ${MESA_CI_PROJECT_DIR}
@@ -13,17 +12,17 @@ MESA_CONFIGURATION="default"
 MESA_BUILDTYPE="debugoptimized"
 MESA_TARBALL="mesa-${MESA_ARCHITECTURE}-${MESA_CONFIGURATION}-${MESA_BUILDTYPE}.tar.zst"
 MESA_CI_ARTIFACTS_URL="https://${S3_HOST}/${S3_ARTIFACTS_BUCKET}/${MESA_PROJECT_PATH}/${MESA_PIPELINE_ID}/${MESA_TARBALL}"
-if curl -s -I ${MESA_CI_ARTIFACTS_URL}; then
-    curl ${MESA_CI_ARTIFACTS_URL} -o - | tar -xv --zstd
+if curl -L --retry 4 -f --retry-all-errors --retry-delay 60 --output /dev/null --silent --head "${MESA_CI_ARTIFACTS_URL}"; then
+    curl -L --retry 4 -f --retry-all-errors --retry-delay 60 "${MESA_CI_ARTIFACTS_URL}" | tar -xv --zstd
 else
     echo -e "\e[31mThe Mesa artifacts has expired, please update to newer Mesa pipeline!\e[0m"
     apt-get update && apt-get -y install jq
     MESA_PROJECT_PATH_ESCAPED=$(echo "$MESA_PROJECT_PATH" | sed 's|/|%2F|')
-    MESA_PROJECT_ID=$(curl -s "${CI_API_V4_URL}/projects/${MESA_PROJECT_PATH_ESCAPED}" -o - | jq -c '.id')
+    MESA_PROJECT_ID=$(curl -L --retry 4 -f --retry-all-errors --retry-delay 60 -s "${CI_API_V4_URL}/projects/${MESA_PROJECT_PATH_ESCAPED}" | jq -c '.id')
     FALLBACK_PAGE=1
     while :
     do
-        MESA_JOB_ID=$(curl -s "${CI_API_V4_URL}/projects/${MESA_PROJECT_ID}/pipelines/${MESA_PIPELINE_ID}/jobs?per_page=100&page=${FALLBACK_PAGE}&scope=success" -o - \
+        MESA_JOB_ID=$(curl -L --retry 4 -f --retry-all-errors --retry-delay 60 -s "${CI_API_V4_URL}/projects/${MESA_PROJECT_ID}/pipelines/${MESA_PIPELINE_ID}/jobs?per_page=100&page=${FALLBACK_PAGE}&scope=success" \
           | jq -c '.[] | select(.name == "debian-testing") | .id')
         if [ ! -z "${MESA_JOB_ID}" ]; then
             break
@@ -36,7 +35,7 @@ else
     done
     MESA_CI_ARTIFACTS_URL="${CI_API_V4_URL}/projects/${MESA_PROJECT_ID}/jobs/${MESA_JOB_ID}/artifacts/artifacts/install.tar"
     unset MESA_JOB_ID
-    curl ${MESA_CI_ARTIFACTS_URL} -o - | tar -xv
+    curl -L --retry 4 -f --retry-all-errors --retry-delay 60 "${MESA_CI_ARTIFACTS_URL}" | tar -xv
 fi
 
 # Directory used by crosvm-runner.sh

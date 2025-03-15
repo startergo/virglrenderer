@@ -17,13 +17,14 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1383971
+  MESA_PIPELINE_ID: 1388345
 
   MESA_PROJECT_PATH: mesa/mesa
   S3_JWT_FILE: /s3_jwt
   S3_JWT_FILE_SCRIPT: |-
       echo -n '${S3_JWT}' > '${S3_JWT_FILE}' &&
       unset CI_JOB_JWT S3_JWT  # Unsetting vulnerable env variables
+
   S3_HOST: s3.freedesktop.org
   # Bucket for the pipeline artifacts pushed to S3
   S3_ARTIFACTS_BUCKET: artifacts
@@ -56,7 +57,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: 08450138c20fa05b15c5a4271c7a9c400a2f95f1
+    ref: 2769e494c678d26f5d802c1b1f682f99cde1810f
     file:
       - '/.gitlab-ci/image-tags.yml'
 
@@ -355,6 +356,8 @@ make check venus:
     - if: *is-post-merge
       when: never
     - when: on_success
+  tags:
+    - kvm
 
 .use-vk-test-image:
   stage: test
@@ -383,6 +386,8 @@ make check venus:
     - if: *is-post-merge
       when: never
     - when: on_success
+  tags:
+    - kvm
 
 .gl-host-test:
   extends:
@@ -496,7 +501,8 @@ piglit-gles-virt:
     GPU_VERSION: virgl-gles
     CROSVM_GPU_ARGS: *deqp-gles-crosvm-gpu-args
 
-virgl-traces:
+# Disabled until piglit's trace download is fixed
+.virgl-traces:
   extends:
     - .piglit-virt
   variables:
