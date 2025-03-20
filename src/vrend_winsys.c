@@ -208,13 +208,13 @@ int vrend_winsys_has_gl_colorspace(void)
 
 int vrend_winsys_get_attrs_for_texture(uint32_t tex_id, uint32_t format, int *fourcc,
                                        bool *has_dmabuf_export,
-                                       int *planes, uint64_t *modifiers)
+                                       int *planes, uint64_t *modifier)
 {
 #ifdef ENABLE_GBM
    if (use_context == CONTEXT_EGL)
       return virgl_egl_get_attrs_for_texture(egl, tex_id, format, fourcc,
                                              has_dmabuf_export,
-                                             planes, modifiers);
+                                             planes, modifier);
 #else
    (void)tex_id;
    (void)format;

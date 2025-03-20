@@ -64,7 +64,7 @@ bool virgl_has_egl_khr_gl_colorspace(struct virgl_egl *egl);
 #ifdef ENABLE_GBM
 int virgl_egl_get_attrs_for_texture(struct virgl_egl *egl, uint32_t tex_id, uint32_t format,
                                     int *fourcc, bool *has_dmabuf_export,
-                                    int *planes, uint64_t *modifiers);
+                                    int *planes, uint64_t *modifier);
 
 int virgl_egl_get_fd_for_texture(struct virgl_egl *egl, uint32_t tex_id, int *fd);
 

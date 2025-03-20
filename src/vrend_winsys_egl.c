@@ -663,13 +663,14 @@ virgl_renderer_gl_context virgl_egl_get_current_context(UNUSED struct virgl_egl 
 int virgl_egl_get_attrs_for_texture(struct virgl_egl *egl, uint32_t tex_id,
                                     uint32_t format, int *fourcc,
                                     bool *has_dmabuf_export,
-                                    int *planes, uint64_t *modifiers)
+                                    int *planes, uint64_t *modifier)
 {
    int ret = EINVAL;
    uint32_t gbm_format = 0;
 
    EGLImageKHR image;
    EGLBoolean success;
+   uint64_t modifiers[4];
 
    if (!has_bit(egl->extension_bits, EGL_MESA_IMAGE_DMA_BUF_EXPORT)) {
       ret = 0;
@@ -686,6 +687,9 @@ int virgl_egl_get_attrs_for_texture(struct virgl_egl *egl, uint32_t tex_id,
                                            modifiers);
    if (!success)
       goto out_destroy;
+   /* Only first modifier matters. */
+   if (modifier)
+      *modifier = modifiers[0];
    ret = 0;
  out_destroy:
    eglDestroyImageKHR(egl->egl_display, image);
