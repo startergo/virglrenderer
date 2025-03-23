@@ -1001,6 +1001,8 @@ static GLuint vrend_resource_get_internal_format_override(const struct vrend_res
          return GL_RGB8;
       case VIRGL_FORMAT_R16G16B16X16_FLOAT:
          return GL_RGB16F;
+      case VIRGL_FORMAT_R16G16B16X16_UNORM:
+         return GL_RGB16;
       default:
          ;
       }
