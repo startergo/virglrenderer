@@ -1820,6 +1820,65 @@ vn_decode_VkMemoryRequirements2_partial_temp(struct vn_cs_decoder *dec, VkMemory
     vn_decode_VkMemoryRequirements2_self_partial_temp(dec, val);
 }
 
+/* struct VkMultisampledRenderToSingleSampledInfoEXT chain */
+
+static inline void *
+vn_decode_VkMultisampledRenderToSingleSampledInfoEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkMultisampledRenderToSingleSampledInfoEXT_self_temp(struct vn_cs_decoder *dec, VkMultisampledRenderToSingleSampledInfoEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkBool32(dec, &val->multisampledRenderToSingleSampledEnable);
+    vn_decode_VkSampleCountFlagBits(dec, &val->rasterizationSamples);
+}
+
+static inline void
+vn_decode_VkMultisampledRenderToSingleSampledInfoEXT_temp(struct vn_cs_decoder *dec, VkMultisampledRenderToSingleSampledInfoEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkMultisampledRenderToSingleSampledInfoEXT_pnext_temp(dec);
+    vn_decode_VkMultisampledRenderToSingleSampledInfoEXT_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkMultisampledRenderToSingleSampledInfoEXT_handle_self(VkMultisampledRenderToSingleSampledInfoEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->multisampledRenderToSingleSampledEnable */
+    /* skip val->rasterizationSamples */
+}
+
+static inline void
+vn_replace_VkMultisampledRenderToSingleSampledInfoEXT_handle(VkMultisampledRenderToSingleSampledInfoEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT:
+            vn_replace_VkMultisampledRenderToSingleSampledInfoEXT_handle_self((VkMultisampledRenderToSingleSampledInfoEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkMemoryBarrier2 chain */
 
 static inline void *

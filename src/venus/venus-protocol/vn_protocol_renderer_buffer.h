@@ -131,6 +131,63 @@ vn_replace_VkBufferOpaqueCaptureAddressCreateInfo_handle(VkBufferOpaqueCaptureAd
     } while (pnext);
 }
 
+/* struct VkBufferDeviceAddressCreateInfoEXT chain */
+
+static inline void *
+vn_decode_VkBufferDeviceAddressCreateInfoEXT_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkBufferDeviceAddressCreateInfoEXT_self_temp(struct vn_cs_decoder *dec, VkBufferDeviceAddressCreateInfoEXT *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkDeviceAddress(dec, &val->deviceAddress);
+}
+
+static inline void
+vn_decode_VkBufferDeviceAddressCreateInfoEXT_temp(struct vn_cs_decoder *dec, VkBufferDeviceAddressCreateInfoEXT *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkBufferDeviceAddressCreateInfoEXT_pnext_temp(dec);
+    vn_decode_VkBufferDeviceAddressCreateInfoEXT_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkBufferDeviceAddressCreateInfoEXT_handle_self(VkBufferDeviceAddressCreateInfoEXT *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->deviceAddress */
+}
+
+static inline void
+vn_replace_VkBufferDeviceAddressCreateInfoEXT_handle(VkBufferDeviceAddressCreateInfoEXT *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT:
+            vn_replace_VkBufferDeviceAddressCreateInfoEXT_handle_self((VkBufferDeviceAddressCreateInfoEXT *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkBufferCreateInfo chain */
 
 static inline void *
@@ -166,6 +223,14 @@ vn_decode_VkBufferCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             pnext->sType = stype;
             pnext->pNext = vn_decode_VkBufferCreateInfo_pnext_temp(dec);
             vn_decode_VkBufferOpaqueCaptureAddressCreateInfo_self_temp(dec, (VkBufferOpaqueCaptureAddressCreateInfo *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkBufferDeviceAddressCreateInfoEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkBufferCreateInfo_pnext_temp(dec);
+            vn_decode_VkBufferDeviceAddressCreateInfoEXT_self_temp(dec, (VkBufferDeviceAddressCreateInfoEXT *)pnext);
         }
         break;
     default:
@@ -242,6 +307,9 @@ vn_replace_VkBufferCreateInfo_handle(VkBufferCreateInfo *val)
             break;
         case VK_STRUCTURE_TYPE_BUFFER_OPAQUE_CAPTURE_ADDRESS_CREATE_INFO:
             vn_replace_VkBufferOpaqueCaptureAddressCreateInfo_handle_self((VkBufferOpaqueCaptureAddressCreateInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT:
+            vn_replace_VkBufferDeviceAddressCreateInfoEXT_handle_self((VkBufferDeviceAddressCreateInfoEXT *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */

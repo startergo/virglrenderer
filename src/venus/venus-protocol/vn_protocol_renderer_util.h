@@ -941,6 +941,7 @@ vn_util_init_device_proc_table(VkDevice dev,
       NULL;
    proc_table->GetBufferDeviceAddress =
       api_version >= VK_API_VERSION_1_2 ? VN_GDPA(dev, vkGetBufferDeviceAddress) :
+      ext_table->EXT_buffer_device_address ? VN_GDPA(dev, vkGetBufferDeviceAddressEXT) :
       ext_table->KHR_buffer_device_address ? VN_GDPA(dev, vkGetBufferDeviceAddressKHR) :
       NULL;
    proc_table->GetBufferMemoryRequirements = VN_GDPA(dev, vkGetBufferMemoryRequirements);

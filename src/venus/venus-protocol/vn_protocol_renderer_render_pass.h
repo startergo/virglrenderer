@@ -1023,6 +1023,14 @@ vn_decode_VkSubpassDescription2_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkFragmentShadingRateAttachmentInfoKHR_self_temp(dec, (VkFragmentShadingRateAttachmentInfoKHR *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkMultisampledRenderToSingleSampledInfoEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkSubpassDescription2_pnext_temp(dec);
+            vn_decode_VkMultisampledRenderToSingleSampledInfoEXT_self_temp(dec, (VkMultisampledRenderToSingleSampledInfoEXT *)pnext);
+        }
+        break;
     default:
         /* unexpected struct */
         pnext = NULL;
@@ -1147,6 +1155,9 @@ vn_replace_VkSubpassDescription2_handle(VkSubpassDescription2 *val)
             break;
         case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
             vn_replace_VkFragmentShadingRateAttachmentInfoKHR_handle_self((VkFragmentShadingRateAttachmentInfoKHR *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT:
+            vn_replace_VkMultisampledRenderToSingleSampledInfoEXT_handle_self((VkMultisampledRenderToSingleSampledInfoEXT *)pnext);
             break;
         default:
             /* ignore unknown/unsupported struct */

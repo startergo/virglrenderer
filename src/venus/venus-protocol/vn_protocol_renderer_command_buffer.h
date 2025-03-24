@@ -2965,6 +2965,14 @@ vn_decode_VkRenderingInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkDeviceGroupRenderPassBeginInfo_self_temp(dec, (VkDeviceGroupRenderPassBeginInfo *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkMultisampledRenderToSingleSampledInfoEXT));
+        if (pnext) {
+            pnext->sType = stype;
+            pnext->pNext = vn_decode_VkRenderingInfo_pnext_temp(dec);
+            vn_decode_VkMultisampledRenderToSingleSampledInfoEXT_self_temp(dec, (VkMultisampledRenderToSingleSampledInfoEXT *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkRenderingFragmentShadingRateAttachmentInfoKHR));
         if (pnext) {
@@ -3063,6 +3071,9 @@ vn_replace_VkRenderingInfo_handle(VkRenderingInfo *val)
             break;
         case VK_STRUCTURE_TYPE_DEVICE_GROUP_RENDER_PASS_BEGIN_INFO:
             vn_replace_VkDeviceGroupRenderPassBeginInfo_handle_self((VkDeviceGroupRenderPassBeginInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT:
+            vn_replace_VkMultisampledRenderToSingleSampledInfoEXT_handle_self((VkMultisampledRenderToSingleSampledInfoEXT *)pnext);
             break;
         case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
             vn_replace_VkRenderingFragmentShadingRateAttachmentInfoKHR_handle_self((VkRenderingFragmentShadingRateAttachmentInfoKHR *)pnext);
