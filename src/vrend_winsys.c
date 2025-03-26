@@ -220,7 +220,7 @@ int vrend_winsys_get_attrs_for_texture(uint32_t tex_id, uint32_t format, int *fo
    (void)format;
    (void)fourcc;
    (void)planes;
-   (void)modifiers;
+   (void)modifier;
    if (has_dmabuf_export)
       *has_dmabuf_export = false;
 #endif
