@@ -777,9 +777,6 @@ struct vrend_sub_context {
 
    int last_shader_idx;
 
-
-   GLint draw_indirect_params_buffer;
-
    struct pipe_rasterizer_state hw_rs_state;
    struct pipe_blend_state hw_blend_state;
 
@@ -6082,10 +6079,7 @@ int vrend_draw_vbo(struct vrend_context *ctx,
 
       if (has_feature(feat_indirect_params)) {
          GLint buf = indirect_params_res ? indirect_params_res->gl_id : 0;
-         if (sub_ctx->draw_indirect_params_buffer != buf) {
-            glBindBuffer(GL_PARAMETER_BUFFER_ARB, buf);
-            sub_ctx->draw_indirect_params_buffer = buf;
-         }
+         glBindBuffer(GL_PARAMETER_BUFFER_ARB, buf);
       }
    }
 
