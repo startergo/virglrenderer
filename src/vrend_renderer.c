@@ -777,7 +777,6 @@ struct vrend_sub_context {
 
    int last_shader_idx;
 
-   GLint draw_indirect_buffer;
 
    GLint draw_indirect_params_buffer;
 
@@ -6079,10 +6078,7 @@ int vrend_draw_vbo(struct vrend_context *ctx,
 
    if (has_feature(feat_indirect_draw)) {
       GLint buf = indirect_res ? indirect_res->gl_id : 0;
-      if (sub_ctx->draw_indirect_buffer != buf) {
-         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buf);
-         sub_ctx->draw_indirect_buffer = buf;
-      }
+      glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buf);
 
       if (has_feature(feat_indirect_params)) {
          GLint buf = indirect_params_res ? indirect_params_res->gl_id : 0;
