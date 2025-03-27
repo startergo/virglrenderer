@@ -1449,35 +1449,18 @@ static bool vrend_is_timer_query(GLenum gltype)
       gltype == GL_TIME_ELAPSED;
 }
 
-static inline void use_program(struct vrend_sub_context *sub_ctx, uint32_t id)
-{
-      if (sub_ctx->current_program_id != id) {
-         sub_ctx->current_program_id = id;
-         glUseProgram(id);
-      }
-}
-
-static inline void bind_pipeline(struct vrend_sub_context *sub_ctx, uint32_t id)
-{
-      if (sub_ctx->current_pipeline_id != id) {
-         sub_ctx->current_pipeline_id = id;
-         glBindProgramPipeline(id);
-      }
-}
-
-static void vrend_use_program(struct vrend_sub_context *sub_ctx,
-                              struct vrend_linked_shader_program *program)
+static void vrend_use_program(struct vrend_linked_shader_program *program)
 {
    GLuint id = !program ? 0 :
                           program->is_pipeline ? program->id.pipeline :
                                                  program->id.program;
    if (program && program->is_pipeline) {
-      use_program(sub_ctx, 0);
-      bind_pipeline(sub_ctx, id);
+      glUseProgram(0);
+      glBindProgramPipeline(id);
    } else {
        if (has_feature(feat_separate_shader_objects))
-          bind_pipeline(sub_ctx, 0);
-       use_program(sub_ctx, id);
+          glBindProgramPipeline(0);
+       glUseProgram(id);
    }
 }
 
@@ -1987,7 +1970,7 @@ static struct vrend_linked_shader_program *add_cs_shader_program(struct vrend_co
    sprog->id.program = prog_id;
    list_addtail(&sprog->head, &ctx->sub->cs_programs);
 
-   vrend_use_program(ctx->sub, sprog);
+   vrend_use_program(sprog);
 
    bind_sampler_locs(sprog, PIPE_SHADER_COMPUTE, 0);
    bind_ubo_locs(sprog, PIPE_SHADER_COMPUTE, 0);
@@ -2176,7 +2159,7 @@ static struct vrend_linked_shader_program *add_shader_program(struct vrend_sub_c
    sprog->ubo_sysval_buffer_id = GL_INVALID_INDEX;
    sprog->sysvalue_data_cookie = UINT32_MAX;
 
-   vrend_use_program(sub_ctx, sprog);
+   vrend_use_program(sprog);
 
    for (enum pipe_shader_type shader_type = PIPE_SHADER_VERTEX;
         shader_type <= last_shader;
@@ -2275,12 +2258,16 @@ static void vrend_destroy_program(struct vrend_linked_shader_program *ent)
    list_del(&ent->head);
 
    for (i = PIPE_SHADER_VERTEX; i <= PIPE_SHADER_COMPUTE; i++) {
-      if (ent->ss[i])
+      if (ent->ss[i]) {
          list_del(&ent->sl[i]);
+         if (ent->ss[i]->last_pipeline_id == ent->id.pipeline)
+            ent->ss[i]->last_pipeline_id = 0xffffffff;
+      }
       free(ent->sampler_locs[i]);
       free(ent->shadow_samp_mask_locs[i]);
       free(ent->shadow_samp_add_locs[i]);
       free(ent->img_locs[i]);
+
    }
    free(ent->attrib_locs);
    free(ent);
@@ -4831,7 +4818,7 @@ void vrend_clear(struct vrend_context *ctx, unsigned buffers,
    if (sub_ctx->viewport_state_dirty)
       vrend_update_viewport_state(sub_ctx);
 
-   vrend_use_program(ctx->sub, NULL);
+   vrend_use_program(NULL);
 
    glDisable(GL_SCISSOR_TEST);
 
@@ -5807,7 +5794,7 @@ vrend_select_program(struct vrend_sub_context *sub_ctx, uint8_t vertices_per_pat
           }
 
           if (need_rebind) {
-             vrend_use_program(sub_ctx, prog);
+             vrend_use_program(prog);
              rebind_ubo_and_sampler_locs(prog, last_shader);
           }
       }
@@ -5981,7 +5968,7 @@ int vrend_draw_vbo(struct vrend_context *ctx,
       return 0;
    }
 
-   vrend_use_program(sub_ctx, sub_ctx->prog);
+   vrend_use_program(sub_ctx->prog);
 
    if (has_feature(feat_draw_parameters) &&
        sub_ctx->prog->reads_drawid &&
@@ -6257,7 +6244,7 @@ void vrend_launch_grid(struct vrend_context *ctx,
       return;
    }
 
-   vrend_use_program(sub_ctx, sub_ctx->prog);
+   vrend_use_program(sub_ctx->prog);
 
    vrend_set_active_pipeline_stage(sub_ctx->prog, PIPE_SHADER_COMPUTE);
    vrend_draw_bind_ubo_shader(sub_ctx, PIPE_SHADER_COMPUTE, 0);
@@ -9293,7 +9280,7 @@ static int vrend_renderer_transfer_write_iov(struct vrend_context *ctx,
       uint32_t stride = info->stride;
       uint32_t layer_stride = info->layer_stride;
 
-      vrend_use_program(ctx->sub, 0);
+      vrend_use_program(NULL);
 
       if (!stride)
          stride = util_format_get_nblocksx(res->base.format, u_minify(res->base.width0, info->level)) * elsize;
@@ -9715,7 +9702,7 @@ static int vrend_transfer_send_readpixels(struct vrend_context *ctx,
    int row_stride = info->stride / elsize;
    GLint old_fbo;
 
-   vrend_use_program(ctx->sub, 0);
+   vrend_use_program(NULL);
 
    enum virgl_formats fmt = res->base.format;
 
