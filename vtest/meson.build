@@ -22,6 +22,7 @@
 #
 
 vtest_sources = [
+   'threadpool.c',
    'util.c',
    'util.h',
    'vtest_shm.c',
@@ -35,6 +36,7 @@ vtest_sources = [
 vtest_depends = [
    libvirglrenderer_dep,
    gallium_dep,
+   thread_dep,
 ]
 
 if with_tracing == 'percetto'
@@ -76,7 +78,8 @@ if with_fuzzer
 
    vtest_obj = libvtest.extract_objects(['util.c',
                                          'vtest_shm.c',
-                                         'vtest_renderer.c'
+                                         'vtest_renderer.c',
+                                         'threadpool.c',
                                         ])
 
    vtest_fuzzer = executable(
