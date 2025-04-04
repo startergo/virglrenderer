@@ -35,13 +35,7 @@
 #ifndef _DRM_H_
 #define _DRM_H_
 
-#if defined(__KERNEL__)
-
-#include <linux/types.h>
-#include <asm/ioctl.h>
-typedef unsigned int drm_handle_t;
-
-#elif defined(__linux__)
+#if   defined(__linux__)
 
 #include <linux/types.h>
 #include <asm/ioctl.h>
@@ -1386,7 +1380,6 @@ struct drm_event_crtc_sequence {
 };
 
 /* typedef area */
-#ifndef __KERNEL__
 typedef struct drm_clip_rect drm_clip_rect_t;
 typedef struct drm_drawable_info drm_drawable_info_t;
 typedef struct drm_tex_region drm_tex_region_t;
@@ -1428,7 +1421,6 @@ typedef struct drm_agp_binding drm_agp_binding_t;
 typedef struct drm_agp_info drm_agp_info_t;
 typedef struct drm_scatter_gather drm_scatter_gather_t;
 typedef struct drm_set_version drm_set_version_t;
-#endif
 
 #if defined(__cplusplus)
 }
