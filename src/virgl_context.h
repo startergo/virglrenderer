@@ -30,7 +30,6 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "virglrenderer_hw.h"
 #include "virgl_resource.h"
 
 #include "util/list.h"
@@ -67,7 +66,7 @@ struct virgl_context {
 
    int in_fence_fd;
 
-   enum virgl_renderer_capset capset_id;
+   uint32_t capset_id;
 
    /*
     * Each fence goes through submitted, signaled, and retired.  This callback

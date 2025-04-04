@@ -5,7 +5,7 @@
 
 #include "proxy_common.h"
 
-#include "virglrenderer_hw.h"
+#include "virtgpu_drm.h"
 
 #include "proxy_client.h"
 #include "proxy_renderer.h"
@@ -58,7 +58,7 @@ size_t
 proxy_get_capset(uint32_t set, void *caps)
 {
    switch (set) {
-   case VIRGL_RENDERER_CAPSET_VENUS:
+   case VIRTGPU_DRM_CAPSET_VENUS:
       return vkr_get_capset(caps, proxy_renderer.flags);
    default:
       break;

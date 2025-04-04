@@ -59,9 +59,9 @@
 #include "virgl_hw.h"
 #include "virgl_resource.h"
 #include "virglrenderer.h"
-#include "virglrenderer_hw.h"
 #include "virgl_protocol.h"
 #include "virgl_fence.h"
+#include "virtgpu_drm.h"
 
 #include "tgsi/tgsi_text.h"
 
@@ -78,10 +78,10 @@
 #endif
 
 /*
- * VIRGL_RENDERER_CAPSET_VIRGL has version 0 and 1, but they are both
+ * VIRTGPU_DRM_CAPSET_VIRGL has version 0 and 1, but they are both
  * virgl_caps_v1 and are exactly the same.
  *
- * VIRGL_RENDERER_CAPSET_VIRGL2 has version 0, 1, and 2, but they are
+ * VIRTGPU_DRM_CAPSET_VIRGL2 has version 0, 1, and 2, but they are
  * all virgl_caps_v2 and are exactly the same.
  *
  * Since virgl_caps_v2 is growable and no backward-incompatible change is
@@ -12815,13 +12815,13 @@ void vrend_renderer_fill_caps(uint32_t set, uint32_t version,
       return;
 
    switch (set) {
-   case VIRGL_RENDERER_CAPSET_VIRGL:
+   case VIRTGPU_DRM_CAPSET_VIRGL:
       if (version > VREND_CAPSET_VIRGL_MAX_VERSION)
          return;
       memset(caps, 0, sizeof(struct virgl_caps_v1));
       caps->max_version = VREND_CAPSET_VIRGL_MAX_VERSION;
       break;
-   case VIRGL_RENDERER_CAPSET_VIRGL2:
+   case VIRTGPU_DRM_CAPSET_VIRGL2:
       if (version > VREND_CAPSET_VIRGL2_MAX_VERSION)
          return;
       memset(caps, 0, sizeof(*caps));
@@ -13078,11 +13078,11 @@ void vrend_renderer_get_cap_set(uint32_t cap_set, uint32_t *max_ver,
                                 uint32_t *max_size)
 {
    switch (cap_set) {
-   case VIRGL_RENDERER_CAPSET_VIRGL:
+   case VIRTGPU_DRM_CAPSET_VIRGL:
       *max_ver = VREND_CAPSET_VIRGL_MAX_VERSION;
       *max_size = sizeof(struct virgl_caps_v1);
       break;
-   case VIRGL_RENDERER_CAPSET_VIRGL2:
+   case VIRTGPU_DRM_CAPSET_VIRGL2:
       *max_ver = VREND_CAPSET_VIRGL2_MAX_VERSION;
       *max_size = sizeof(struct virgl_caps_v2);
       break;

@@ -10,7 +10,7 @@
 
 #include "util/macros.h"
 #include "virglrenderer.h"
-#include "virglrenderer_hw.h"
+#include "virt_drm.h"
 
 int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
@@ -73,7 +73,7 @@ fuzz_context_create(UNUSED struct fuzz_renderer *renderer)
 {
    const uint32_t ctx_id = 1;
    const char name[] = "virgl_drm_fuzzer";
-   int ret = virgl_renderer_context_create_with_flags(ctx_id, VIRGL_RENDERER_CAPSET_DRM,
+   int ret = virgl_renderer_context_create_with_flags(ctx_id, VIRTGPU_DRM_CAPSET_DRM,
                                                       sizeof(name), name);
    if (ret)
       abort();

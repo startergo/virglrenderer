@@ -51,7 +51,7 @@
 #endif
 
 #include "virglrenderer.h"
-#include "virglrenderer_hw.h"
+#include "virtgpu_drm.h"
 
 #include "virgl_context.h"
 #include "virgl_fence.h"
@@ -179,16 +179,16 @@ void virgl_renderer_fill_caps(uint32_t set, uint32_t version,
                               void *caps)
 {
    switch (set) {
-   case VIRGL_RENDERER_CAPSET_VIRGL:
-   case VIRGL_RENDERER_CAPSET_VIRGL2:
+   case VIRTGPU_DRM_CAPSET_VIRGL:
+   case VIRTGPU_DRM_CAPSET_VIRGL2:
       if (state.vrend_initialized)
          vrend_renderer_fill_caps(set, version, (union virgl_caps *)caps);
       break;
-   case VIRGL_RENDERER_CAPSET_VENUS:
+   case VIRTGPU_DRM_CAPSET_VENUS:
       if (state.proxy_initialized)
          proxy_get_capset(set, caps);
       break;
-   case VIRGL_RENDERER_CAPSET_DRM:
+   case VIRTGPU_DRM_CAPSET_DRM:
       if (state.drm_initialized)
          drm_renderer_capset(caps);
       break;
@@ -212,8 +212,7 @@ int virgl_renderer_context_create_with_flags(uint32_t ctx_id,
                                              uint32_t nlen,
                                              const char *name)
 {
-   const enum virgl_renderer_capset capset_id =
-      ctx_flags & VIRGL_RENDERER_CONTEXT_FLAG_CAPSET_ID_MASK;
+   uint32_t capset_id = ctx_flags & VIRGL_RENDERER_CONTEXT_FLAG_CAPSET_ID_MASK;
    struct virgl_context *ctx;
    int ret;
 
@@ -233,18 +232,18 @@ int virgl_renderer_context_create_with_flags(uint32_t ctx_id,
    }
 
    switch (capset_id) {
-   case VIRGL_RENDERER_CAPSET_VIRGL:
-   case VIRGL_RENDERER_CAPSET_VIRGL2:
+   case VIRTGPU_DRM_CAPSET_VIRGL:
+   case VIRTGPU_DRM_CAPSET_VIRGL2:
       if (!state.vrend_initialized)
          return EINVAL;
       ctx = vrend_renderer_context_create(ctx_id, nlen, name);
       break;
-   case VIRGL_RENDERER_CAPSET_VENUS:
+   case VIRTGPU_DRM_CAPSET_VENUS:
       if (!state.proxy_initialized)
          return EINVAL;
       ctx = proxy_context_create(ctx_id, ctx_flags, nlen, name);
       break;
-   case VIRGL_RENDERER_CAPSET_DRM:
+   case VIRTGPU_DRM_CAPSET_DRM:
       if (!state.drm_initialized)
          return EINVAL;
       ctx = drm_renderer_create(nlen, name);
@@ -273,7 +272,7 @@ int virgl_renderer_context_create_with_flags(uint32_t ctx_id,
 int virgl_renderer_context_create(uint32_t handle, uint32_t nlen, const char *name)
 {
    return virgl_renderer_context_create_with_flags(handle,
-                                                   VIRGL_RENDERER_CAPSET_VIRGL2,
+                                                   VIRTGPU_DRM_CAPSET_VIRGL2,
                                                    nlen,
                                                    name);
 }
@@ -562,15 +561,15 @@ void virgl_renderer_get_cap_set(uint32_t cap_set, uint32_t *max_ver,
 
    /* this may be called before virgl_renderer_init */
    switch (cap_set) {
-   case VIRGL_RENDERER_CAPSET_VIRGL:
-   case VIRGL_RENDERER_CAPSET_VIRGL2:
+   case VIRTGPU_DRM_CAPSET_VIRGL:
+   case VIRTGPU_DRM_CAPSET_VIRGL2:
       vrend_renderer_get_cap_set(cap_set, max_ver, max_size);
       break;
-   case VIRGL_RENDERER_CAPSET_VENUS:
+   case VIRTGPU_DRM_CAPSET_VENUS:
       *max_ver = 0;
       *max_size = proxy_get_capset(cap_set, NULL);
       break;
-   case VIRGL_RENDERER_CAPSET_DRM:
+   case VIRTGPU_DRM_CAPSET_DRM:
       *max_ver = 0;
       *max_size = drm_renderer_capset(NULL);
       break;
@@ -736,8 +735,8 @@ virgl_context_foreach_retire_fences(struct virgl_context *ctx,
                                     UNUSED void* data)
 {
    /* vrend contexts are polled explicitly by the caller */
-   if (ctx->capset_id != VIRGL_RENDERER_CAPSET_VIRGL &&
-       ctx->capset_id != VIRGL_RENDERER_CAPSET_VIRGL2 &&
+   if (ctx->capset_id != VIRTGPU_DRM_CAPSET_VIRGL &&
+       ctx->capset_id != VIRTGPU_DRM_CAPSET_VIRGL2 &&
        !(state.flags & VIRGL_RENDERER_ASYNC_FENCE_CB))
    {
       assert(ctx->retire_fences);

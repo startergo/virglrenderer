@@ -62,7 +62,7 @@ vrend_sources = [
 virglrenderer_sources = [
    'virglrenderer.c',
    'virglrenderer.h',
-   'virglrenderer_hw.h',
+   'drm/drm-uapi/virtgpu_drm.h',
 ]
 
 vrend_winsys_gbm_sources = [
@@ -263,7 +263,7 @@ libvirgl = static_library(
 libvirgl_inc = [
    inc_gallium,
    inc_configuration,
-   include_directories(['.', 'venus', 'drm'])
+   include_directories(['.', 'venus', 'drm', 'drm/drm-uapi'])
 ]
 
 libvirgl_dep = declare_dependency(
@@ -274,7 +274,7 @@ libvirgl_dep = declare_dependency(
 libvirglrenderer = library(
    'virglrenderer',
    virglrenderer_sources,
-   include_directories: [inc_gallium, inc_configuration],
+   include_directories: [inc_gallium, inc_configuration, 'drm/drm-uapi'],
    dependencies : [virgl_depends, libvirgl_dep],
    version : binary_age.to_string() + '.'
              + interface_age.to_string() + '.'

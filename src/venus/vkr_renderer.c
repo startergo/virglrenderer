@@ -6,7 +6,8 @@
 #include "vkr_common.h"
 
 #include "venus-protocol/vn_protocol_renderer_info.h"
-#include "virglrenderer_hw.h"
+#include "virtgpu_drm.h"
+#include "venus_hw.h"
 
 #include "vkr_context.h"
 
@@ -110,7 +111,7 @@ vkr_renderer_create_context(uint32_t ctx_id,
    assert(!(ctx_flags & ~VIRGL_RENDERER_CONTEXT_FLAG_CAPSET_ID_MASK));
 
    if ((ctx_flags & VIRGL_RENDERER_CONTEXT_FLAG_CAPSET_ID_MASK) !=
-       VIRGL_RENDERER_CAPSET_VENUS)
+       VIRTGPU_DRM_CAPSET_VENUS)
       return false;
 
    /* duplicate ctx creation between server and vkr is invalid */
