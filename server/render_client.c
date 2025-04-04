@@ -234,7 +234,7 @@ render_client_dispatch_init(struct render_client *client,
    if (enumerate_inst_ext_props) {
       /* this makes the Vulkan loader loads ICDs */
       uint32_t unused_count;
-      vkEnumerateInstanceExtensionProperties(NULL, &unused_count, NULL);
+      enumerate_inst_ext_props(NULL, &unused_count, NULL);
    }
 
    return true;
