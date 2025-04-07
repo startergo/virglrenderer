@@ -501,8 +501,7 @@ piglit-gles-virt:
     GPU_VERSION: virgl-gles
     CROSVM_GPU_ARGS: *deqp-gles-crosvm-gpu-args
 
-# Disabled until piglit's trace download is fixed
-.virgl-traces:
+virgl-traces:
   extends:
     - .piglit-virt
   variables:
