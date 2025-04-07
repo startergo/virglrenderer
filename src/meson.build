@@ -185,6 +185,37 @@ video_sources = [
    'vrend_video.h',
 ]
 
+vcl_sources = [
+   'vcl/vcomp_common.c',
+   'vcl/vcomp_common.h',
+   'vcl/vcomp_cl_context.c',
+   'vcl/vcomp_cl_context.h',
+   'vcl/vcomp_context.c',
+   'vcl/vcomp_context.h',
+   'vcl/vcomp_cs.c',
+   'vcl/vcomp_cs.h',
+   'vcl/vcomp_device.c',
+   'vcl/vcomp_device.h',
+   'vcl/vcomp_event.c',
+   'vcl/vcomp_event.h',
+   'vcl/vcomp_memory.c',
+   'vcl/vcomp_memory.h',
+   'vcl/vcomp_renderer.c',
+   'vcl/vcomp_renderer.h',
+   'vcl/vcomp_sampler.c',
+   'vcl/vcomp_sampler.h',
+   'vcl/vcomp_platform.c',
+   'vcl/vcomp_platform.h',
+   'vcl/vcomp_kernel.c',
+   'vcl/vcomp_kernel.h',
+   'vcl/vcomp_queue.c',
+   'vcl/vcomp_queue.h',
+   'vcl/vcomp_transport.c',
+   'vcl/vcomp_transport.h',
+   'vcl/vcomp_program.c',
+   'vcl/vcomp_program.h'
+]
+
 virgl_depends = [
    gallium_dep,
    epoxy_dep,
@@ -253,11 +284,17 @@ if with_host_windows
   virgl_sources += ['mman_win32.c']
 endif
 
+if with_vcl
+   virgl_sources += vcl_sources
+   virgl_depends += [vcl_dep]
+endif
+
 libvirgl = static_library(
    'virgl',
    virgl_sources,
-   include_directories: [inc_gallium, inc_configuration, 'venus', 'drm', 'drm/drm-uapi'],
+   include_directories: [inc_gallium, inc_configuration, 'vcl', 'venus', 'drm', 'drm/drm-uapi'],
    dependencies : virgl_depends,
+   c_args: ['-Wno-deprecated-declarations'],
 )
 
 libvirgl_inc = [

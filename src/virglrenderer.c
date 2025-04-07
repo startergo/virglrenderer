@@ -1,6 +1,7 @@
 /**************************************************************************
  *
  * Copyright (C) 2014 Red Hat Inc.
+ * Copyright 2023-2024 Qualcomm Innovation Center, Inc. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,6 +46,7 @@
 #include "vrend_renderer.h"
 #include "proxy/proxy_renderer.h"
 #include "vrend_winsys.h"
+#include "vcl/vcomp_renderer.h"
 
 #ifndef WIN32
 #include "util/libsync.h"
@@ -72,6 +74,7 @@ struct global_state {
    bool external_winsys_initialized;
    bool drm_initialized;
    bool fence_initialized;
+   bool vcomp_initialized;
 };
 
 static struct global_state state;
@@ -192,6 +195,10 @@ void virgl_renderer_fill_caps(uint32_t set, uint32_t version,
       if (state.drm_initialized)
          drm_renderer_capset(caps);
       break;
+   case VIRGL_RENDERER_CAPSET_VCL:
+      if (state.vcomp_initialized)
+         vcomp_get_capset(caps);
+      break;
    default:
       break;
    }
@@ -248,6 +255,9 @@ int virgl_renderer_context_create_with_flags(uint32_t ctx_id,
       if (!state.drm_initialized)
          return EINVAL;
       ctx = drm_renderer_create(nlen, name);
+      break;
+   case VIRGL_RENDERER_CAPSET_VCL:
+      ctx = vcomp_context_create(ctx_id, nlen, name);
       break;
    default:
       return EINVAL;
@@ -574,6 +584,10 @@ void virgl_renderer_get_cap_set(uint32_t cap_set, uint32_t *max_ver,
       *max_ver = 0;
       *max_size = drm_renderer_capset(NULL);
       break;
+   case VIRGL_RENDERER_CAPSET_VCL:
+      *max_ver = 0;
+      *max_size = vcomp_get_capset(NULL);
+      break;
    default:
       *max_ver = 0;
       *max_size = 0;
@@ -738,7 +752,8 @@ virgl_context_foreach_retire_fences(struct virgl_context *ctx,
    /* vrend contexts are polled explicitly by the caller */
    if (ctx->capset_id != VIRGL_RENDERER_CAPSET_VIRGL &&
        ctx->capset_id != VIRGL_RENDERER_CAPSET_VIRGL2 &&
-       !(state.flags & VIRGL_RENDERER_ASYNC_FENCE_CB))
+       !(state.flags & VIRGL_RENDERER_ASYNC_FENCE_CB) &&
+       ctx->capset_id != VIRGL_RENDERER_CAPSET_VCL)
    {
       assert(ctx->retire_fences);
       ctx->retire_fences(ctx);
@@ -768,6 +783,9 @@ void virgl_renderer_cleanup(UNUSED void *cookie)
 
    if (state.resource_initialized)
       virgl_resource_table_cleanup();
+
+   if (state.vcomp_initialized)
+      vcomp_renderer_fini();
 
    if (state.proxy_initialized)
       proxy_renderer_fini();
@@ -957,6 +975,13 @@ int virgl_renderer_init(void *cookie, int flags, struct virgl_renderer_callbacks
       state.fence_initialized = true;
    }
 
+   if (!state.vcomp_initialized) {
+      ret = vcomp_renderer_init();
+      if (ret)
+         goto fail;
+      state.vcomp_initialized = true;
+   }
+
    return 0;
 
 fail:
@@ -991,6 +1016,9 @@ void virgl_renderer_reset(void)
 
    if (state.resource_initialized)
       virgl_resource_table_reset();
+
+   if (state.vcomp_initialized)
+      vcomp_renderer_reset();
 
    if (state.proxy_initialized)
       proxy_renderer_reset();
