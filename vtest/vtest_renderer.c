@@ -2419,25 +2419,27 @@ int vtest_submit_cmd2(uint32_t length_dw)
    }
 
    batch_count = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_COUNT];
-   if (VCMD_SUBMIT_CMD2_BATCH_COUNT + 6 * batch_count > length_dw) {
+   if (length_dw < VCMD_SUBMIT_CMD2_BATCH_RING_IDX(batch_count - 1)) {
       free(submit_cmd2_buf);
       return -EINVAL;
    }
 
    for (i = 0; i < batch_count; i++) {
-      const struct vcmd_submit_cmd2_batch batch = {
+      struct vcmd_submit_cmd2_batch batch = {
          .flags = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_FLAGS(i)],
          .cmd_offset = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_CMD_OFFSET(i)],
          .cmd_size = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_CMD_SIZE(i)],
          .sync_offset = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_SYNC_OFFSET(i)],
          .sync_count = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_SYNC_COUNT(i)],
          .ring_idx = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_RING_IDX(i)],
-         // TODO check batch length:
-         .num_in_syncobj = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_NUM_IN_SYNCOBJ(i)],
-         .num_out_syncobj = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_NUM_OUT_SYNCOBJ(i)],
       };
       const uint32_t *cmds = &submit_cmd2_buf[batch.cmd_offset];
       const uint32_t *syncs = &submit_cmd2_buf[batch.sync_offset];
+
+      if (ctx->protocol_version >= 4) {
+         batch.num_in_syncobj = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_NUM_IN_SYNCOBJ(i)];
+         batch.num_out_syncobj = submit_cmd2_buf[VCMD_SUBMIT_CMD2_BATCH_NUM_OUT_SYNCOBJ(i)];
+      }
 
       if (batch.cmd_offset + batch.cmd_size > length_dw ||
           batch.sync_offset + batch.sync_count * 3 > length_dw ||
