@@ -343,10 +343,6 @@ struct pipe_surface
    struct pipe_context *context; /**< context this surface belongs to */
    enum pipe_format format;
 
-   /* XXX width/height should be removed */
-   unsigned width;               /**< logical width in pixels */
-   unsigned height;              /**< logical height in pixels */
-
    unsigned writable:1;          /**< writable shader resource */
 
    union {
