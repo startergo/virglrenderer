@@ -71,6 +71,7 @@ option(
   value : [],
   choices : [
     'amdgpu-experimental',
+    'asahi',
     'msm',
   ],
   description : 'List of drm native-context renderers to build'

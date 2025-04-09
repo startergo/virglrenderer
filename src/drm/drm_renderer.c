@@ -9,6 +9,7 @@
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <xf86drm.h>
@@ -23,6 +24,10 @@
 
 #ifdef ENABLE_DRM_AMDGPU
 #  include "amdgpu/amdgpu_renderer.h"
+#endif
+
+#ifdef ENABLE_DRM_ASAHI
+#  include "asahi/asahi_renderer.h"
 #endif
 
 static struct virgl_renderer_capset_drm capset;
@@ -47,6 +52,14 @@ static const struct backend {
       .name = "amdgpu",
       .probe = amdgpu_renderer_probe,
       .create = amdgpu_renderer_create,
+   },
+#endif
+#ifdef ENABLE_DRM_ASAHI
+   {
+      .context_type = VIRTGPU_DRM_CONTEXT_ASAHI,
+      .name = "asahi",
+      .probe = asahi_renderer_probe,
+      .create = asahi_renderer_create,
    },
 #endif
 };

@@ -117,6 +117,13 @@ drm_amdgpu_sources = [
    'drm/amdgpu/amdgpu_renderer.c',
 ]
 
+drm_asahi_sources = [
+   'drm/drm-uapi/asahi_drm.h',
+   'drm/asahi/asahi_proto.h',
+   'drm/asahi/asahi_renderer.c',
+   'drm/asahi/asahi_renderer.h',
+]
+
 proxy_sources = [
    'proxy/proxy_client.c',
    'proxy/proxy_common.c',
@@ -184,6 +191,10 @@ endif
 if with_drm_amdgpu
    virgl_sources += drm_amdgpu_sources
    virgl_depends += [libdrm_amdgpu_dep]
+endif
+
+if with_drm_asahi
+   virgl_sources += drm_asahi_sources
 endif
 
 if with_render_server

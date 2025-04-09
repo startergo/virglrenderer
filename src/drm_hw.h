@@ -30,6 +30,7 @@ struct virgl_renderer_capset_drm {
    uint32_t version_patchlevel;
 #define VIRTGPU_DRM_CONTEXT_MSM      1
 #define VIRTGPU_DRM_CONTEXT_AMDGPU   2
+#define VIRTGPU_DRM_CONTEXT_ASAHI    4
    uint32_t context_type;
    uint32_t pad;
    union {

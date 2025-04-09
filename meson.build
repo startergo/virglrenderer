@@ -105,6 +105,11 @@ if with_drm_amdgpu
   conf_data.set('ENABLE_DRM_AMDGPU', 1)
 endif
 
+with_drm_asahi = drm_renderers.contains('asahi')
+if with_drm_asahi
+  conf_data.set('ENABLE_DRM_ASAHI', 1)
+endif
+
 with_drm_renderers = drm_renderers.length() > 0
 
 if with_drm_renderers
