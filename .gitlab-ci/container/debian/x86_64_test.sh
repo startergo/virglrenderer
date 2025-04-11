@@ -74,16 +74,10 @@ if [ "${VK_DRIVER}" = "virtio" ] || [ "${GALLIUM_DRIVER}" = "virgl" ]; then
 
     set +e
 
-    if [ -z "${DEQP_SUITE}" ]; then
-        if [ -z "${PIGLIT_TRACES_FILE}" ]; then
-            FDO_CI_CONCURRENT=${FORCE_FDO_CI_CONCURRENT:-$FDO_CI_CONCURRENT} \
-                install/crosvm-runner.sh install/piglit/piglit-runner.sh
-        else
-            FDO_CI_CONCURRENT=${FORCE_FDO_CI_CONCURRENT:-$FDO_CI_CONCURRENT} \
-                install/crosvm-runner.sh install/piglit/piglit-traces.sh
-        fi
-    else
+    if [ -z "${PIGLIT_TRACES_FILE}" ]; then
         ${RUNNER_WRAPPER} install/deqp-runner.sh
+    else
+        ${RUNNER_WRAPPER} install/piglit/piglit-traces.sh
     fi
 
     RET=$?
@@ -102,18 +96,12 @@ else
     export LIBGL_ALWAYS_SOFTWARE="true"
     set +e
 
-    if [ -z "${DEQP_SUITE}" ]; then
-        FDO_CI_CONCURRENT=${FORCE_FDO_CI_CONCURRENT:-$FDO_CI_CONCURRENT} \
-        PIGLIT_RUNNER_OPTIONS="--timeout 180" \
-            install/piglit/piglit-runner.sh
-    else
-        DEQP_EXPECTED_RENDERER=virgl \
-        WAFFLE_PLATFORM="surfaceless_egl" \
-        SANITY_MESA_VERSION_CMD=wflinfo \
-        HANG_DETECTION_CMD= \
-        EGL_PLATFORM=surfaceless \
-            install/deqp-runner.sh
-    fi
+    DEQP_EXPECTED_RENDERER=virgl \
+    WAFFLE_PLATFORM="surfaceless_egl" \
+    SANITY_MESA_VERSION_CMD=wflinfo \
+    HANG_DETECTION_CMD= \
+    EGL_PLATFORM=surfaceless \
+        install/deqp-runner.sh
 
     RET=$?
 fi

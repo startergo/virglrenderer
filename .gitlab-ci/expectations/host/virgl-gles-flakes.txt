@@ -76,4 +76,4 @@ spec@!opengl 3.0@gl30basic
 
 # uprev Mesa in Virglrenderer
 spec@arb_occlusion_query@occlusion_query_conform@GetObjivAval_multi1
-
+spec@arb_tessellation_shader@execution@vs-tes-max-in-out-components

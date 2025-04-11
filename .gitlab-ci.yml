@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1402433
+  MESA_PIPELINE_ID: 1402910
 
   MESA_PROJECT_PATH: mesa/mesa
   S3_JWT_FILE: /s3_jwt
@@ -57,7 +57,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: a02b6e6bef53ae7e479d454751f52325b3be9a59
+    ref: f1f87d302faad3e5206103d1e8485b39ed29d8cb
     file:
       - '/.gitlab-ci/image-tags.yml'
 
@@ -412,10 +412,6 @@ make check venus:
 .piglit-host:
   extends:
     - .gl-host-test
-  variables: &piglit-host-variables
-    PIGLIT_PLATFORM: surfaceless_egl
-    PIGLIT_NO_WINDOW: 1
-    PIGLIT_PROFILES: gpu
 
 .deqp-virt:
   extends:
@@ -428,10 +424,8 @@ make check venus:
   extends:
     - .gl-virt-test
   variables:
-    <<: *piglit-host-variables
-    # Use all threads for rendering and only run one job at a time
-    LP_NUM_THREADS: ${FDO_CI_CONCURRENT}
-    FORCE_FDO_CI_CONCURRENT: 1
+    PARALLELISE_VIA_LP_THREADS: 1
+    RUNNER_WRAPPER: "install/crosvm-runner.sh"
 
 # Host runners (virpipe/vtest)
 
@@ -454,6 +448,7 @@ piglit-gl-host:
   extends:
     - .piglit-host
   variables:
+    DEQP_SUITE: piglit-virgl-gl
     GPU_VERSION: virgl-gl
     DEQP_FRACTION: 4
 
@@ -462,6 +457,7 @@ piglit-gles-host:
     - .piglit-host
   variables:
     VIRGL_HOST_API: GLES
+    DEQP_SUITE: piglit-virgl-gles
     GPU_VERSION: virgl-gles
     DEQP_FRACTION: 4
 
@@ -489,6 +485,7 @@ piglit-gl-virt:
     - .piglit-virt
   parallel: 3
   variables:
+    DEQP_SUITE: piglit-virgl-gl
     GPU_VERSION: virgl-gl
     CROSVM_GPU_ARGS: *deqp-gl-crosvm-gpu-args
 
@@ -498,6 +495,7 @@ piglit-gles-virt:
   parallel: 3
   variables:
     VIRGL_HOST_API: GLES
+    DEQP_SUITE: piglit-virgl-gles
     GPU_VERSION: virgl-gles
     CROSVM_GPU_ARGS: *deqp-gles-crosvm-gpu-args
 
