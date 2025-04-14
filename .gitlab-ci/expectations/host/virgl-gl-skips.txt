@@ -5,6 +5,8 @@ dEQP-GLES31.functional.compute.basic.empty
 KHR-GL43.texture_swizzle.smoke
 KHR-GL43.texture_swizzle.functional
 KHR-GL43.copy_image.functional
+KHR-GL43.packed_pixels.varied_rectangle.compressed_*
+spec@arb_compute_shader@local-id-explosion
 
 glx@.*
 
