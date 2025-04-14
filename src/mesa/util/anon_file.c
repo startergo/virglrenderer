@@ -134,10 +134,8 @@ os_create_anonymous_file(off_t size, const char *debug_name)
    char *name;
 
    path = getenv("XDG_RUNTIME_DIR");
-   if (!path) {
-      errno = ENOENT;
-      return -1;
-   }
+   if (!path)
+      path = "/tmp";
 
    if (debug_name)
       asprintf(&name, "%s/mesa-shared-%s-XXXXXX", path, debug_name);
