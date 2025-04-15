@@ -68,6 +68,9 @@ sources_libgallium = files(
 
 inc_gallium = include_directories('include', 'auxiliary', 'auxiliary/util')
 
+pymod = import('python')
+python3 = pymod.find_installation('python3', modules: ['yaml'])
+
 u_format_table_c = custom_target(
    'u_format_table.c',
    input : ['auxiliary/util/u_format_table.py', 'auxiliary/util/u_format.yaml'],
