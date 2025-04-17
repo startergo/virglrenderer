@@ -70,7 +70,7 @@
 #endif
 
 #ifdef ENABLE_VIDEO
-#include <vrend_video.h>
+#include "vrend_video.h"
 #endif
 
 #ifdef WIN32

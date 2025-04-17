@@ -42,9 +42,9 @@
 #include "util/u_math.h"
 #include "vkr_allocator.h"
 #include "drm_renderer.h"
-#include "vrend_renderer.h"
 #include "proxy/proxy_renderer.h"
-#include "vrend_winsys.h"
+#include "vrend/vrend_renderer.h"
+#include "vrend/vrend_winsys.h"
 
 #ifndef WIN32
 #include "util/libsync.h"

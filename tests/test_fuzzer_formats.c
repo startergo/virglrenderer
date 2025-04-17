@@ -35,8 +35,8 @@
 #include <string.h>
 
 #include "virgl_hw.h"
-#include "vrend_iov.h"
-#include "vrend_winsys_egl.h"
+#include "vrend/vrend_iov.h"
+#include "vrend/vrend_winsys_egl.h"
 #include "virglrenderer.h"
 #include "virgl_protocol.h"
 #include <epoxy/egl.h>

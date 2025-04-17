@@ -22,6 +22,7 @@
 
 #include "amdgpu_renderer.h"
 
+#include "pipe/p_state.h"
 #include "util/anon_file.h"
 #include "util/bitscan.h"
 #include "util/hash_table.h"
@@ -29,11 +30,10 @@
 #include "util/os_file.h"
 #include "util/u_atomic.h"
 #include "util/u_math.h"
-#include "pipe/p_state.h"
+#include "vrend/vrend_renderer.h"
 #include "amdgpu_virtio_proto.h"
 #include "virgl_context.h"
 #include "virglrenderer.h"
-#include "vrend_renderer.h"
 
 #include <stdalign.h>
 #include <errno.h>

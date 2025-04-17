@@ -25,7 +25,6 @@ subdir('mesa')
 subdir('gallium')
 
 virgl_sources = [
-   'iov.c',
    'virgl_context.c',
    'virgl_fence.c',
    'virgl_resource.c',
@@ -33,15 +32,16 @@ virgl_sources = [
 ]
 
 vrend_sources = [
-   'vrend_blitter.c',
-   'vrend_debug.c',
-   'vrend_decode.c',
-   'vrend_formats.c',
-   'vrend_object.c',
-   'vrend_renderer.c',
-   'vrend_shader.c',
-   'vrend_tweaks.c',
-   'vrend_winsys.c',
+   'vrend/iov.c',
+   'vrend/vrend_blitter.c',
+   'vrend/vrend_debug.c',
+   'vrend/vrend_decode.c',
+   'vrend/vrend_formats.c',
+   'vrend/vrend_object.c',
+   'vrend/vrend_renderer.c',
+   'vrend/vrend_shader.c',
+   'vrend/vrend_tweaks.c',
+   'vrend/vrend_winsys.c',
 ]
 
 virglrenderer_sources = [
@@ -49,15 +49,15 @@ virglrenderer_sources = [
 ]
 
 vrend_winsys_gbm_sources = [
-   'vrend_winsys_gbm.c',
+   'vrend/vrend_winsys_gbm.c',
 ]
 
 vrend_winsys_egl_sources = [
-   'vrend_winsys_egl.c',
+   'vrend/vrend_winsys_egl.c',
 ]
 
 vrend_winsys_glx_sources = [
-   'vrend_winsys_glx.c',
+   'vrend/vrend_winsys_glx.c',
 ]
 
 venus_sources = [
@@ -126,8 +126,8 @@ proxy_sources = [
 ]
 
 video_sources = [
-   'virgl_video.c',
-   'vrend_video.c',
+   'vrend/virgl_video.c',
+   'vrend/vrend_video.c',
 ]
 
 virgl_depends = [

@@ -23,7 +23,7 @@
  **************************************************************************/
 #include <check.h>
 #include <stdio.h>
-#include "../src/vrend_strbuf.h"
+#include "vrend/vrend_strbuf.h"
 
 /* Test the vrend strbuf implementation */
 
