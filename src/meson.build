@@ -27,104 +27,61 @@ subdir('gallium')
 virgl_sources = [
    'iov.c',
    'virgl_context.c',
-   'virgl_context.h',
    'virgl_fence.c',
-   'virgl_fence.h',
-   'virgl_hw.h',
-   'virgl_protocol.h',
    'virgl_resource.c',
-   'virgl_resource.h',
    'virgl_util.c',
-   'virgl_util.h',
 ]
 
 vrend_sources = [
    'vrend_blitter.c',
-   'vrend_blitter.h',
    'vrend_debug.c',
-   'vrend_debug.h',
    'vrend_decode.c',
    'vrend_formats.c',
-   'vrend_iov.h',
    'vrend_object.c',
-   'vrend_object.h',
    'vrend_renderer.c',
-   'vrend_renderer.h',
    'vrend_shader.c',
-   'vrend_shader.h',
-   'vrend_strbuf.h',
    'vrend_tweaks.c',
-   'vrend_tweaks.h',
    'vrend_winsys.c',
-   'vrend_winsys.h',
 ]
 
 virglrenderer_sources = [
    'virglrenderer.c',
-   'virglrenderer.h',
-   'drm/drm-uapi/virtgpu_drm.h',
 ]
 
 vrend_winsys_gbm_sources = [
    'vrend_winsys_gbm.c',
-   'vrend_winsys_gbm.h',
 ]
 
 vrend_winsys_egl_sources = [
    'vrend_winsys_egl.c',
-   'vrend_winsys_egl.h',
 ]
 
 vrend_winsys_glx_sources = [
    'vrend_winsys_glx.c',
-   'vrend_winsys_glx.h',
 ]
 
 venus_sources = [
-   'venus_hw.h',
-   'venus/venus-protocol/vn_protocol_renderer.h',
    'venus/vkr_acceleration_structure.c',
-   'venus/vkr_acceleration_structure.h',
    'venus/vkr_allocator.c',
-   'venus/vkr_allocator.h',
    'venus/vkr_buffer.c',
-   'venus/vkr_buffer.h',
    'venus/vkr_command_buffer.c',
-   'venus/vkr_command_buffer.h',
    'venus/vkr_common.c',
-   'venus/vkr_common.h',
    'venus/vkr_context.c',
-   'venus/vkr_context.h',
    'venus/vkr_cs.c',
-   'venus/vkr_cs.h',
    'venus/vkr_descriptor_set.c',
-   'venus/vkr_descriptor_set.h',
    'venus/vkr_device.c',
-   'venus/vkr_device.h',
    'venus/vkr_device_memory.c',
-   'venus/vkr_device_memory.h',
    'venus/vkr_host_copy.c',
-   'venus/vkr_host_copy.h',
    'venus/vkr_image.c',
-   'venus/vkr_image.h',
    'venus/vkr_instance.c',
-   'venus/vkr_instance.h',
    'venus/vkr_physical_device.c',
-   'venus/vkr_physical_device.h',
    'venus/vkr_pipeline.c',
-   'venus/vkr_pipeline.h',
    'venus/vkr_query_pool.c',
-   'venus/vkr_query_pool.h',
    'venus/vkr_queue.c',
-   'venus/vkr_queue.h',
    'venus/vkr_render_pass.c',
-   'venus/vkr_render_pass.h',
    'venus/vkr_renderer.c',
-   'venus/vkr_renderer.h',
    'venus/vkr_ring.c',
-   'venus/vkr_ring.h',
    'venus/vkr_transport.c',
-   'venus/vkr_transport.h',
 ]
 
 venus_codegen = custom_target(
@@ -146,26 +103,17 @@ venus_codegen = custom_target(
 
 drm_sources = [
    'drm/drm_context.c',
-   'drm/drm_context.h',
    'drm/drm_fence.c',
-   'drm/drm_fence.h',
    'drm/drm_renderer.c',
-   'drm/drm_renderer.h',
    'drm/drm_util.c',
-   'drm/drm_util.h',
 ]
 
 drm_msm_sources = [
-   'drm/drm-uapi/msm_drm.h',
-   'drm/msm/msm_proto.h',
    'drm/msm/msm_renderer.c',
-   'drm/msm/msm_renderer.h',
 ]
 
 drm_amdgpu_sources = [
-   'drm/drm-uapi/amdgpu_drm.h',
    'drm/amdgpu/amdgpu_renderer.c',
-   'drm/amdgpu/amdgpu_renderer.h',
 ]
 
 proxy_sources = [
@@ -178,11 +126,8 @@ proxy_sources = [
 ]
 
 video_sources = [
-   'virgl_video_hw.h',
    'virgl_video.c',
-   'virgl_video.h',
    'vrend_video.c',
-   'vrend_video.h',
 ]
 
 virgl_depends = [
