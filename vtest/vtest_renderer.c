@@ -2238,7 +2238,9 @@ static int vtest_submit_cmd2_batch(struct vtest_context *ctx,
 {
    struct vtest_timeline_submit *submit = NULL;
    struct drm_virtgpu_execbuffer_syncobj *in_syncobj = NULL, *out_syncobj = NULL;
+#ifdef ENABLE_DRM
    int drm_fd = virgl_renderer_get_dev_fd(ctx->ctx_id);
+#endif
    uint32_t i;
    int ret = 0;
 
@@ -2251,6 +2253,7 @@ static int vtest_submit_cmd2_batch(struct vtest_context *ctx,
          goto out;
       }
 
+#ifdef ENABLE_DRM
       for (unsigned i = 0; i < batch->num_in_syncobj; i++) {
          struct drm_syncobj_handle args = {
             .handle = in_syncobj[i].handle,
@@ -2270,6 +2273,11 @@ static int vtest_submit_cmd2_batch(struct vtest_context *ctx,
          if (ret)
             goto out;
       }
+#else
+       printf("virglrenderer compiled without DRM support\n");
+       ret = -1;
+       goto out;
+#endif
    }
 
    if (batch->num_out_syncobj > 0) {
@@ -2366,6 +2374,7 @@ static int vtest_submit_cmd2_batch(struct vtest_context *ctx,
             fence_fd = virgl_renderer_export_signalled_fence();
          if (batch->flags & VCMD_SUBMIT_CMD2_FLAG_OUT_FENCE_FD)
             vtest_send_fd(ctx->out_fd, fence_fd);
+#ifdef ENABLE_DRM
          for (unsigned i = 0; i < batch->num_out_syncobj; i++) {
             struct drm_syncobj_handle args = {
                .handle = out_syncobj[i].handle,
@@ -2380,14 +2389,17 @@ static int vtest_submit_cmd2_batch(struct vtest_context *ctx,
             if (ret)
                goto out;
          }
+#endif
          close(fence_fd);
       }
 
+#ifdef ENABLE_DRM
       for (unsigned i = 0; i < batch->num_in_syncobj; i++) {
          if (in_syncobj[i].flags & VIRTGPU_EXECBUF_SYNCOBJ_RESET) {
             drmSyncobjReset(drm_fd, &in_syncobj[i].handle, 1);
          }
       }
+#endif
    }
 
 out:
