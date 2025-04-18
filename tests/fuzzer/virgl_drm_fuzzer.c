@@ -10,7 +10,7 @@
 
 #include "util/macros.h"
 #include "virglrenderer.h"
-#include "virt_drm.h"
+#include "virtgpu_drm.h"
 
 int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
