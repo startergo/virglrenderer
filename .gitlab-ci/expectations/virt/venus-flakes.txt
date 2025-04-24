@@ -14,6 +14,7 @@ dEQP-VK.pipeline.monolithic.timestamp.calibrated.calibration_test
 
 # uprev Mesa in Virglrenderer
 dEQP-VK.api.info.image_format_properties2.2d.linear.g16b16g16r16_422_unorm
+dEQP-VK.binding_model.mutable_descriptor.multiple_arrays.constant_size.aliasing.update_write.no_source.no_source.pool_no_types.pre_update.index_push_constant.comp
 
 dEQP-VK.api.info.image_format_properties2.2d.optimal.g16_b16r16_2plane_422_unorm
 dEQP-VK.api.info.image_format_properties2.2d.optimal.g8_b8r8_2plane_420_unorm

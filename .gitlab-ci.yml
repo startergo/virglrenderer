@@ -7,7 +7,7 @@ workflow:
 
 variables:
   FDO_UPSTREAM_REPO: "virgl/virglrenderer"
-  MESA_TEMPLATES_COMMIT: &ci-templates-commit 48e4b6c9a2015f969fbe648999d16d5fb3eef6c4
+  MESA_TEMPLATES_COMMIT: &ci-templates-commit ea3f77641d91765396beba192b8defd3085fa343
   #
   # IMPORTANT!
   #
@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1402910
+  MESA_PIPELINE_ID: 1414719
 
   MESA_PROJECT_PATH: mesa/mesa
   S3_JWT_FILE: /s3_jwt
@@ -57,7 +57,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: f1f87d302faad3e5206103d1e8485b39ed29d8cb
+    ref: a5a0dd3ccc08a0df318663d0c0912b1c99f17d5b
     file:
       - '/.gitlab-ci/image-tags.yml'
 
@@ -340,6 +340,7 @@ make check venus:
     MESA_IMAGE_PATH: "debian/x86_64_test-gl"
     MESA_IMAGE_TAG: ${DEBIAN_TEST_GL_TAG}
     MESA_BASE_TAG: "${DEBIAN_BASE_TAG}--${PKG_REPO_REV}--${KERNEL_TAG}"
+    PIGLIT_TAG: "${CONDITIONAL_BUILD_PIGLIT_TAG}"
   script:
     - .gitlab-ci/container/debian/x86_64_test.sh
   artifacts:
