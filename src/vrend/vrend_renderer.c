@@ -7422,11 +7422,13 @@ static void vrend_renderer_use_threaded_sync(void)
       return;
    }
 
-   vrend_state.eventfd = create_eventfd(0);
    if (vrend_state.eventfd == -1) {
-      virgl_error("Failed to create eventfd\n");
-      vrend_clicbs->destroy_gl_context_surfaceless(vrend_state.sync_context);
-      return;
+      vrend_state.eventfd = create_eventfd(0);
+      if (vrend_state.eventfd == -1) {
+         virgl_error("Failed to create eventfd\n");
+         vrend_clicbs->destroy_gl_context_surfaceless(vrend_state.sync_context);
+         return;
+      }
    }
 
    cnd_init(&vrend_state.fence_cond);
@@ -7434,6 +7436,8 @@ static void vrend_renderer_use_threaded_sync(void)
    cnd_init(&vrend_state.poll_cond);
    mtx_init(&vrend_state.poll_mutex, mtx_plain);
    vrend_state.polling = false;
+
+   assert(!vrend_state.sync_thread);
 
    vrend_state.sync_thread = u_thread_create(thread_sync, NULL);
    if (!vrend_state.sync_thread) {
@@ -13217,7 +13221,9 @@ void vrend_renderer_reset(void)
    vrend_destroy_context(vrend_state.ctx0);
 
    vrend_state.ctx0 = vrend_create_context(0, strlen("HOST"), "HOST");
-   /* TODO respawn sync thread */
+
+   if (vrend_state.use_async_fence_cb)
+      vrend_renderer_use_threaded_sync();
 }
 
 int vrend_renderer_get_poll_fd(void)
