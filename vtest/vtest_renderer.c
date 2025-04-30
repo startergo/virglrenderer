@@ -63,13 +63,13 @@
 #include "util/u_memory.h"
 #include "util/u_pointer.h"
 #include "util/u_hash_table.h"
+#include "drm.h"
 
 #ifndef WIN32
 #include "util/libsync.h"
 #endif
 
 #ifdef ENABLE_DRM
-#include "../src/drm/drm-uapi/drm.h"
 #include <xf86drm.h>
 #endif
 

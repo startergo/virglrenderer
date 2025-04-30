@@ -38,6 +38,7 @@ vtest_depends = [
    gallium_dep,
    thread_dep,
    libdrm_dep,
+   drm_uapi_dep,
    mesa_dep,
 ]
 

@@ -202,14 +202,14 @@ endif
 libvirgl = static_library(
    'virgl',
    virgl_sources,
-   include_directories: [inc_gallium, inc_configuration, 'venus', 'drm', 'drm/drm-uapi'],
-   dependencies : virgl_depends,
+   include_directories: [inc_gallium, inc_configuration, 'venus', 'drm'],
+   dependencies : [virgl_depends, drm_uapi_dep],
 )
 
 libvirgl_inc = [
    inc_gallium,
    inc_configuration,
-   include_directories(['.', 'venus', 'drm', 'drm/drm-uapi'])
+   include_directories(['.', 'venus', 'drm'])
 ]
 
 libvirgl_dep = declare_dependency(
@@ -220,8 +220,8 @@ libvirgl_dep = declare_dependency(
 libvirglrenderer = library(
    'virglrenderer',
    virglrenderer_sources,
-   include_directories: [inc_gallium, inc_configuration, 'drm/drm-uapi'],
-   dependencies : [virgl_depends, libvirgl_dep],
+   include_directories: [inc_gallium, inc_configuration],
+   dependencies : [virgl_depends, libvirgl_dep, drm_uapi_dep],
    version : binary_age.to_string() + '.'
              + interface_age.to_string() + '.'
              + revision.to_string(),
