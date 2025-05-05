@@ -227,12 +227,19 @@ vkr_physical_device_init_memory_properties(struct vkr_physical_device *physical_
           VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT);
    }
 
+   /* fallback to gbm allocation with dma-buf import */
    if (!physical_dev->is_dma_buf_fd_export_supported &&
-       !physical_dev->is_opaque_fd_export_supported)
+       !physical_dev->is_opaque_fd_export_supported &&
+       physical_dev->EXT_external_memory_dma_buf)
       physical_dev->gbm_device = vkr_physical_device_get_gbm_device();
 
-   physical_dev->udmabuf_dev_fd =
-      VKR_DEBUG(UDMABUF) ? vkr_physical_device_get_udmabuf_dev_fd() : -1;
+   physical_dev->udmabuf_dev_fd = -1;
+   if (VKR_DEBUG(UDMABUF)) {
+      if (physical_dev->EXT_external_memory_dma_buf)
+         physical_dev->udmabuf_dev_fd = vkr_physical_device_get_udmabuf_dev_fd();
+      else
+         vkr_log("missing VK_EXT_external_memory_dma_buf for udmabuf import!");
+   }
 }
 
 static void
