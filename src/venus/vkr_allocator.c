@@ -23,7 +23,6 @@
  **************************************************************************/
 
 #include "vkr_allocator.h"
-#include "vkr_library.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -31,8 +30,11 @@
 #include <unistd.h>
 
 #include "util/list.h"
+#include "util/macros.h"
 #include "venus-protocol/vulkan.h"
 #include "virgl_resource.h"
+
+#include "vkr_library.h"
 
 /* Assume that we will deal with at most 4 devices.
  *  This is to avoid per-device resource dynamic allocations.
@@ -115,6 +117,9 @@ vkr_allocator_allocate_memory(struct virgl_resource *res)
       return NULL;
 
    VkDevice dev_handle = vkr_allocator.devices[idx];
+   if (dev_handle == VK_NULL_HANDLE)
+      return NULL;
+
    struct vkr_dev_proc_table *vk = &vkr_allocator.proc_tables[idx];
 
    int fd = -1;
@@ -213,6 +218,9 @@ vkr_allocator_dev_proc_table_init(VkDevice dev_handle,
 int
 vkr_allocator_init(void)
 {
+   static const char *required_extensions[] = {
+      "VK_KHR_external_memory_fd",
+   };
    struct vkr_inst_proc_table *vk = &vkr_allocator.proc_table;
    VkResult res;
 
@@ -276,12 +284,18 @@ vkr_allocator_init(void)
          .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
          .queueCreateInfoCount = 1,
          .pQueueCreateInfos = &queue_info,
+         .enabledExtensionCount = ARRAY_SIZE(required_extensions),
+         .ppEnabledExtensionNames = required_extensions,
       };
 
       res = vk->CreateDevice(physical_dev_handle, &dev_info, NULL,
                              &vkr_allocator.devices[i]);
-      if (res != VK_SUCCESS)
+      if (res == VK_ERROR_EXTENSION_NOT_PRESENT) {
+         vkr_allocator.devices[i] = VK_NULL_HANDLE;
+         continue;
+      } else if (res != VK_SUCCESS) {
          goto fail;
+      }
 
       vkr_allocator_dev_proc_table_init(vkr_allocator.devices[i], vk->GetDeviceProcAddr,
                                         &vkr_allocator.proc_tables[i]);
