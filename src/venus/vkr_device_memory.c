@@ -69,7 +69,7 @@ vkr_udmabuf_get_fd_info_from_allocation_info(struct vkr_physical_device *physica
       goto fail;
    }
 
-   const size_t size = align(alloc_info->allocationSize, 4096);
+   const size_t size = align(alloc_info->allocationSize, getpagesize());
    int ret = ftruncate(memfd, size);
    if (ret) {
       vkr_log("ftruncate failed (%s)", strerror(errno));
@@ -176,9 +176,9 @@ vkr_gbm_get_fd_info_from_allocation_info(struct vkr_physical_device *physical_de
       return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 
    /* 4K alignment is used on all implementations we support. */
-   gbm_bo =
-      gbm_bo_create(physical_dev->gbm_device, align(alloc_info->allocationSize, 4096), 1,
-                    GBM_FORMAT_R8, gbm_bo_use_flags);
+   gbm_bo = gbm_bo_create(physical_dev->gbm_device,
+                          align(alloc_info->allocationSize, getpagesize()), 1,
+                          GBM_FORMAT_R8, gbm_bo_use_flags);
    if (!gbm_bo)
       return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 
@@ -304,6 +304,27 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
             };
             export_info = &local_export_info;
             alloc_info->pNext = &local_export_info;
+
+            if (handle_type == VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT &&
+                !vkr_find_struct(alloc_info->pNext,
+                                 VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO)) {
+               /* Guest virtgpu kernel aligns up blob mem size to the page boundary. No
+                * matter dma-buf or opaque fd export allocation, the actual allocation
+                * in most cases would follow the same padding. For dma-buf, we are able
+                * to allocate and validate via lseek below. For opaque fd, Vulkan spec
+                * requires to use the same size with allocation time for the mapper,
+                * either vkr_allocator or vulkano, to import and populate the mapping.
+                * Accessible mapping given by vkMapMemory is normally limited to just the
+                * alloc size. When KVM register the mappings to guest pci bar, that
+                * involves an invalid chunk towards the end of the page boundary. As a
+                * result, any guest side accelerated instructions that rely on the
+                * paddings can end up with Illegal instruction error. The most common
+                * trigger is via memcpy'ing valid range to the guest side mapped buffer
+                * memory, and then, e.g. __memcpy_avx_unaligned_erms  can hit the error.
+                */
+               alloc_info->allocationSize =
+                  align(alloc_info->allocationSize, getpagesize());
+            }
          }
       } else if (physical_dev->EXT_external_memory_dma_buf) {
          /* Allocate dma_buf externally and force to import. */
