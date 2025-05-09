@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1418089
+  MESA_PIPELINE_ID: 1420528
 
   MESA_PROJECT_PATH: mesa/mesa
   S3_JWT_FILE: /s3_jwt
@@ -26,6 +26,8 @@ variables:
       unset CI_JOB_JWT S3_JWT  # Unsetting vulnerable env variables
 
   S3_HOST: s3.freedesktop.org
+  # This bucket is used to fetch the kernel image
+  S3_KERNEL_BUCKET: mesa-rootfs
   # Bucket for the pipeline artifacts pushed to S3
   S3_ARTIFACTS_BUCKET: artifacts
   S3_TRACIE_RESULTS_BUCKET: mesa-tracie-results
@@ -57,7 +59,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: 1356d2004287354fdd959f495097ad6be4a34dcb
+    ref: 34012d5af32ff9b90d951b4c13c80e9d00e2c242
     file:
       - '/.gitlab-ci/image-tags.yml'
 
@@ -96,6 +98,8 @@ stages:
     - .set-image
   variables:
     MESA_IMAGE: "$CI_REGISTRY_IMAGE/${MESA_IMAGE_PATH}:${MESA_IMAGE_TAG}--${MESA_BASE_TAG}--${MESA_TEMPLATES_COMMIT}"
+    CROSVM_TAG: ${CONDITIONAL_BUILD_CROSVM_TAG}
+    KERNEL_IMAGE_BASE: "https://$S3_HOST/$S3_KERNEL_BUCKET/$KERNEL_REPO/$KERNEL_TAG"
 
 .use-build-image:
   extends:
@@ -373,7 +377,7 @@ make check venus:
   variables:
     MESA_IMAGE_PATH: "debian/x86_64_test-gl"
     MESA_IMAGE_TAG: ${DEBIAN_TEST_GL_TAG}
-    MESA_BASE_TAG: "${DEBIAN_BASE_TAG}--${PKG_REPO_REV}--${KERNEL_TAG}"
+    MESA_BASE_TAG: "${DEBIAN_BASE_TAG}--${PKG_REPO_REV}"
     PIGLIT_TAG: "${CONDITIONAL_BUILD_PIGLIT_TAG}"
   script:
     - .gitlab-ci/container/debian/x86_64_test.sh
@@ -404,7 +408,7 @@ make check venus:
   variables:
     MESA_IMAGE_PATH: "debian/x86_64_test-vk"
     MESA_IMAGE_TAG: ${DEBIAN_TEST_VK_TAG}
-    MESA_BASE_TAG: "${DEBIAN_BASE_TAG}--${PKG_REPO_REV}--${KERNEL_TAG}"
+    MESA_BASE_TAG: "${DEBIAN_BASE_TAG}--${PKG_REPO_REV}"
   script:
     - .gitlab-ci/container/debian/x86_64_test.sh
   artifacts:
