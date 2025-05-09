@@ -156,7 +156,7 @@ debian/x86_64_build_amdgpu:
   rules:
     - changes:
       - src/drm/**/*
-      when: on_success
+      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
@@ -186,7 +186,7 @@ debian/x86_64_build_msm:
   rules:
     - changes:
       - src/drm/**/*
-      when: on_success
+      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
@@ -218,7 +218,7 @@ debian/x86_64_build_minigbm:
       - src/vrend_winsys_gbm.*
       - src/vrend_winsys_egl.c
       - src/vrend_renderer.c
-      when: on_success
+      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
@@ -252,7 +252,7 @@ debian/x86_64_build_no_drm:
       - src/vrend/vrend_winsys_egl.c
       - vtest/vtest_renderer.c
       - vtest/vtest_server.c
-      when: on_success
+      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
@@ -287,7 +287,7 @@ debian/x86_64_build_tracing:
     - changes:
       - src/virgl_util.h
       - src/virgl_util.c
-      when: on_success
+      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
