@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1425033
+  MESA_PIPELINE_ID: 1441292
 
   MESA_PROJECT_PATH: mesa/mesa
   S3_JWT_FILE: /s3_jwt
@@ -59,7 +59,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: 65e18a84944b559419aceaf2083936cf68ac3e79
+    ref: dd45bf5bcec1eee94bdb0501896b8d41df009a75
     file:
       - '/.gitlab-ci/image-tags.yml'
 
@@ -100,6 +100,8 @@ stages:
     MESA_IMAGE: "$CI_REGISTRY_IMAGE/${MESA_IMAGE_PATH}:${MESA_IMAGE_TAG}--${MESA_BASE_TAG}--${MESA_TEMPLATES_COMMIT}"
     CROSVM_TAG: ${CONDITIONAL_BUILD_CROSVM_TAG}
     KERNEL_IMAGE_BASE: "https://$S3_HOST/$S3_KERNEL_BUCKET/$KERNEL_REPO/$KERNEL_TAG"
+    # Mesa-specific variables that shouldn't be forwarded to DUTs and crosvm
+    CI_EXCLUDE_ENV_VAR_REGEX: 'SCRIPTS_DIR|RESULTS_DIR'
 
 .use-build-image:
   extends:
