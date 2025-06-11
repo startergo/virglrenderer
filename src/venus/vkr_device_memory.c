@@ -258,6 +258,12 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
       prev_of_res_info->pNext = (const struct VkBaseInStructure *)&local_import_info;
    }
 
+   VkExportMemoryAllocateInfo *export_info =
+      vkr_find_struct(alloc_info->pNext, VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO);
+
+   /* track if driver has requested export allocation */
+   const bool might_export = export_info && export_info->handleTypes;
+
    /* XXX Force dma_buf/opaque fd export or gbm bo import until a new extension that
     * supports direct export from host visible memory
     *
@@ -275,8 +281,6 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
    int udmabuf_fd = -1;
    void *gbm_bo = NULL;
    VkExportMemoryAllocateInfo local_export_info;
-   VkExportMemoryAllocateInfo *export_info =
-      vkr_find_struct(alloc_info->pNext, VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO);
    if ((property_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) && !res_info) {
       /* An implementation can support dma_buf import along with opaque fd export/import.
        * If the client driver is using external memory and requesting dma_buf, without
@@ -373,6 +377,7 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
    }
 
    mem->device = dev;
+   mem->might_export = might_export;
    mem->property_flags = property_flags;
    mem->valid_fd_types = valid_fd_types;
    mem->udmabuf_fd = udmabuf_fd;

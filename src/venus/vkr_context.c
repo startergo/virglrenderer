@@ -324,12 +324,12 @@ vkr_context_create_resource_from_device_memory(struct vkr_context *ctx,
    if (!vkr_device_memory_export_blob(mem, blob_size, blob_flags, &blob))
       return false;
 
-   /* For CROSS_DEVICE, store a dup'ed fd in vkr_resource for:
+   /* If memory might get exported, store a dup'ed fd in vkr_resource for:
     * - vkAllocateMemory for dma_buf import
     * - vkGetMemoryFdPropertiesKHR for dma_buf fd properties query
     */
    int res_fd = -1;
-   if (blob_flags & VIRGL_RENDERER_BLOB_FLAG_USE_CROSS_DEVICE) {
+   if (mem->might_export) {
       res_fd = os_dupfd_cloexec(blob.u.fd);
       if (res_fd < 0) {
          close(blob.u.fd);

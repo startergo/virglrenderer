@@ -14,6 +14,9 @@ struct vkr_device_memory {
    struct vkr_object base;
 
    struct vkr_device *device;
+
+   bool might_export;
+
    uint32_t property_flags;
    uint32_t valid_fd_types;
 
