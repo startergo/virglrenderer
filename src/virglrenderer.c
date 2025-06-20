@@ -1228,6 +1228,7 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
    int ret = 0;
    void *map = NULL;
    uint64_t map_size = 0;
+   struct virgl_context *ctx = NULL;
    struct virgl_resource *res = virgl_resource_lookup(res_handle);
    if (!res || res->mapped)
       return -EINVAL;
@@ -1241,9 +1242,16 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
       enum virgl_resource_fd_type export_fd_type = res->fd_type;
       int fd = res->fd;
 
-      /* Create a transient dmabuf. */
-      if (fd_type == VIRGL_RESOURCE_OPAQUE_HANDLE)
-         export_fd_type = virgl_resource_export_fd(res, &fd);
+      if (fd_type == VIRGL_RESOURCE_OPAQUE_HANDLE) {
+         ctx = virgl_context_lookup(res->opaque_handle_context_id);
+         if (!ctx)
+            return -EINVAL;
+
+         if (!ctx->resource_map) {
+            /* Create a transient dmabuf. */
+            export_fd_type = virgl_resource_export_fd(res, &fd);
+         }
+      }
 
       switch (export_fd_type) {
       case VIRGL_RESOURCE_FD_DMABUF:
@@ -1255,6 +1263,9 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
          ret = vkr_allocator_resource_map(res, &map, &map_size);
          break;
       case VIRGL_RESOURCE_OPAQUE_HANDLE:
+         map = ctx->resource_map(ctx, res, NULL, PROT_WRITE | PROT_READ, MAP_SHARED);
+         map_size = res->map_size;
+         break;
       case VIRGL_RESOURCE_FD_INVALID:
          /* Avoid a default case so that -Wswitch will tell us at compile time
           * if a new virgl resource type is added without being handled here.
@@ -1278,6 +1289,7 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
 int virgl_renderer_resource_map_fixed(uint32_t res_handle, void *addr)
 {
    void *map = NULL;
+   struct virgl_context *ctx = NULL;
    struct virgl_resource *res = virgl_resource_lookup(res_handle);
    enum virgl_resource_fd_type fd_type = res->fd_type;
    enum virgl_resource_fd_type export_fd_type = res->fd_type;
@@ -1286,9 +1298,16 @@ int virgl_renderer_resource_map_fixed(uint32_t res_handle, void *addr)
    if (!res)
       return -EINVAL;
 
-   /* Create a transient dmabuf. */
-   if (fd_type == VIRGL_RESOURCE_OPAQUE_HANDLE)
-      export_fd_type = virgl_resource_export_fd(res, &fd);
+   if (fd_type == VIRGL_RESOURCE_OPAQUE_HANDLE) {
+      ctx = virgl_context_lookup(res->opaque_handle_context_id);
+      if (!ctx)
+         return -EINVAL;
+
+      if (!ctx->resource_map) {
+         /* Create a transient dmabuf. */
+         export_fd_type = virgl_resource_export_fd(res, &fd);
+      }
+   }
 
    switch (export_fd_type) {
       case VIRGL_RESOURCE_FD_DMABUF:
@@ -1297,6 +1316,9 @@ int virgl_renderer_resource_map_fixed(uint32_t res_handle, void *addr)
                     MAP_FIXED | MAP_SHARED, fd, 0);
          break;
       case VIRGL_RESOURCE_OPAQUE_HANDLE:
+         map = ctx->resource_map(ctx, res, addr, PROT_WRITE | PROT_READ,
+                                 MAP_FIXED | MAP_SHARED);
+         break;
       case VIRGL_RESOURCE_FD_OPAQUE:
       case VIRGL_RESOURCE_FD_INVALID:
          /* Avoid a default case so that -Wswitch will tell us at compile time

@@ -131,6 +131,13 @@ struct virgl_context {
 
    /* For DRM native contexts, return the device fd: */
    int (*get_device_fd)(struct virgl_context *ctx);
+
+   /* map a resource into a particular address */
+   void * (*resource_map)(struct virgl_context *ctx,
+                          struct virgl_resource *res,
+                          void *addr,
+                          int32_t prot,
+                          int32_t flags);
 };
 
 struct virgl_context_foreach_args {
