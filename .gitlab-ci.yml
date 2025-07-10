@@ -17,14 +17,14 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1458041
+  MESA_PIPELINE_ID: 1482282
 
   MESA_PROJECT_PATH: mesa/mesa
   S3_JWT_FILE: /s3_jwt
   S3_JWT_FILE_SCRIPT: |-
       echo -n '${S3_JWT}' > '${S3_JWT_FILE}' &&
+      S3_JWT_FILE_SCRIPT= &&
       unset CI_JOB_JWT S3_JWT  # Unsetting vulnerable env variables
-
   S3_HOST: s3.freedesktop.org
   # This bucket is used to fetch the kernel image
   S3_KERNEL_BUCKET: mesa-rootfs
@@ -47,7 +47,7 @@ default:
 
 include:
   - project: 'freedesktop/ci-templates'
-    ref: 9f0eb526291fe74651fe1430cbd2397f4c0a819b
+    ref: c6aeb16f86e32525fa630fb99c66c4f3e62fc3cb
     file:
       - '/templates/ci-fairy.yml'
   - project: 'freedesktop/ci-templates'
@@ -59,7 +59,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: 2801c51a9edf4f21c7b014cc94df563a37ff01b4
+    ref: a29b9e47b05b27493204ffcaf62d18a438727f2b
     file:
       - '/.gitlab-ci/image-tags.yml'
 

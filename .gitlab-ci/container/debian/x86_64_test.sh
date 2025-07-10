@@ -49,6 +49,8 @@ cp -a ${CI_PROJECT_DIR}/install/bin/virgl_test_server /usr/local/bin/
 cp -a ${CI_PROJECT_DIR}/install/libexec/virgl_render_server /usr/local/libexec/
 cp -a ${CI_PROJECT_DIR}/install/lib/libvirglrenderer.so* /usr/local/lib/
 
+sed -i 's/quiet replay_s3_upload_images/replay_s3_upload_images/g' ${SCRIPTS_DIR}/piglit/piglit-traces.sh
+
 export LD_LIBRARY_PATH="${CI_PROJECT_DIR}/install/lib"
 export LIBGL_DRIVERS_PATH="${MESA_CI_PROJECT_DIR}/install/lib/dri"
 
