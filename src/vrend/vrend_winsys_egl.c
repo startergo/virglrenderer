@@ -247,7 +247,7 @@ static EGLDeviceEXT virgl_egl_get_device(struct virgl_egl *egl) {
        memset(&dev_infos[d], 0, sizeof(dev_infos[d]));
        if (dev_node) {
           if (gbm_detect_device_info_path(0, dev_node, dev_infos+d) < 0)
-             return false;
+             return EGL_NO_DEVICE_EXT;
        } else {
           dev_infos[d].dri_node_num = -1;
        }
