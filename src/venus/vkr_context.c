@@ -672,7 +672,7 @@ vkr_context_create(uint32_t ctx_id,
    bool ret = vkr_library_load(&ctx->vulkan_library);
    if (!ret) {
       free(ctx);
-      return false;
+      return NULL;
    }
 
    ctx->ctx_id = ctx_id;
