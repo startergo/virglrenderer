@@ -320,6 +320,39 @@ amdgpu_renderer_export_opaque_handle(struct virgl_context *vctx,
    return VIRGL_RESOURCE_FD_DMABUF;
 }
 
+static void * amdgpu_renderer_resource_map(struct virgl_context *vctx,
+                                           struct virgl_resource *res,
+                                           void *addr,
+                                           int32_t prot,
+                                           int32_t flags)
+{
+   struct drm_context *dctx = to_drm_context(vctx);
+   struct amdgpu_context *ctx = to_amdgpu_context(dctx);
+   struct amdgpu_object *obj = amdgpu_get_object_from_res_id(ctx, res->res_id, __FUNCTION__);
+   union drm_amdgpu_gem_mmap args = { 0 };
+   int r;
+
+   print(2, "obj=%p, res_id=%u", (void *)obj, res->res_id);
+
+   if (!obj) {
+      print(0, "invalid res_id %u", res->res_id);
+      return NULL;
+   }
+
+   args.in.handle = obj->base.handle;
+
+   r = drmCommandWriteRead(amdgpu_device_get_fd(ctx->dev), DRM_AMDGPU_GEM_MMAP, &args,
+                           sizeof(args));
+
+   if (r) {
+      print(0, "DRM_AMDGPU_GEM_MMAP failed with r=%d", r);
+      return NULL;
+   }
+
+   return mmap(addr, obj->base.size, prot, flags,
+               amdgpu_device_get_fd(ctx->dev), args.out.addr_ptr);
+}
+
 static void
 update_heap_info_in_shmem(struct amdgpu_context *ctx)
 {
@@ -1204,6 +1237,7 @@ amdgpu_renderer_create(int fd, size_t debug_len, const char *debug_name)
    ctx->base.base.destroy = amdgpu_renderer_destroy;
    ctx->base.base.attach_resource = amdgpu_renderer_attach_resource;
    ctx->base.base.export_opaque_handle = amdgpu_renderer_export_opaque_handle;
+   ctx->base.base.resource_map = amdgpu_renderer_resource_map;
    ctx->base.base.get_blob = amdgpu_renderer_get_blob;
    ctx->base.base.submit_fence = amdgpu_renderer_submit_fence;
    ctx->base.base.supports_fence_sharing = true;
