@@ -14,7 +14,7 @@
 
 #include "virgl_util.h"
 
-#if defined(ENABLE_DRM_MSM) || defined(ENABLE_DRM_AMDGPU)
+#if defined(ENABLE_DRM)
 
 int drm_renderer_init(int drm_fd);
 
@@ -26,7 +26,7 @@ size_t drm_renderer_capset(void *capset);
 
 struct virgl_context *drm_renderer_create(size_t debug_len, const char *debug_name);
 
-#else /* ENABLE_DRM_MSM */
+#else /* ENABLE_DRM */
 
 static inline int
 drm_renderer_init(UNUSED int drm_fd)
