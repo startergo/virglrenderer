@@ -23,12 +23,12 @@ else
     while :
     do
         MESA_JOB_ID=$(curl -L --retry 4 -f --retry-all-errors --retry-delay 60 -s "${CI_API_V4_URL}/projects/${MESA_PROJECT_ID}/pipelines/${MESA_PIPELINE_ID}/jobs?per_page=100&page=${FALLBACK_PAGE}&scope=success" \
-          | jq -c '.[] | select(.name == "debian-testing") | .id')
+          | jq -c '.[] | select(.name == "debian-x86_64") | .id')
         if [ ! -z "${MESA_JOB_ID}" ]; then
             break
         fi
         if [ $FALLBACK_PAGE -ge 10 ]; then
-            echo -e "\e[31mUnable to find the debian-testing job!\e[0m"
+            echo -e "\e[31mUnable to find the debian-x86_64 job!\e[0m"
             exit 1
         fi
         FALLBACK_PAGE=$((FALLBACK_PAGE+1))

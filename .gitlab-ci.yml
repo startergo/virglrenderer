@@ -13,7 +13,7 @@ variables:
   #
   # Use the Pipeline ID corresponding to the Mesa Git rev provided below.
   # If multiple pipeline runs are available, please choose the one having
-  # at least the 'debian-testing' job in 'Build-x86_64' stage completed.
+  # at least the 'debian-x86_64' job in 'build-for-tests' stage completed.
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
