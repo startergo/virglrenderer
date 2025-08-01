@@ -41,7 +41,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#ifdef ENABLE_DRM
+#ifdef ENABLE_LIBDRM
 #include <xf86drm.h>
 #endif
 

@@ -107,9 +107,13 @@ endif
 
 with_drm_renderers = drm_renderers.length() > 0
 
+if with_drm_renderers
+  conf_data.set('ENABLE_DRM', 1)
+endif
+
 libdrm_dep = dependency('libdrm', version : '>=2.4.50', required: with_drm_renderers or get_option('video'))
 libdrm_amdgpu_dep = dependency('libdrm_amdgpu', version : '>=2.4.121', required: with_drm_amdgpu)
-conf_data.set('ENABLE_DRM', libdrm_dep.found())
+conf_data.set('ENABLE_LIBDRM', libdrm_dep.found())
 drm_uapi_dep = declare_dependency(
    include_directories: include_directories('src' / 'drm' / 'drm-uapi')
 )
