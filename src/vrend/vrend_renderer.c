@@ -188,6 +188,8 @@ enum features_id
    feat_polygon_offset_clamp,
    feat_occlusion_query,
    feat_occlusion_query_boolean,
+   feat_ovr_multiview,
+   feat_ovr_multiview2,
    feat_pipeline_statistics_query,
    feat_qbo,
    feat_robust_buffer_access,
@@ -302,6 +304,8 @@ static const  struct {
    FEAT(polygon_offset_clamp, 46, UNAVAIL,  "GL_ARB_polygon_offset_clamp", "GL_EXT_polygon_offset_clamp"),
    FEAT(occlusion_query, 15, UNAVAIL, "GL_ARB_occlusion_query"),
    FEAT(occlusion_query_boolean, 33, 30, "GL_EXT_occlusion_query_boolean", "GL_ARB_occlusion_query2"),
+   FEAT(ovr_multiview, UNAVAIL, UNAVAIL, "GL_OVR_multiview"),
+   FEAT(ovr_multiview2, UNAVAIL, UNAVAIL, "GL_OVR_multiview2"),
    FEAT(qbo, 44, UNAVAIL, "GL_ARB_query_buffer_object" ),
    FEAT(robust_buffer_access, 43, UNAVAIL,  "GL_ARB_robust_buffer_access_behavior", "GL_KHR_robust_buffer_access_behavior" ),
    FEAT(sample_mask, 32, 31,  "GL_ARB_texture_multisample" ),
@@ -542,6 +546,7 @@ struct vrend_surface {
    GLuint first_layer;
    GLuint last_layer;
    GLuint nr_samples;
+   GLsizei num_views;
    struct vrend_resource *texture;
 };
 
@@ -2900,9 +2905,12 @@ int vrend_create_sampler_view(struct vrend_context *ctx,
 static void vrend_framebuffer_texture_2d(struct vrend_resource *res,
                                          GLenum target, GLenum attachment,
                                          GLenum textarget, uint32_t texture,
-                                         int32_t level, uint32_t samples)
+                                         int32_t level, uint32_t samples,
+                                         uint32_t layer, uint32_t num_views)
 {
-   if (samples == 0) {
+   if (num_views > 0) {
+      glFramebufferTextureMultiviewOVR(target, attachment, texture, level, layer, num_views);
+   } else if (samples == 0) {
       glFramebufferTexture2D(target, attachment, textarget, texture, level);
    } else if (!has_feature(feat_implicit_msaa)) {
       /* fallback to non-msaa */
@@ -2960,7 +2968,8 @@ void debug_texture(ASSERTED const char *f, const struct vrend_resource *gt)
 
 void vrend_fb_bind_texture_id(struct vrend_resource *res,
                               int id, GLuint idx, GLint level,
-                              GLint layer, uint32_t samples)
+                              GLint layer, uint32_t samples,
+                              uint32_t num_views)
 {
    const struct util_format_description *desc = util_format_description(res->base.format);
    GLenum attachment = GL_COLOR_ATTACHMENT0 + idx;
@@ -2986,8 +2995,12 @@ void vrend_fb_bind_texture_id(struct vrend_resource *res,
          glFramebufferTexture(GL_FRAMEBUFFER, attachment,
                               id, level);
       else
-         glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment,
-                                   id, level, layer);
+         if (num_views > 0)
+            glFramebufferTextureMultiviewOVR(GL_FRAMEBUFFER, attachment,
+                                             id, level, layer, num_views);
+         else
+            glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment,
+                                      id, level, layer);
       break;
    case GL_TEXTURE_3D:
       if (layer < 0)
@@ -3007,7 +3020,7 @@ void vrend_fb_bind_texture_id(struct vrend_resource *res,
       else
          vrend_framebuffer_texture_2d(res, GL_FRAMEBUFFER, attachment,
                                       GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer,
-                                      id, level, samples);
+                                      id, level, samples, layer, num_views);
       break;
    case GL_TEXTURE_1D:
       glFramebufferTexture1D(GL_FRAMEBUFFER, attachment,
@@ -3016,7 +3029,7 @@ void vrend_fb_bind_texture_id(struct vrend_resource *res,
    case GL_TEXTURE_2D:
    default:
       vrend_framebuffer_texture_2d(res, GL_FRAMEBUFFER, attachment,
-                                   res->target, id, level, samples);
+                                   res->target, id, level, samples, layer, num_views);
       break;
    }
 
@@ -3039,7 +3052,7 @@ void vrend_fb_bind_texture(struct vrend_resource *res,
                            GLuint idx,
                            GLint level, GLint layer)
 {
-   vrend_fb_bind_texture_id(res, res->gl_id, idx, level, layer, 0);
+   vrend_fb_bind_texture_id(res, res->gl_id, idx, level, layer, 0, 0);
 }
 
 static void vrend_hw_set_zsurf_texture(struct vrend_context *ctx)
@@ -3055,7 +3068,8 @@ static void vrend_hw_set_zsurf_texture(struct vrend_context *ctx)
 
       vrend_fb_bind_texture_id(surf->texture, surf->gl_id, 0, surf->level,
                                surf->first_layer != surf->last_layer ? -1 :
-                               (GLint)surf->first_layer, surf->nr_samples);
+                               (GLint)surf->first_layer, surf->nr_samples,
+                               surf->num_views);
    }
 }
 
@@ -3074,7 +3088,7 @@ static void vrend_hw_set_color_surface(struct vrend_sub_context *sub_ctx, GLuint
 
       vrend_fb_bind_texture_id(surf->texture, surf->gl_id, index, surf->level,
                                first_layer != last_layer ? -1 : (GLint)first_layer,
-                               surf->nr_samples);
+                               surf->nr_samples, surf->num_views);
    }
 }
 
@@ -3264,6 +3278,27 @@ void vrend_set_framebuffer_state_no_attach(UNUSED struct vrend_context *ctx,
                                  GL_FRAMEBUFFER_DEFAULT_LAYERS, layers);
       glFramebufferParameteri(GL_FRAMEBUFFER,
                               GL_FRAMEBUFFER_DEFAULT_SAMPLES, samples);
+   }
+}
+
+void vrend_set_framebuffer_state_views(struct vrend_context *ctx,
+                                       uint32_t num_views)
+{
+   struct vrend_sub_context *sub_ctx = ctx->sub;
+   fprintf(stderr, "VIEWS: %u\n", num_views);
+
+   if (sub_ctx->zsurf) {
+      fprintf(stderr, "with zsurf\n");
+      sub_ctx->zsurf->num_views = num_views;
+      vrend_hw_set_zsurf_texture(ctx);
+   }
+
+   for (uint32_t i = 0; i < sub_ctx->nr_cbufs; i++) {
+      if (sub_ctx->surf[i]) {
+         fprintf(stderr, "with surf %u\n", i);
+         sub_ctx->surf[i]->num_views = num_views;
+         vrend_hw_set_color_surface(sub_ctx, i);
+      }
    }
 }
 
@@ -4930,7 +4965,7 @@ void vrend_clear_surface(struct vrend_context *ctx, uint32_t surf_handle,
    vrend_fb_bind_texture_id(
        surf->texture, surf->gl_id, 0, surf->level,
        surf->first_layer != surf->last_layer ? -1 : (GLint)surf->first_layer,
-       surf->nr_samples);
+       surf->nr_samples, surf->num_views);
 
    // When doing clear_render_target color->f contains clear color
    float colorf[4];
@@ -7999,6 +8034,7 @@ struct vrend_context *vrend_create_context(int id, uint32_t nlen, const char *de
    grctx->shader_cfg.has_texture_shadow_lod = has_feature(feat_texture_shadow_lod);
    grctx->shader_cfg.has_vs_layer = has_feature(feat_vs_layer_viewport);
    grctx->shader_cfg.has_vs_viewport_index = has_feature(feat_vs_viewport_index);
+   grctx->shader_cfg.has_ovr_multiview2 = has_feature(feat_ovr_multiview2);
 
    vrend_renderer_create_sub_ctx(grctx, 0);
    vrend_renderer_set_sub_ctx(grctx, 0);
@@ -11026,7 +11062,7 @@ static void vrend_renderer_blit_fbo(struct vrend_context *ctx,
    int n_layers = info->b.src.box.depth == info->b.dst.box.depth ? info->b.dst.box.depth : 1;
    for (int i = 0; i < n_layers; i++) {
       glBindFramebuffer(GL_FRAMEBUFFER, ctx->sub->blit_fb_ids[0]);
-      vrend_fb_bind_texture_id(src_res, info->src_view, 0, info->b.src.level, info->b.src.box.z + i, 0);
+      vrend_fb_bind_texture_id(src_res, info->src_view, 0, info->b.src.level, info->b.src.box.z + i, 0, 0);
 
       if (make_intermediate_copy) {
          int level_width = u_minify(src_res->base.width0, info->b.src.level);
@@ -11044,7 +11080,7 @@ static void vrend_renderer_blit_fbo(struct vrend_context *ctx,
       }
 
       glBindFramebuffer(GL_FRAMEBUFFER, ctx->sub->blit_fb_ids[1]);
-      vrend_fb_bind_texture_id(dst_res, info->dst_view, 0, info->b.dst.level, info->b.dst.box.z + i, 0);
+      vrend_fb_bind_texture_id(dst_res, info->dst_view, 0, info->b.dst.level, info->b.dst.box.z + i, 0, 0);
       glBindFramebuffer(GL_DRAW_FRAMEBUFFER, ctx->sub->blit_fb_ids[1]);
 
       if (has_feature(feat_srgb_write_control)) {
@@ -12794,6 +12830,12 @@ static void vrend_renderer_fill_caps_v2(int gl_ver, int gles_ver,  union virgl_c
 
    if (has_feature(feat_texture_mirror_clamp))
       caps->v2.capability_bits_v2 |= VIRGL_CAP_V2_MIRROR_CLAMP;
+
+   if (has_feature(feat_ovr_multiview))
+      caps->v2.capability_bits_v2 |= VIRGL_CAP_V2_OVR_MULTIVIEW;
+
+   if (has_feature(feat_ovr_multiview2))
+      caps->v2.capability_bits_v2 |= VIRGL_CAP_V2_OVR_MULTIVIEW2;
 
 #ifdef ENABLE_VIDEO
    vrend_video_fill_caps(caps);

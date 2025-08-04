@@ -846,7 +846,7 @@ void vrend_renderer_blit_gl(ASSERTED struct vrend_context *ctx,
    glUseProgram(prog_id);
 
    glBindFramebuffer(GL_FRAMEBUFFER, blit_ctx->fb_id);
-   vrend_fb_bind_texture_id(dst_res, info->dst_view, 0, info->b.dst.level, info->b.dst.box.z, 0);
+   vrend_fb_bind_texture_id(dst_res, info->dst_view, 0, info->b.dst.level, info->b.dst.box.z, 0, 0);
 
    GLuint buffers = GL_COLOR_ATTACHMENT0;
    glDrawBuffers(1, &buffers);
@@ -888,7 +888,7 @@ void vrend_renderer_blit_gl(ASSERTED struct vrend_context *ctx,
                         dst_res->target == GL_TEXTURE_1D_ARRAY ||
                         dst_res->target == GL_TEXTURE_2D_ARRAY) ? info->b.dst.box.z : dst_z;
 
-      vrend_fb_bind_texture_id(dst_res, info->dst_view, 0, info->b.dst.level, layer, 0);
+      vrend_fb_bind_texture_id(dst_res, info->dst_view, 0, info->b.dst.level, layer, 0, 0);
 
       blitter_set_texcoords(blit_ctx, src_res, info->b.src.level,
                             info->b.src.box.z + src_z, 0,

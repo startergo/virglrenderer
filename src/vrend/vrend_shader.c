@@ -84,6 +84,7 @@
 #define SHADER_REQ_SHADER_DRAW_PARAMETERS (1ULL << 39)
 #define SHADER_REQ_SHADER_GROUP_VOTE      (1ULL << 40)
 #define SHADER_REQ_EXPLICIT_UNIFORM_LOCATION (1ULL << 41)
+#define SHADER_REQ_OVR_MULTIVIEW      (1ULL << 42)
 
 #define FRONT_COLOR_EMITTED (1 << 0)
 #define BACK_COLOR_EMITTED  (1 << 1);
@@ -326,6 +327,9 @@ struct dump_ctx {
    bool is_last_vertex_stage;
    bool require_dummy_value;
 
+   /* for OVR_multiview */
+   uint32_t num_views;
+
    uint16_t local_cs_block_size[3];
 };
 
@@ -361,6 +365,7 @@ static const struct vrend_shader_table shader_req_table[] = {
     { SHADER_REQ_SHADER_DRAW_PARAMETERS, "ARB_shader_draw_parameters"},
     { SHADER_REQ_SHADER_GROUP_VOTE, "ARB_shader_group_vote"},
     { SHADER_REQ_EXPLICIT_UNIFORM_LOCATION, "ARB_explicit_uniform_location"},
+    { SHADER_REQ_OVR_MULTIVIEW, "OVR_multiview" }
 };
 
 enum vrend_type_qualifier {
@@ -1295,6 +1300,7 @@ struct syvalue_prop_map {
    [TGSI_SEMANTIC_BASEVERTEX]= {"gl_BaseVertexARB", SHADER_REQ_SHADER_DRAW_PARAMETERS | SHADER_REQ_INTS, true},
    [TGSI_SEMANTIC_BASEINSTANCE]= {"gl_BaseInstanceARB", SHADER_REQ_SHADER_DRAW_PARAMETERS | SHADER_REQ_INTS, true},
    [TGSI_SEMANTIC_DRAWID]= {"gl_DrawIDARB + drawid_base", SHADER_REQ_SHADER_DRAW_PARAMETERS | SHADER_REQ_INTS, true},
+   [TGSI_SEMANTIC_VIEW_INDEX] = {"gl_ViewID_OVR", SHADER_REQ_OVR_MULTIVIEW | SHADER_REQ_INTS,  true},
 };
 
 
@@ -2117,6 +2123,10 @@ iter_property(struct tgsi_iterate_context *iter,
           ctx->shader_req_bits |= SHADER_REQ_SEPERATE_SHADER_OBJECTS;
           ctx->shader_req_bits |= SHADER_REQ_EXPLICIT_ATTRIB_LOCATION;
       }
+      break;
+   case TGSI_PROPERTY_NUM_VIEWS:
+      ctx->num_views = prop->u[0].Data;
+      ctx->shader_req_bits |= SHADER_REQ_OVR_MULTIVIEW;
       break;
    default:
       virgl_error("Unhandled property: %x\n", prop->Property.PropertyName);
@@ -5077,6 +5087,7 @@ get_source_info(struct dump_ctx *ctx,
                   else
                      strbuf_fmt(src_buf, "%s(vec4(intBitsToFloat(%s)))", get_string(stypeprefix), ctx->system_values[j].glsl_name);
                   break;
+               case TGSI_SEMANTIC_VIEW_INDEX:
                case TGSI_SEMANTIC_HELPER_INVOCATION:
                   strbuf_fmt(src_buf, "uvec4(%s)", ctx->system_values[j].glsl_name);
                   break;
@@ -6263,6 +6274,9 @@ static void emit_header(const struct dump_ctx *ctx, struct vrend_glsl_strbufs *g
       if (ctx->shader_req_bits & SHADER_REQ_SHADER_NOPERSPECTIVE_INTERPOLATION)
          emit_ext(glsl_strbufs, "NV_shader_noperspective_interpolation", "require");
 
+      if (ctx->shader_req_bits & SHADER_REQ_OVR_MULTIVIEW)
+         emit_ext(glsl_strbufs, "OVR_multiview", "require");
+
       emit_hdr(glsl_strbufs, "precision highp float;\n");
       emit_hdr(glsl_strbufs, "precision highp int;\n");
    } else {
@@ -6326,6 +6340,9 @@ static void emit_header(const struct dump_ctx *ctx, struct vrend_glsl_strbufs *g
          }
       }
    }
+
+   if (ctx->shader_req_bits & SHADER_REQ_OVR_MULTIVIEW && ctx->cfg->has_ovr_multiview2)
+      emit_ext(glsl_strbufs, "OVR_multiview2", "require");
 }
 
 char vrend_shader_samplerreturnconv(enum tgsi_return_type type)
@@ -7125,6 +7142,10 @@ static void emit_ios_vs(const struct dump_ctx *ctx,
                         bool *force_color_two_side)
 {
    uint32_t i;
+
+   if (ctx->num_views > 1) {
+      emit_hdrf(glsl_strbufs, "layout(num_views=%u) in;\n", ctx->num_views);
+   }
 
    for (i = 0; i < ctx->num_inputs; i++) {
       char postfix[32] = "";

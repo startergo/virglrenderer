@@ -398,6 +398,8 @@ void vrend_launch_grid(struct vrend_context *ctx,
 void vrend_set_framebuffer_state_no_attach(struct vrend_context *ctx,
                                            uint32_t width, uint32_t height,
                                            uint32_t layers, uint32_t samples);
+void vrend_set_framebuffer_state_views(struct vrend_context *ctx,
+                                       uint32_t num_views);
 void vrend_texture_barrier(struct vrend_context *ctx,
                            unsigned flags);
 
@@ -444,7 +446,8 @@ void vrend_set_uniform_buffer(struct vrend_context *ctx, uint32_t shader,
 
 void vrend_fb_bind_texture_id(struct vrend_resource *res,
                               int id, GLuint idx, GLint level,
-                              GLint layer, uint32_t samples);
+                              GLint layer, uint32_t samples,
+                              uint32_t num_views);
 
 void vrend_set_tess_state(struct vrend_context *ctx, const float tess_factors[6]);
 

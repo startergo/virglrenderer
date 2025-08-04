@@ -197,6 +197,17 @@ static int vrend_decode_set_framebuffer_state_no_attach(struct vrend_context *ct
    return 0;
 }
 
+static int vrend_decode_set_framebuffer_state_views(struct vrend_context *ctx, const uint32_t *buf, uint32_t length)
+{
+   if (length != VIRGL_SET_FRAMEBUFFER_STATE_VIEWS_SIZE)
+      return EINVAL;
+
+   uint32_t num_views = get_buf_entry(buf, VIRGL_SET_FRAMEBUFFER_STATE_VIEWS_NUM_VIEWS);
+
+   vrend_set_framebuffer_state_views(ctx, num_views);
+   return 0;
+}
+
 static int vrend_decode_clear(struct vrend_context *ctx, const uint32_t *buf, uint32_t length)
 {
    union pipe_color_union color;
@@ -2018,6 +2029,7 @@ static const vrend_decode_callback decode_table[VIRGL_MAX_COMMANDS] = {
    [VIRGL_CCMD_ENCODE_BITSTREAM] = vrend_unsupported,
    [VIRGL_CCMD_END_FRAME] = vrend_unsupported,
 #endif
+   [VIRGL_CCMD_SET_FRAMEBUFFER_STATE_VIEWS] = vrend_decode_set_framebuffer_state_views,
 };
 
 static void dump_command_stream_to_file(const void *buffer, size_t size)
