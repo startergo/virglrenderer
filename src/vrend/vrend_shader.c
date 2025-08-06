@@ -8179,6 +8179,9 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
    if (bret == false)
       goto fail;
 
+   if (ctx.shader_req_bits & SHADER_REQ_INTS)
+      ctx.glsl_ver_required = require_glsl_ver(&ctx, 150);
+
    if (ctx.shader_req_bits & SHADER_REQ_FP64)
       ctx.glsl_ver_required = require_glsl_ver(&ctx, 150);
 
