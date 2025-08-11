@@ -51,6 +51,7 @@
 
 #if defined(__clang__)
 #pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#pragma GCC diagnostic ignored "-Wlanguage-extension-token"
 #endif
 
 #if 0
