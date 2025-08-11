@@ -156,9 +156,6 @@ debian/x86_64_build_amdgpu:
       - install/
       - results/
   rules:
-    - changes:
-      - src/drm/**/*
-      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
@@ -167,6 +164,9 @@ debian/x86_64_build_amdgpu:
       when: manual
     - if: *is-pre-merge-for-marge
       when: on_success
+    - changes:
+      - src/drm/**/*
+      when: manual
     - when: never
 
 debian/x86_64_build_asahi:
@@ -186,9 +186,6 @@ debian/x86_64_build_asahi:
       - install/
       - results/
   rules:
-    - changes:
-      - src/drm/**/*
-      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
@@ -197,6 +194,9 @@ debian/x86_64_build_asahi:
       when: manual
     - if: *is-pre-merge-for-marge
       when: on_success
+    - changes:
+      - src/drm/**/*
+      when: manual
     - when: never
 
 debian/x86_64_build_msm:
@@ -216,9 +216,6 @@ debian/x86_64_build_msm:
       - install/
       - results/
   rules:
-    - changes:
-      - src/drm/**/*
-      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
@@ -227,6 +224,9 @@ debian/x86_64_build_msm:
       when: manual
     - if: *is-pre-merge-for-marge
       when: on_success
+    - changes:
+      - src/drm/**/*
+      when: manual
     - when: never
 
 debian/x86_64_build_minigbm:
@@ -246,11 +246,6 @@ debian/x86_64_build_minigbm:
       - install/
       - results/
   rules:
-    - changes:
-      - src/vrend_winsys_gbm.*
-      - src/vrend_winsys_egl.c
-      - src/vrend_renderer.c
-      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
@@ -259,6 +254,11 @@ debian/x86_64_build_minigbm:
       when: manual
     - if: *is-pre-merge-for-marge
       when: on_success
+    - changes:
+      - src/vrend_winsys_gbm.*
+      - src/vrend_winsys_egl.c
+      - src/vrend_renderer.c
+      when: manual
     - when: never
 
 debian/x86_64_build_no_drm:
@@ -278,13 +278,6 @@ debian/x86_64_build_no_drm:
       - install/
       - results/
   rules:
-    - changes:
-      - src/drm
-      - src/drm_hw.h
-      - src/vrend/vrend_winsys_egl.c
-      - vtest/vtest_renderer.c
-      - vtest/vtest_server.c
-      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
@@ -293,6 +286,13 @@ debian/x86_64_build_no_drm:
       when: manual
     - if: *is-pre-merge-for-marge
       when: on_success
+    - changes:
+      - src/drm
+      - src/drm_hw.h
+      - src/vrend/vrend_winsys_egl.c
+      - vtest/vtest_renderer.c
+      - vtest/vtest_server.c
+      when: manual
     - when: never
 
 debian/x86_64_build_tracing:
@@ -316,10 +316,6 @@ debian/x86_64_build_tracing:
       - install/
       - results/
   rules:
-    - changes:
-      - src/virgl_util.h
-      - src/virgl_util.c
-      when: manual
     - if: *is-scheduled-pipeline
       when: on_success
     - if: *is-post-merge
@@ -328,6 +324,10 @@ debian/x86_64_build_tracing:
       when: manual
     - if: *is-pre-merge-for-marge
       when: on_success
+    - changes:
+      - src/virgl_util.h
+      - src/virgl_util.c
+      when: manual
     - when: never
 
 # FIXME: Mesa's `debian/x86_build-mingw` job is turned off until gets
