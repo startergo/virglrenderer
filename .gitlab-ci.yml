@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1482282
+  MESA_PIPELINE_ID: 1489163
 
   MESA_PROJECT_PATH: mesa/mesa
   S3_JWT_FILE: /s3_jwt
@@ -59,7 +59,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: a29b9e47b05b27493204ffcaf62d18a438727f2b
+    ref: 12eb51fb0a4454fa8accfe22c7e778ecd1d9e0b0
     file:
       - '/.gitlab-ci/image-tags.yml'
 
@@ -589,6 +589,9 @@ virgl-traces:
     CROSVM_GALLIUM_DRIVER: "llvmpipe"
     CROSVM_VK_DRIVER: "lvp"
     RUNNER_WRAPPER: "install/crosvm-runner.sh"
+    # INFO: Keep Linux version at 6.14 as 6.16 seems to have regressed
+    # in virtio gfx device initializaiton
+    KERNEL_TAG: "v6.14-mesa-4277"
 
 venus-lavapipe:
   extends:

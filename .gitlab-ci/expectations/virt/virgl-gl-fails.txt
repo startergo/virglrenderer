@@ -529,3 +529,4 @@ spec@ext_image_dma_buf_import@ext_image_dma_buf_import-refcount-multithread,Fail
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-tex-modifier,Fail
 spec@arb_tessellation_shader@execution@tcs-output-unmatched,Fail
 spec@arb_framebuffer_object@execution@msaa-alpha-to-coverage_alpha-to-one_write-z,Fail
+spec@glsl-1.40@uniform_buffer@two-stages,Fail
