@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1489163
+  MESA_PIPELINE_ID: 1489846
 
   MESA_PROJECT_PATH: mesa/mesa
   S3_JWT_FILE: /s3_jwt
@@ -59,7 +59,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: 12eb51fb0a4454fa8accfe22c7e778ecd1d9e0b0
+    ref: 9a6065852ddc7640c04cc17f8d44859875896544
     file:
       - '/.gitlab-ci/image-tags.yml'
 
@@ -109,7 +109,7 @@ stages:
   variables:
     MESA_IMAGE_PATH: "debian/x86_64_build"
     MESA_IMAGE_TAG: ${DEBIAN_BUILD_TAG}
-    MESA_BASE_TAG: "${DEBIAN_BASE_TAG}--${PKG_REPO_REV}"
+    MESA_BASE_TAG: "${DEBIAN_BUILD_BASE_TAG}--${PKG_REPO_REV}"
 
 debian/x86_64_build:
   stage: build
@@ -409,7 +409,7 @@ make check venus:
   variables:
     MESA_IMAGE_PATH: "debian/x86_64_test-gl"
     MESA_IMAGE_TAG: ${DEBIAN_TEST_GL_TAG}
-    MESA_BASE_TAG: "${DEBIAN_BASE_TAG}--${PKG_REPO_REV}"
+    MESA_BASE_TAG: "${DEBIAN_TEST_BASE_TAG}--${PKG_REPO_REV}"
     PIGLIT_TAG: "${CONDITIONAL_BUILD_PIGLIT_TAG}"
   script:
     - .gitlab-ci/container/debian/x86_64_test.sh
@@ -440,7 +440,7 @@ make check venus:
   variables:
     MESA_IMAGE_PATH: "debian/x86_64_test-vk"
     MESA_IMAGE_TAG: ${DEBIAN_TEST_VK_TAG}
-    MESA_BASE_TAG: "${DEBIAN_BASE_TAG}--${PKG_REPO_REV}"
+    MESA_BASE_TAG: "${DEBIAN_TEST_BASE_TAG}--${PKG_REPO_REV}"
   script:
     - .gitlab-ci/container/debian/x86_64_test.sh
   artifacts:
