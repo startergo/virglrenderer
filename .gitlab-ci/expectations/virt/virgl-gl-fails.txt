@@ -509,7 +509,6 @@ spec@!opengl 2.0@vertex-program-two-side front front2 back2@gs-out and fs,Fail
 spec@!opengl 1.1@line-smooth-stipple,Fail
 
 spec@arb_gl_spirv@execution@ssbo@unsized-array,Fail
-spec@arb_viewport_array@display-list,Fail
 
 fast_color_clear@fcc-front-buffer-distraction,Fail
 spec@!opengl 1.1@line-flat-clip-color,Fail
@@ -519,14 +518,33 @@ spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_yvyu,Fail
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_vyuy,Fail
 
 # uprev Mesa in Virglrenderer
-KHR-GL30.framebuffer_blit.multisampled_to_singlesampled_blit_depth_config_test,Fail
-KHR-GL31.framebuffer_blit.multisampled_to_singlesampled_blit_depth_config_test,Fail
-KHR-GL32.framebuffer_blit.multisampled_to_singlesampled_blit_depth_config_test,Fail
 KHR-GL30.framebuffer_blit.framebuffer_blit_functionality_multisampled_to_singlesampled_blit,Fail
+KHR-GL30.framebuffer_blit.multisampled_to_singlesampled_blit_depth_config_test,Fail
 KHR-GL31.framebuffer_blit.framebuffer_blit_functionality_multisampled_to_singlesampled_blit,Fail
+KHR-GL31.framebuffer_blit.multisampled_to_singlesampled_blit_depth_config_test,Fail
 KHR-GL32.framebuffer_blit.framebuffer_blit_functionality_multisampled_to_singlesampled_blit,Fail
+KHR-GL32.framebuffer_blit.multisampled_to_singlesampled_blit_depth_config_test,Fail
+spec@!opengl 1.1@depthstencil-default_fb-copypixels samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-copypixels samples=8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8 samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8 samples=8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev samples=8,Fail
+spec@arb_framebuffer_object@execution@msaa-alpha-to-coverage_alpha-to-one_write-z,Fail
+spec@arb_shader_image_load_store@max-size@image2DMS max size test/8x16384x8x1,Fail
+spec@arb_shader_image_load_store@max-size@image2DMS max size test/8x8x16384x1,Fail
+spec@arb_shader_image_load_store@max-size@image2DMSArray max size test/8x8x8x2048,Fail
+spec@arb_spirv_extensions@execution@storage_buffer_storage_class@unsized-array,Fail
+spec@arb_tessellation_shader@execution@tcs-output-unmatched,Fail
+spec@arb_texture_rectangle@copyteximage rect samples=6,Fail
+spec@arb_texture_rectangle@copyteximage rect samples=8,Fail
+spec@egl_ext_device_query_name@conformance,Fail
+spec@ext_framebuffer_multisample@interpolation 6 centroid-edges,Fail
+spec@ext_framebuffer_multisample@interpolation 8 centroid-edges,Fail
+spec@ext_framebuffer_multisample@no-color 6 depth single,Fail
+spec@ext_framebuffer_multisample@no-color 6 depth-computed single,Fail
+spec@ext_framebuffer_multisample@no-color 8 depth single,Fail
+spec@ext_framebuffer_multisample@no-color 8 depth-computed single,Fail
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-refcount-multithread,Fail
 spec@ext_image_dma_buf_import@ext_image_dma_buf_import-tex-modifier,Fail
-spec@arb_tessellation_shader@execution@tcs-output-unmatched,Fail
-spec@arb_framebuffer_object@execution@msaa-alpha-to-coverage_alpha-to-one_write-z,Fail
-spec@glsl-1.40@uniform_buffer@two-stages,Fail
+

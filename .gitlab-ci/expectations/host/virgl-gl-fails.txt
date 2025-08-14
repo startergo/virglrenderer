@@ -441,7 +441,6 @@ spec@!opengl 2.0@gl-2.0-edgeflag-immediate,Fail
 spec@!opengl 1.1@line-smooth-stipple,Fail
 
 spec@arb_gl_spirv@execution@ssbo@unsized-array,Fail
-spec@arb_viewport_array@display-list,Fail
 spec@!opengl 1.1@line-flat-clip-color,Fail
 spec@arb_texture_float@texwrap formats bordercolor,Fail
 KHR-GL43.cull_distance.functional,Fail
@@ -474,43 +473,80 @@ spec@arb_texture_float@texwrap formats bordercolor@GL_RGB32F- border color only,
 spec@arb_texture_float@texwrap formats bordercolor@GL_LUMINANCE_ALPHA16F_ARB- border color only,Fail
 
 # uprev Mesa in virglrenderer
-KHR-GL43.framebuffer_blit.framebuffer_blit_functionality_multisampled_to_singlesampled_blit,Fail
-spec@glsl-1.40@uniform_buffer@two-stages,Fail
-spec@arb_framebuffer_object@execution@msaa-alpha-to-coverage_alpha-to-one_write-z,Fail
-spec@arb_tessellation_shader@execution@tcs-output-unmatched,Fail
-spec@glsl-1.50@execution@variable-indexing@vs-output-array-vec3-index-wr-before-gs,Crash
-spec@glsl-1.50@execution@variable-indexing@vs-output-array-vec4-index-wr-before-gs,Crash
-spec@!opengl 1.1@depthstencil-default_fb-blit samples=2,Fail
-spec@!opengl 1.1@depthstencil-default_fb-blit samples=4,Fail
-spec@!opengl 1.1@depthstencil-default_fb-clear samples=2,Fail
-spec@!opengl 1.1@depthstencil-default_fb-clear samples=4,Fail
-spec@!opengl 1.1@depthstencil-default_fb-copypixels,Fail
-spec@!opengl 1.1@depthstencil-default_fb-copypixels samples=2,Fail
-spec@!opengl 1.1@depthstencil-default_fb-copypixels samples=4,Fail
-spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8,Fail
-spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8 samples=2,Fail
-spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8 samples=4,Fail
-spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev,Fail
-spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev samples=2,Fail
-spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev samples=4,Fail
-spec@!opengl 1.1@depthstencil-default_fb-drawpixels-float-and-ushort samples=2,Fail
-spec@!opengl 1.1@depthstencil-default_fb-drawpixels-float-and-ushort samples=4,Fail
-spec@!opengl 1.1@depthstencil-default_fb-readpixels-24_8 samples=2,Fail
-spec@!opengl 1.1@depthstencil-default_fb-readpixels-24_8 samples=4,Fail
-spec@!opengl 1.1@depthstencil-default_fb-readpixels-32f_24_8_rev samples=2,Fail
-spec@!opengl 1.1@depthstencil-default_fb-readpixels-32f_24_8_rev samples=4,Fail
-spec@!opengl 1.1@depthstencil-default_fb-readpixels-float-and-ushort samples=2,Fail
-spec@!opengl 1.1@depthstencil-default_fb-readpixels-float-and-ushort samples=4,Fail
-spec@arb_texture_cube_map@copyteximage cube samples=2,Fail
-spec@arb_texture_cube_map@copyteximage cube samples=4,Fail
-spec@arb_texture_rectangle@copyteximage rect,Fail
-spec@arb_texture_rectangle@copyteximage rect samples=2,Fail
-spec@arb_texture_rectangle@copyteximage rect samples=4,Fail
-spec@ext_texture_array@copyteximage 1d_array samples=2,Fail
-spec@ext_texture_array@copyteximage 1d_array samples=4,Fail
-spec@ext_texture_array@copyteximage 2d_array samples=2,Fail
-spec@ext_texture_array@copyteximage 2d_array samples=4,Fail
 KHR-GL43.cull_distance.functional_test_item_5_primitive_mode_lines_max_culldist_0,Fail
 KHR-GL43.cull_distance.functional_test_item_5_primitive_mode_points_max_culldist_0,Fail
 KHR-GL43.cull_distance.functional_test_item_5_primitive_mode_triangles_max_culldist_0,Fail
+KHR-GL43.framebuffer_blit.framebuffer_blit_functionality_multisampled_to_singlesampled_blit,Fail
 KHR-GL43.framebuffer_blit.multisampled_to_singlesampled_blit_depth_config_test,Fail
+spec@!opengl 1.1@depthstencil-default_fb-blit samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-blit samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-blit samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-blit samples=8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-clear samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-clear samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-clear samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-clear samples=8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-copypixels samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-copypixels samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-copypixels samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-copypixels samples=8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-copypixels,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8 samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8 samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8 samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8 samples=8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-24_8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev samples=8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-32f_24_8_rev,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-float-and-ushort samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-float-and-ushort samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-float-and-ushort samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-drawpixels-float-and-ushort samples=8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-24_8 samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-24_8 samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-24_8 samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-24_8 samples=8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-32f_24_8_rev samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-32f_24_8_rev samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-32f_24_8_rev samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-32f_24_8_rev samples=8,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-float-and-ushort samples=2,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-float-and-ushort samples=4,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-float-and-ushort samples=6,Fail
+spec@!opengl 1.1@depthstencil-default_fb-readpixels-float-and-ushort samples=8,Fail
+spec@arb_framebuffer_object@execution@msaa-alpha-to-coverage_alpha-to-one_write-z,Fail
+spec@arb_shader_image_load_store@max-size@image2DMS max size test/8x16384x8x1,Fail
+spec@arb_shader_image_load_store@max-size@image2DMS max size test/8x8x16384x1,Fail
+spec@arb_shader_image_load_store@max-size@image2DMSArray max size test/8x8x8x2048,Fail
+spec@arb_spirv_extensions@execution@storage_buffer_storage_class@unsized-array,Fail
+spec@arb_tessellation_shader@execution@tcs-output-unmatched,Fail
+spec@arb_texture_cube_map@copyteximage cube samples=2,Fail
+spec@arb_texture_cube_map@copyteximage cube samples=4,Fail
+spec@arb_texture_cube_map@copyteximage cube samples=6,Fail
+spec@arb_texture_cube_map@copyteximage cube samples=8,Fail
+spec@arb_texture_rectangle@copyteximage rect samples=2,Fail
+spec@arb_texture_rectangle@copyteximage rect samples=4,Fail
+spec@arb_texture_rectangle@copyteximage rect samples=6,Fail
+spec@arb_texture_rectangle@copyteximage rect samples=8,Fail
+spec@arb_texture_rectangle@copyteximage rect,Fail
+spec@ext_framebuffer_multisample@interpolation 6 centroid-edges,Fail
+spec@ext_framebuffer_multisample@interpolation 8 centroid-edges,Fail
+spec@ext_framebuffer_multisample@no-color 6 depth single,Fail
+spec@ext_framebuffer_multisample@no-color 6 depth-computed single,Fail
+spec@ext_framebuffer_multisample@no-color 8 depth single,Fail
+spec@ext_framebuffer_multisample@no-color 8 depth-computed single,Fail
+spec@ext_texture_array@copyteximage 1d_array samples=2,Fail
+spec@ext_texture_array@copyteximage 1d_array samples=4,Fail
+spec@ext_texture_array@copyteximage 1d_array samples=6,Fail
+spec@ext_texture_array@copyteximage 1d_array samples=8,Fail
+spec@ext_texture_array@copyteximage 2d_array samples=2,Fail
+spec@ext_texture_array@copyteximage 2d_array samples=4,Fail
+spec@ext_texture_array@copyteximage 2d_array samples=6,Fail
+spec@ext_texture_array@copyteximage 2d_array samples=8,Fail
+spec@glsl-1.40@uniform_buffer@two-stages,Fail
+spec@glsl-1.50@execution@variable-indexing@vs-output-array-vec3-index-wr-before-gs,Crash
+spec@glsl-1.50@execution@variable-indexing@vs-output-array-vec4-index-wr-before-gs,Crash
+
