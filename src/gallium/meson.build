@@ -71,18 +71,27 @@ inc_gallium = include_directories('include', 'auxiliary', 'auxiliary/util')
 pymod = import('python')
 python3 = pymod.find_installation('python3', modules: ['yaml'])
 
+u_format_gen_h = custom_target(
+  'u_format_gen.h',
+  input : ['auxiliary/util/u_format_table.py', 'auxiliary/util/u_format.yaml'],
+  output : 'u_format_gen.h',
+  command : [prog_python, '@INPUT@', '--enums'],
+  depend_files : files('auxiliary/util/u_format_parse.py'),
+  capture : true,
+)
+
 u_format_table_c = custom_target(
-   'u_format_table.c',
-   input : ['auxiliary/util/u_format_table.py', 'auxiliary/util/u_format.yaml'],
-   output : 'u_format_table.c',
-   command : [prog_python, '-B', '@INPUT@'],
-   depend_files : files('auxiliary/util/u_format_parse.py'),
-   capture : true,
+  'u_format_table.c',
+  input : ['auxiliary/util/u_format_table.py', 'auxiliary/util/u_format.yaml'],
+  output : 'u_format_table.c',
+  command : [prog_python, '@INPUT@'],
+  depend_files : files('auxiliary/util/u_format_parse.py'),
+  capture : true,
 )
 
 libgallium = static_library(
    'gallium',
-   [sources_libgallium, u_format_table_c],
+   [sources_libgallium, u_format_table_c, u_format_gen_h],
    include_directories : [
       inc_gallium, inc_configuration
    ],
@@ -92,5 +101,6 @@ libgallium = static_library(
 gallium_dep = declare_dependency(
    link_with: libgallium,
    include_directories: [inc_gallium, inc_configuration],
+   sources: [u_format_table_c, u_format_gen_h],
    dependencies: mesa_dep,
 )
