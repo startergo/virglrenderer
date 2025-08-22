@@ -740,7 +740,7 @@ struct vrend_sub_context {
    uint32_t const_bufs_dirty[PIPE_SHADER_TYPES];
 
    uint32_t fb_id;
-   int nr_cbufs;
+   uint32_t nr_cbufs;
    struct vrend_surface *zsurf;
    struct vrend_surface *surf[PIPE_MAX_COLOR_BUFS];
 
@@ -1997,7 +1997,6 @@ static struct vrend_linked_shader_program *add_shader_program(struct vrend_sub_c
 {
    struct vrend_linked_shader_program *sprog = CALLOC_STRUCT(vrend_linked_shader_program);
    char name[64];
-   int i;
    GLuint prog_id = 0;
    GLuint pipeline_id = 0;
    GLuint vs_id, fs_id, gs_id, tes_id = 0;
@@ -2073,7 +2072,7 @@ static struct vrend_linked_shader_program *add_shader_program(struct vrend_sub_c
    if (has_feature(feat_gles31_vertex_attrib_binding)) {
       uint32_t mask = vs->sel->sinfo.attrib_input_mask;
       while (mask) {
-         i = u_bit_scan(&mask);
+         int i = u_bit_scan(&mask);
          snprintf(name, 32, "in_%d", i);
          glBindAttribLocation(vs_id, i, name);
       }
@@ -2180,7 +2179,7 @@ static struct vrend_linked_shader_program *add_shader_program(struct vrend_sub_c
       if (vs->sel->sinfo.num_inputs) {
          sprog->attrib_locs = calloc(vs->sel->sinfo.num_inputs, sizeof(uint32_t));
          if (sprog->attrib_locs) {
-            for (i = 0; i < vs->sel->sinfo.num_inputs; i++) {
+            for (int i = 0; i < vs->sel->sinfo.num_inputs; i++) {
                snprintf(name, 32, "in_%d", i);
                sprog->attrib_locs[i] = glGetAttribLocation(vs_id, name);
             }
@@ -2960,8 +2959,8 @@ void debug_texture(ASSERTED const char *f, const struct vrend_resource *gt)
 }
 
 void vrend_fb_bind_texture_id(struct vrend_resource *res,
-                              int id, int idx, uint32_t level,
-                              uint32_t layer, uint32_t samples)
+                              int id, GLuint idx, GLint level,
+                              GLint layer, uint32_t samples)
 {
    const struct util_format_description *desc = util_format_description(res->base.format);
    GLenum attachment = GL_COLOR_ATTACHMENT0 + idx;
@@ -2983,7 +2982,7 @@ void vrend_fb_bind_texture_id(struct vrend_resource *res,
    case GL_TEXTURE_2D_ARRAY:
    case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
    case GL_TEXTURE_CUBE_MAP_ARRAY:
-      if (layer == 0xffffffff)
+      if (layer < 0)
          glFramebufferTexture(GL_FRAMEBUFFER, attachment,
                               id, level);
       else
@@ -2991,7 +2990,7 @@ void vrend_fb_bind_texture_id(struct vrend_resource *res,
                                    id, level, layer);
       break;
    case GL_TEXTURE_3D:
-      if (layer == 0xffffffff)
+      if (layer < 0)
          glFramebufferTexture(GL_FRAMEBUFFER, attachment,
                               id, level);
       else if (vrend_state.use_gles)
@@ -3002,7 +3001,7 @@ void vrend_fb_bind_texture_id(struct vrend_resource *res,
                                 res->target, id, level, layer);
       break;
    case GL_TEXTURE_CUBE_MAP:
-      if (layer == 0xffffffff)
+      if (layer < 0)
          glFramebufferTexture(GL_FRAMEBUFFER, attachment,
                               id, level);
       else
@@ -3037,8 +3036,8 @@ void vrend_fb_bind_texture_id(struct vrend_resource *res,
 }
 
 void vrend_fb_bind_texture(struct vrend_resource *res,
-                           int idx,
-                           uint32_t level, uint32_t layer)
+                           GLuint idx,
+                           GLint level, GLint layer)
 {
    vrend_fb_bind_texture_id(res, res->gl_id, idx, level, layer, 0);
 }
@@ -3055,12 +3054,12 @@ static void vrend_hw_set_zsurf_texture(struct vrend_context *ctx)
          return;
 
       vrend_fb_bind_texture_id(surf->texture, surf->gl_id, 0, surf->level,
-                               surf->first_layer != surf->last_layer ? 0xffffffff :
-                               surf->first_layer, surf->nr_samples);
+                               surf->first_layer != surf->last_layer ? -1 :
+                               (GLint)surf->first_layer, surf->nr_samples);
    }
 }
 
-static void vrend_hw_set_color_surface(struct vrend_sub_context *sub_ctx, int index)
+static void vrend_hw_set_color_surface(struct vrend_sub_context *sub_ctx, GLuint index)
 {
    struct vrend_surface *surf = sub_ctx->surf[index];
 
@@ -3074,7 +3073,7 @@ static void vrend_hw_set_color_surface(struct vrend_sub_context *sub_ctx, int in
       uint32_t last_layer = sub_ctx->surf[index]->last_layer;
 
       vrend_fb_bind_texture_id(surf->texture, surf->gl_id, index, surf->level,
-                               first_layer != last_layer ? 0xffffffff : first_layer,
+                               first_layer != last_layer ? -1 : (GLint)first_layer,
                                surf->nr_samples);
    }
 }
@@ -3101,8 +3100,7 @@ static void vrend_hw_emit_framebuffer_state(struct vrend_sub_context *sub_ctx)
    } else if (has_feature(feat_srgb_write_control)) {
       struct vrend_surface *surf = NULL;
       bool use_srgb = false;
-      int i;
-      for (i = 0; i < sub_ctx->nr_cbufs; i++) {
+      for (uint32_t i = 0; i < sub_ctx->nr_cbufs; i++) {
          if (sub_ctx->surf[i]) {
             surf = sub_ctx->surf[i];
             if (util_format_is_srgb(surf->format)) {
@@ -3121,7 +3119,7 @@ static void vrend_hw_emit_framebuffer_state(struct vrend_sub_context *sub_ctx)
 
    sub_ctx->swizzle_output_rgb_to_bgr = 0;
    sub_ctx->needs_manual_srgb_encode_bitmask = 0;
-   for (int i = 0; i < sub_ctx->nr_cbufs; i++) {
+   for (uint32_t i = 0; i < sub_ctx->nr_cbufs; i++) {
       struct vrend_surface *surf = sub_ctx->surf[i];
       if (!surf)
          continue;
@@ -3156,8 +3154,7 @@ void vrend_set_framebuffer_state(struct vrend_context *ctx,
                                  uint32_t zsurf_handle)
 {
    struct vrend_surface *surf, *zsurf;
-   int i;
-   int old_num;
+   uint32_t old_num;
    GLenum status;
    GLint new_height = -1;
    bool new_fbo_origin_upper_left = false;
@@ -3183,7 +3180,7 @@ void vrend_set_framebuffer_state(struct vrend_context *ctx,
    old_num = sub_ctx->nr_cbufs;
    sub_ctx->nr_cbufs = nr_cbufs;
 
-   for (i = 0; i < (int)nr_cbufs; i++) {
+   for (uint32_t i = 0; i < nr_cbufs; i++) {
       if (surf_handle[i] != 0) {
          surf = vrend_object_lookup(sub_ctx->object_hash, surf_handle[i], VIRGL_OBJECT_SURFACE);
          if (!surf) {
@@ -3200,7 +3197,7 @@ void vrend_set_framebuffer_state(struct vrend_context *ctx,
    }
 
    if (old_num > sub_ctx->nr_cbufs) {
-      for (i = sub_ctx->nr_cbufs; i < old_num; i++) {
+      for (uint32_t i = sub_ctx->nr_cbufs; i < old_num; i++) {
          vrend_surface_reference(&sub_ctx->surf[i], NULL);
          vrend_hw_set_color_surface(sub_ctx, i);
       }
@@ -3216,14 +3213,14 @@ void vrend_set_framebuffer_state(struct vrend_context *ctx,
    }
    else {
       surf = NULL;
-      for (i = 0; i < sub_ctx->nr_cbufs; i++) {
+      for (uint32_t i = 0; i < sub_ctx->nr_cbufs; i++) {
          if (sub_ctx->surf[i]) {
             surf = sub_ctx->surf[i];
             break;
          }
       }
       if (surf == NULL) {
-         vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_SURFACE, i);
+         vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_SURFACE, sub_ctx->nr_cbufs);
          return;
       }
       new_height = u_minify(surf->texture->base.height0, surf->level);
@@ -4263,7 +4260,6 @@ static inline void vrend_fill_shader_key(struct vrend_sub_context *sub_ctx,
    enum pipe_shader_type type = sel->type;
 
    if (vrend_state.use_core_profile) {
-      int i;
       bool add_alpha_test = true;
 
       /* Only use integer info when drawing to avoid stale info.
@@ -4275,7 +4271,7 @@ static inline void vrend_fill_shader_key(struct vrend_sub_context *sub_ctx,
          key->vs.attrib_unsigned_int_bitmask = sub_ctx->ve->unsigned_int_bitmask;
       }
       if (type == PIPE_SHADER_FRAGMENT) {
-         for (i = 0; i < sub_ctx->nr_cbufs; i++) {
+         for (uint32_t i = 0; i < sub_ctx->nr_cbufs; i++) {
             if (!sub_ctx->surf[i])
                continue;
             if (vrend_format_is_emulated_alpha(sub_ctx->surf[i]->format))
@@ -4830,15 +4826,14 @@ void vrend_clear(struct vrend_context *ctx, unsigned buffers,
 
    if (buffers & PIPE_CLEAR_COLOR) {
       uint32_t mask = 0;
-      int i;
-      for (i = 0; i < sub_ctx->nr_cbufs; i++) {
+      for (uint32_t i = 0; i < sub_ctx->nr_cbufs; i++) {
          if (sub_ctx->surf[i])
             mask |= (1 << i);
       }
       if (mask != (buffers >> 2)) {
          mask = buffers >> 2;
          while (mask) {
-            i = u_bit_scan(&mask);
+            int i = u_bit_scan(&mask);
             if (i < PIPE_MAX_COLOR_BUFS && sub_ctx->surf[i] &&
                 util_format_is_pure_uint(sub_ctx->surf[i] &&
                                          sub_ctx->surf[i]->format))
@@ -4934,7 +4929,7 @@ void vrend_clear_surface(struct vrend_context *ctx, uint32_t surf_handle,
    glBindFramebuffer(GL_FRAMEBUFFER, ctx->sub->blit_fb_ids[0]);
    vrend_fb_bind_texture_id(
        surf->texture, surf->gl_id, 0, surf->level,
-       surf->first_layer != surf->last_layer ? 0xffffffff : surf->first_layer,
+       surf->first_layer != surf->last_layer ? -1 : (GLint)surf->first_layer,
        surf->nr_samples);
 
    // When doing clear_render_target color->f contains clear color
@@ -6527,14 +6522,13 @@ static void vrend_patch_blend_state(struct vrend_sub_context *sub_ctx)
    struct pipe_blend_state *state = &sub_ctx->blend_state;
    bool swizzle_blend_color = false;
    struct pipe_blend_color blend_color = sub_ctx->blend_color;
-   int i;
 
    if (sub_ctx->nr_cbufs == 0) {
       sub_ctx->blend_state_dirty = false;
       return;
    }
 
-   for (i = 0; i < (state->independent_blend_enable ? PIPE_MAX_COLOR_BUFS : 1); i++) {
+   for (uint32_t i = 0; i < (state->independent_blend_enable ? PIPE_MAX_COLOR_BUFS : 1); i++) {
       if (i < sub_ctx->nr_cbufs && sub_ctx->surf[i]) {
          if (vrend_format_is_emulated_alpha(sub_ctx->surf[i]->format)) {
             if (state->rt[i].blend_enable) {
@@ -7877,7 +7871,7 @@ static void vrend_destroy_sub_context(struct vrend_sub_context *sub)
    if (sub->zsurf)
       vrend_surface_reference(&sub->zsurf, NULL);
 
-   for (int i = 0; i < sub->nr_cbufs; i++) {
+   for (uint32_t i = 0; i < sub->nr_cbufs; i++) {
       if (!sub->surf[i])
          continue;
       vrend_surface_reference(&sub->surf[i], NULL);
