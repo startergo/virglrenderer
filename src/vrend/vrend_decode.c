@@ -1751,6 +1751,18 @@ static int vrend_decode_send_string_marker(struct vrend_context *ctx, const uint
    return 0;
 }
 
+static int vrend_decode_get_pipe_resource_layout(struct vrend_context *ctx, const uint32_t *buf, uint32_t length)
+{
+   TRACE_FUNC();
+   if (length < VIRGL_RESOURCE_LAYOUT_SIZE)
+      return EINVAL;
+
+   uint32_t out_handle = get_buf_entry(buf, VIRGL_RESOURCE_LAYOUT_HANDLE_OUT);
+   uint32_t target_handle = get_buf_entry(buf, VIRGL_RESOURCE_LAYOUT_HANDLE_TARGET);
+
+   return vrend_renderer_pipe_resource_get_layout(ctx, out_handle, target_handle);
+}
+
 #ifdef ENABLE_VIDEO
 /* video codec related functions */
 
@@ -2018,6 +2030,7 @@ static const vrend_decode_callback decode_table[VIRGL_MAX_COMMANDS] = {
    [VIRGL_CCMD_ENCODE_BITSTREAM] = vrend_unsupported,
    [VIRGL_CCMD_END_FRAME] = vrend_unsupported,
 #endif
+   [VIRGL_CCMD_GET_PIPE_RESOURCE_LAYOUT] = vrend_decode_get_pipe_resource_layout,
 };
 
 static void dump_command_stream_to_file(const void *buffer, size_t size)

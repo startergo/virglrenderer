@@ -96,6 +96,7 @@ static const char *command_names[VIRGL_MAX_COMMANDS] = {
    "ENCODE_BITSTREAM",
    "END_FRAME",
    "CLEAR_SURFACE",
+   "GET_PIPE_RESOURCE_LAYOUT",
 };
 
 static const char *object_type_names[VIRGL_MAX_OBJECTS] = {

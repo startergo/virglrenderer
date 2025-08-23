@@ -12856,6 +12856,8 @@ static void vrend_renderer_fill_caps_v2(int gl_ver, int gles_ver,  union virgl_c
 #else
    caps->v2.num_video_caps = 0;
 #endif
+   if (vrend_state.gbm_layout_feat)
+      caps->v2.capability_bits_v2 |= VIRGL_CAP_V2_RESOURCE_LAYOUT;
 }
 
 void vrend_renderer_fill_caps(uint32_t set, uint32_t version,
@@ -13694,5 +13696,96 @@ void vrend_context_emit_string_marker(struct vrend_context *ctx, GLsizei length,
 struct vrend_video_context *vrend_context_get_video_ctx(struct vrend_context *ctx)
 {
     return ctx->video;
+}
+#endif
+
+#ifdef ENABLE_GBM
+static size_t get_gbm_bo_plane_size(struct gbm_bo *bo, int plane)
+{
+   off_t size;
+   int fd;
+
+   fd = gbm_bo_get_fd_for_plane(bo, plane);
+   if (fd < 0)
+      return 0;
+
+   size = lseek(fd, 0, SEEK_END);
+   close(fd);
+
+   if (size < 0)
+      return 0;
+
+   return size;
+}
+
+int
+vrend_renderer_pipe_resource_get_layout(struct vrend_context *ctx,
+                                        uint32_t out_res_id, uint32_t res_id)
+{
+   struct virgl_resource_layout layout = { 0 };
+   struct vrend_resource *out_res, *res;
+
+   out_res = vrend_renderer_ctx_res_lookup(ctx, out_res_id);
+   if (!out_res) {
+      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, out_res_id);
+      return EINVAL;
+   }
+
+   res = vrend_renderer_ctx_res_lookup(ctx, res_id);
+   if (!res) {
+      vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, res_id);
+      return EINVAL;
+   }
+
+   if (res->gbm_bo) {
+      int num_planes = gbm_bo_get_plane_count(res->gbm_bo);
+
+      if (layout.num_planes > VIRGL_RESOURCE_MAX_PLANES) {
+         virgl_error("resource GBM has too many planes\n");
+         vrend_report_context_error(ctx, VIRGL_ERROR_CTX_UNKNOWN, res_id);
+         return EINVAL;
+      }
+
+      layout.num_planes = num_planes;
+      layout.modifier = gbm_bo_get_modifier(res->gbm_bo);
+
+      for (uint32_t i = 0; i < layout.num_planes; i++) {
+         layout.planes[i].offset = gbm_bo_get_offset(res->gbm_bo, i);
+         layout.planes[i].stride = gbm_bo_get_stride_for_plane(res->gbm_bo, i);
+         layout.planes[i].size = get_gbm_bo_plane_size(res->gbm_bo, i);
+
+         if (!layout.planes[i].size) {
+            virgl_error("failed to get GBM plane size\n");
+            vrend_report_context_error(ctx, VIRGL_ERROR_CTX_UNKNOWN, res_id);
+            return EINVAL;
+         }
+      }
+   }
+
+   if (out_res->iov) {
+      if (vrend_write_to_iovec(out_res->iov, out_res->num_iovs, 0,
+                               (const void *) &layout, sizeof(layout)) != sizeof(layout)) {
+         virgl_error("resource layout does not fit IOV size\n");
+         vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, out_res_id);
+         return EINVAL;
+      }
+   } else {
+      if (out_res->base.width0 >= sizeof(layout)) {
+         *((struct virgl_resource_layout *) out_res->ptr) = layout;
+      } else {
+         virgl_error("resource layout does not fit buffer size\n");
+         vrend_report_context_error(ctx, VIRGL_ERROR_CTX_ILLEGAL_RESOURCE, out_res_id);
+         return EINVAL;
+      }
+   }
+
+   return 0;
+}
+#else
+int
+vrend_renderer_pipe_resource_get_layout(UNUSED struct vrend_context *ctx,
+                                        UNUSED uint32_t out_res_id, UNUSED uint32_t res_id)
+{
+   return EINVAL;
 }
 #endif

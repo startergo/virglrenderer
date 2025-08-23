@@ -643,5 +643,8 @@ struct vrend_video_context *vrend_context_get_video_ctx(struct vrend_context *ct
 int
 vrend_renderer_resource_d3d11_texture2d(struct pipe_resource *res, void **handle);
 
+int
+vrend_renderer_pipe_resource_get_layout(struct vrend_context *ctx,
+                                        uint32_t out_res_id, uint32_t res_id);
 
 #endif
