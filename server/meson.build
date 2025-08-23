@@ -12,7 +12,7 @@ virgl_render_server_sources = [
    'render_worker.c',
 ]
 
-virgl_render_server_depends = [libvirglrenderer_dep]
+virgl_render_server_depends = [libvirglrenderer_dep, epoll_dep]
 
 if with_render_server_worker == 'thread'
    virgl_render_server_depends += [thread_dep]

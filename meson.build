@@ -350,6 +350,14 @@ if with_venus
       venus_dep = dependency('vulkan')
    endif
 
+   if host_machine.system() in ['freebsd', 'openbsd']
+	# When building for FreeBSD, epoll(7) is provided by a userspace
+	# wrapper around kqueue(2).
+	epoll_dep = dependency('epoll-shim')
+   else
+	epoll_dep = []
+   endif
+
    conf_data.set('ENABLE_VENUS', 1)
 
    if get_option('venus-validate')
