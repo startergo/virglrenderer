@@ -11,6 +11,7 @@
 void
 vkr_library_preload_icd(void)
 {
+#ifdef ENABLE_VULKAN_PRELOAD
    struct vulkan_library lib = { 0 };
 
    if (!vkr_library_load(&lib))
@@ -29,6 +30,7 @@ vkr_library_preload_icd(void)
    }
 
    vkr_library_unload(&lib);
+#endif
 }
 
 #if defined(ENABLE_VULKAN_DLOAD)

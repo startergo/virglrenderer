@@ -376,6 +376,10 @@ if with_venus
       warning('set RENDER_SERVER_EXEC_PATH env if not install')
    endif
 
+   if get_option('vulkan-preload')
+      conf_data.set('ENABLE_VULKAN_PRELOAD', 1)
+   endif
+
    if with_render_server_worker == 'process'
       conf_data.set('ENABLE_RENDER_SERVER_WORKER_PROCESS', 1)
    elif with_render_server_worker == 'thread'

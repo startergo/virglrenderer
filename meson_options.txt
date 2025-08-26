@@ -58,6 +58,19 @@ option(
   value : 'false',
   description : 'enable loading libvulkan dynamically at runtime instead of linking to it at build-time'
 )
+
+option(
+  'vulkan-preload',
+  type : 'boolean',
+  value : 'false',
+  description : 'Enable Vulkan ICD preload inside the render server process. ' +
+                'This allows sharing of e.g. anon pages allocated within ICD ' +
+                'loading for free among all render worker processes forked. ' +
+                'WARNING! Enable with caution, because not all ICDs support ' +
+                'being preloaded that is safe to fork. e.g. NV proprietary ' +
+                'driver is not (see virglrenderer issue #630 for details)'
+)
+
 option(
   'check-gl-errors',
   type : 'boolean',
