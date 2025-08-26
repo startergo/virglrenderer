@@ -7,11 +7,10 @@
 
 #include <unistd.h>
 
-#include "venus-protocol/vulkan.h"
-
 #include "render_context.h"
 #include "render_server.h"
 #include "render_worker.h"
+#include "vkr_library.h"
 
 /* There is a render_context_record for each worker.
  *
@@ -224,19 +223,7 @@ render_client_dispatch_init(struct render_client *client,
                             const union render_client_op_request *req)
 {
    client->init_flags = req->init.flags;
-
-   /* Get vkGetInstanceProcAddr from libvulkan */
-   PFN_vkGetInstanceProcAddr get_proc_addr = client->vulkan_library.GetInstanceProcAddr;
-
-   PFN_vkEnumerateInstanceExtensionProperties enumerate_inst_ext_props =
-      (PFN_vkEnumerateInstanceExtensionProperties)get_proc_addr(
-         VK_NULL_HANDLE, "vkEnumerateInstanceExtensionProperties");
-   if (enumerate_inst_ext_props) {
-      /* this makes the Vulkan loader loads ICDs */
-      uint32_t unused_count;
-      enumerate_inst_ext_props(NULL, &unused_count, NULL);
-   }
-
+   vkr_library_preload_icd();
    return true;
 }
 
@@ -305,9 +292,6 @@ render_client_destroy(struct render_client *client)
    }
 
    render_socket_fini(&client->socket);
-
-   vkr_library_unload(&client->vulkan_library);
-
    free(client);
 }
 
@@ -318,12 +302,6 @@ render_client_create(struct render_server *srv, int client_fd)
 
    if (!client)
       return NULL;
-
-   bool ret = vkr_library_load(&client->vulkan_library);
-   if (!ret) {
-      free(client);
-      return NULL;
-   }
 
    client->server = srv;
    render_socket_init(&client->socket, client_fd);
