@@ -8,7 +8,7 @@
 
 #include <stdbool.h>
 
-#include <venus-protocol/vulkan.h>
+#include "venus-protocol/vulkan.h"
 
 struct vulkan_library {
    void *handle;
@@ -25,9 +25,6 @@ vkr_library_unload(struct vulkan_library *lib);
 
 #else
 
-/* In case when vulkan is linked, just use the global symbol
- * vkGetInstanceProcAddr */
-
 static inline bool
 vkr_library_load(struct vulkan_library *lib)
 {
@@ -42,6 +39,6 @@ vkr_library_unload(struct vulkan_library *lib)
    lib->GetInstanceProcAddr = NULL;
 }
 
-#endif // ENABLE_VULKAN_DLOAD
+#endif /* ENABLE_VULKAN_DLOAD */
 
 #endif /* VKR_LIBRARY_H */
