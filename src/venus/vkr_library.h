@@ -15,6 +15,9 @@ struct vulkan_library {
    PFN_vkGetInstanceProcAddr GetInstanceProcAddr;
 };
 
+void
+vkr_library_preload_icd(void);
+
 #if defined(ENABLE_VULKAN_DLOAD)
 
 bool

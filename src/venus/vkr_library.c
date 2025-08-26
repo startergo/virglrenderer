@@ -8,6 +8,29 @@
 
 #include <dlfcn.h>
 
+void
+vkr_library_preload_icd(void)
+{
+   struct vulkan_library lib = { 0 };
+
+   if (!vkr_library_load(&lib))
+      return;
+
+   /* Get vkGetInstanceProcAddr from libvulkan */
+   PFN_vkGetInstanceProcAddr get_proc_addr = lib.GetInstanceProcAddr;
+
+   PFN_vkEnumerateInstanceExtensionProperties enumerate_inst_ext_props =
+      (PFN_vkEnumerateInstanceExtensionProperties)get_proc_addr(
+         VK_NULL_HANDLE, "vkEnumerateInstanceExtensionProperties");
+   if (enumerate_inst_ext_props) {
+      /* this makes the Vulkan loader loads ICDs */
+      uint32_t unused_count;
+      enumerate_inst_ext_props(NULL, &unused_count, NULL);
+   }
+
+   vkr_library_unload(&lib);
+}
+
 #if defined(ENABLE_VULKAN_DLOAD)
 
 bool
