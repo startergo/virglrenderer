@@ -351,11 +351,11 @@ if with_venus
    endif
 
    if host_machine.system() in ['freebsd', 'openbsd']
-	# When building for FreeBSD, epoll(7) is provided by a userspace
-	# wrapper around kqueue(2).
-	epoll_dep = dependency('epoll-shim')
+      # When building for FreeBSD, epoll(7) is provided by a userspace
+      # wrapper around kqueue(2).
+      epoll_dep = dependency('epoll-shim')
    else
-	epoll_dep = []
+      epoll_dep = []
    endif
 
    conf_data.set('ENABLE_VENUS', 1)
