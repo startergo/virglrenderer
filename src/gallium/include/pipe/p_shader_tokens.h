@@ -85,6 +85,7 @@ enum tgsi_file_type {
    TGSI_FILE_BUFFER,
    TGSI_FILE_MEMORY,
    TGSI_FILE_HW_ATOMIC,
+   TGSI_FILE_TEMPORARY16,
    TGSI_FILE_COUNT      /**< how many TGSI_FILE_ types */
 };
 
@@ -148,7 +149,8 @@ struct tgsi_declaration
    unsigned Array       : 1;  /**< extra array info? */
    unsigned Atomic      : 1;  /**< atomic only? for TGSI_FILE_BUFFER */
    unsigned MemType     : 2;  /**< TGSI_MEMORY_TYPE_x for TGSI_FILE_MEMORY */
-   unsigned Padding     : 3;
+   unsigned FP16        : 1;  /**< uses FP16 */
+   unsigned Padding     : 2;
 };
 
 struct tgsi_declaration_range
@@ -279,6 +281,7 @@ enum tgsi_imm_type {
    TGSI_IMM_FLOAT64,
    TGSI_IMM_UINT64,
    TGSI_IMM_INT64,
+   TGSI_IMM_FLOAT16,
 };
 
 struct tgsi_immediate
@@ -463,6 +466,8 @@ enum tgsi_opcode {
    TGSI_OPCODE_FSGE,
    TGSI_OPCODE_FSLT,
    TGSI_OPCODE_FSNE,
+   TGSI_OPCODE_F16TOF32,
+   TGSI_OPCODE_F32TOF16,
 
    TGSI_OPCODE_MEMBAR,
 

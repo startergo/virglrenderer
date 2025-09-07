@@ -163,6 +163,8 @@ static const struct tgsi_opcode_info opcode_info[TGSI_OPCODE_LAST] =
    [TGSI_OPCODE_CASE] = { 0, 1, 0, 0, 0, 0, NONE, "CASE" },
    [TGSI_OPCODE_DEFAULT] = { 0, 0, 0, 0, 0, 0, NONE, "DEFAULT" },
    [TGSI_OPCODE_ENDSWITCH] = { 0, 0, 0, 0, 0, 0, NONE, "ENDSWITCH" },
+   [TGSI_OPCODE_F16TOF32] = { 1, 1, 0, 0, 0, 0, NONE, "F16TOF32"},
+   [TGSI_OPCODE_F32TOF16] = { 1, 1, 0, 0, 0, 0, NONE, "F32TOF16"},
 
    [TGSI_OPCODE_SAMPLE] = { 1, 3, 0, 0, 0, 0, OTHR, "SAMPLE" },
    [TGSI_OPCODE_SAMPLE_I] = { 1, 2, 0, 0, 0, 0, OTHR, "SAMPLE_I" },

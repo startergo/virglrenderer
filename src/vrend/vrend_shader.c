@@ -164,6 +164,7 @@ struct vrend_shader_io {
    bool is_int : 1;
    bool fbfetch_used : 1;
    bool needs_override : 1;
+   bool fp16 : 1;
 };
 
 struct vrend_io_range {
@@ -228,7 +229,9 @@ struct dump_ctx {
    struct vrend_patch_ios patch_ios;
 
    uint32_t num_temp_ranges;
+   uint32_t num_temp16_ranges;
    struct vrend_temp_range *temp_ranges;
+   struct vrend_temp_range *temp16_ranges;
 
    struct vrend_shader_sampler samplers[32];
    uint32_t samplers_used;
@@ -362,6 +365,14 @@ static const struct vrend_shader_table shader_req_table[] = {
     { SHADER_REQ_SHADER_GROUP_VOTE, "ARB_shader_group_vote"},
     { SHADER_REQ_EXPLICIT_UNIFORM_LOCATION, "ARB_explicit_uniform_location"},
 };
+
+const char *sysval_uniform_decl[] = {
+   [UNIFORM_WINSYS_ADJUST_Y] = "uniform highp float winsys_adjust_y;\n",
+   [UNIFORM_CLIP_PLANE] = "uniform bool clip_plane_enabled; uniform highp vec4 clipp[8];\n",
+   [UNIFORM_ALPHA_REF_VAL] = "uniform highp float alpha_ref_val;\n",
+   [UNIFORM_PSTIPPLE_SAMPLER] = "uniform highp sampler2D pstipple_sampler;\n",
+};
+
 
 enum vrend_type_qualifier {
    TYPE_CONVERSION_NONE = 0,
@@ -817,6 +828,18 @@ static struct vrend_temp_range *find_temp_range(const struct dump_ctx *ctx, int 
    }
    return NULL;
 }
+
+static struct vrend_temp_range *find_temp_mediump_range(const struct dump_ctx *ctx, int index)
+{
+   uint32_t i;
+   for (i = 0; i < ctx->num_temp16_ranges; i++) {
+      if (index >= ctx->temp16_ranges[i].first &&
+          index <= ctx->temp16_ranges[i].last)
+         return &ctx->temp16_ranges[i];
+   }
+   return NULL;
+}
+
 
 static bool samplertype_is_shadow(int sampler_type)
 {
@@ -1346,6 +1369,7 @@ iter_declaration(struct tgsi_iterate_context *iter,
       ctx->inputs[i].array_id = decl->Declaration.Array ? decl->Array.ArrayID : 0;
       ctx->inputs[i].usage_mask = decl->Declaration.UsageMask;
       ctx->inputs[i].num_components = 4;
+      ctx->inputs[i].fp16 = decl->Declaration.FP16;
 
       ctx->inputs[i].glsl_predefined_no_emit = false;
       ctx->inputs[i].glsl_no_index = false;
@@ -1659,6 +1683,7 @@ iter_declaration(struct tgsi_iterate_context *iter,
       ctx->outputs[i].is_int = false;
       ctx->outputs[i].fbfetch_used = false;
       ctx->outputs[i].overlapping_array = NULL;
+      ctx->outputs[i].fp16 = decl->Declaration.FP16;
 
       map_overlapping_io_array(ctx->outputs, &ctx->outputs[i], ctx->num_outputs, decl);
 
@@ -1890,6 +1915,11 @@ iter_declaration(struct tgsi_iterate_context *iter,
 
       if (!allocate_temp_range(&ctx->temp_ranges, &ctx->num_temp_ranges, decl->Range.First, decl->Range.Last,
                                decl->Array.ArrayID))
+         return false;
+      break;
+   case TGSI_FILE_TEMPORARY16:
+      if (!allocate_temp_range(&ctx->temp16_ranges, &ctx->num_temp16_ranges, decl->Range.First, decl->Range.Last,
+                                       decl->Array.ArrayID))
          return false;
       break;
    case TGSI_FILE_SAMPLER:
@@ -2154,9 +2184,13 @@ iter_immediate(struct tgsi_iterate_context *iter,
          ctx->shader_req_bits |= SHADER_REQ_INTS;
          ctx->imm[first].val[i].i = imm->u[i].Int;
          break;
+      case TGSI_IMM_FLOAT16:
+         ctx->imm[first].val[i].ui = imm->u[i].Uint;
+         break;
       default:
          virgl_error("Unhandled immediate type, ignoring: %x\n", imm->Immediate.DataType);
          break;
+
       }
    }
    ctx->num_imm++;
@@ -4488,6 +4522,16 @@ get_destination_info(struct dump_ctx *ctx,
          }
          break;
       }
+      case  TGSI_FILE_TEMPORARY16: {
+         struct vrend_temp_range *range = find_temp_mediump_range(ctx, dst_reg->Register.Index);
+         if (!range)
+            return false;
+         if (dst_reg->Register.Indirect) {
+            strbuf_fmt(&dst_bufs[i], "temp_medp%d[addr0 + %d]%s", range->first, dst_reg->Register.Index - range->first, writemask);
+         } else
+            strbuf_fmt(&dst_bufs[i], "temp_medp%d[%d]%s", range->first, dst_reg->Register.Index - range->first, writemask);
+         break;
+      }
       case TGSI_FILE_IMAGE: {
          const char *cname = tgsi_proc_to_prefix(ctx->prog_type);
          if (ctx->info.indirect_files & (1 << TGSI_FILE_IMAGE)) {
@@ -4649,6 +4693,35 @@ static void get_source_swizzle(const struct tgsi_full_src_register *src, char sw
    }
 
    *swizzle++ = 0;
+}
+
+/* Stolen from _mesa_half_to_float_slow */
+static void
+uint16_to_float(char *buf, int buf_size, unsigned int val)
+{
+   union fi infnan;
+   union fi magic;
+   union fi f32;
+
+   infnan.ui = 0x8f << 23;
+   infnan.f = 65536.0f;
+   magic.ui  = 0xef << 23;
+
+   /* Exponent / Mantissa */
+   f32.ui = (val & 0x7fff) << 13;
+
+   /* Adjust */
+   f32.f *= magic.f;
+   /* XXX: The magic mul relies on denorms being available */
+
+   /* Inf / NaN */
+   if (f32.f >= infnan.f) {
+      snprintf(buf, buf_size, "uintBitsToFloat(0x%xu)", (0xff << 23) | val << 16);
+   } else {
+      /* Sign */
+      f32.ui |= (uint32_t)(val & 0x8000) << 16;
+      snprintf(buf, buf_size, "%f", f32.f);
+   }
 }
 
 // TODO Consider exposing non-const ctx-> members as args to make *ctx const
@@ -4868,6 +4941,22 @@ get_source_info(struct dump_ctx *ctx,
          strbuf_fmt(src_buf, "%s%cvec4(%s%s)%s%c", get_string(stypeprefix), stprefix ? '(' : ' ', prefix, temp_buf, swizzle, stprefix ? ')' : ' ');
          break;
       }
+      case TGSI_FILE_TEMPORARY16: {
+         struct vrend_temp_range *range = find_temp_mediump_range(ctx, src->Register.Index);
+         if (!range)
+            return false;
+         if (inst->Instruction.Opcode == TGSI_OPCODE_INTERP_SAMPLE && i == 1) {
+            stprefix = true;
+            stypeprefix = FLOAT_BITS_TO_INT;
+         }
+
+         if (src->Register.Indirect) {
+            assert(src->Indirect.File == TGSI_FILE_ADDRESS);
+            strbuf_fmt(src_buf, "%s%c%stemp_medp%d[addr%d + %d]%s%c", get_string(stypeprefix), stprefix ? '(' : ' ', prefix, range->first, src->Indirect.Index, src->Register.Index - range->first, swizzle, stprefix ? ')' : ' ');
+         } else
+            strbuf_fmt(src_buf, "%s%c%stemp_medp%d[%d]%s%c", get_string(stypeprefix), stprefix ? '(' : ' ', prefix, range->first, src->Register.Index - range->first, swizzle, stprefix ? ')' : ' ');
+         break;
+      }
       case TGSI_FILE_CONSTANT: {
          const char *cname = tgsi_proc_to_prefix(ctx->prog_type);
          int dim = 0;
@@ -4961,105 +5050,117 @@ get_source_info(struct dump_ctx *ctx,
          sinfo->sreg_index = src->Register.Index;
          break;
       case TGSI_FILE_IMMEDIATE: {
-            if (unlikely((unsigned) src->Register.Index >= MAX_IMMEDIATE)) {
-               virgl_error("Immediate exceeded, max is %u\n", MAX_IMMEDIATE);
-               return false;
-            }
-            struct immed *imd = &ctx->imm[src->Register.Index];
-            int idx = src->Register.SwizzleX;
-            char temp[48];
-            enum vrend_type_qualifier vtype = VEC4;
-            enum vrend_type_qualifier imm_stypeprefix = stypeprefix;
+         if (unlikely((unsigned) src->Register.Index >= MAX_IMMEDIATE)) {
+            virgl_error("Immediate exceeded, max is %u\n", MAX_IMMEDIATE);
+            return false;
+         }
+         struct immed *imd = &ctx->imm[src->Register.Index];
+         int idx = src->Register.SwizzleX;
+         char temp[48];
+         enum vrend_type_qualifier vtype = VEC4;
+         enum vrend_type_qualifier imm_stypeprefix = stypeprefix;
 
-            if ((inst->Instruction.Opcode == TGSI_OPCODE_TG4 && i == 1) ||
-                (inst->Instruction.Opcode == TGSI_OPCODE_INTERP_SAMPLE && i == 1))
-               stype = TGSI_TYPE_SIGNED;
+         if ((inst->Instruction.Opcode == TGSI_OPCODE_TG4 && i == 1) ||
+             (inst->Instruction.Opcode == TGSI_OPCODE_INTERP_SAMPLE && i == 1))
+            stype = TGSI_TYPE_SIGNED;
+
+         switch (imd->type) {
+         case TGSI_IMM_INT32:
+            vtype = IVEC4;
+            if (stype == TGSI_TYPE_SIGNED)
+               imm_stypeprefix = TYPE_CONVERSION_NONE;
+            else if (stype == TGSI_TYPE_UNSIGNED)
+               imm_stypeprefix = UVEC4;
+            else if (stype == TGSI_TYPE_FLOAT || stype == TGSI_TYPE_UNTYPED)
+               imm_stypeprefix = INT_BITS_TO_FLOAT;
+            break;
+         case TGSI_IMM_UINT32:
+            vtype = UVEC4;
+            if (stype == TGSI_TYPE_UNSIGNED)
+               imm_stypeprefix = TYPE_CONVERSION_NONE;
+            else if (stype == TGSI_TYPE_SIGNED)
+               imm_stypeprefix = IVEC4;
+            else if (stype == TGSI_TYPE_FLOAT || stype == TGSI_TYPE_UNTYPED)
+               imm_stypeprefix = UINT_BITS_TO_FLOAT;
+            break;
+         case TGSI_IMM_FLOAT64:
+            vtype = UVEC4;
+            if (stype == TGSI_TYPE_DOUBLE)
+               imm_stypeprefix = TYPE_CONVERSION_NONE;
+            else
+               imm_stypeprefix = UINT_BITS_TO_FLOAT;
+            break;
+         case TGSI_IMM_FLOAT16:
+            vtype = UVEC4;
+            if (stype == TGSI_TYPE_FLOAT)
+               imm_stypeprefix = TYPE_CONVERSION_NONE;
+            else
+               imm_stypeprefix = UINT_BITS_TO_FLOAT;
+            break;
+
+         case TGSI_IMM_INT64:
+         case TGSI_IMM_UINT64:
+         case TGSI_IMM_FLOAT32:
+            break;
+         }
+
+         /* build up a vec4 of immediates */
+         strbuf_fmt(src_buf, "%s%s(%s(", prefix,
+                    get_string(imm_stypeprefix), get_string(vtype));
+
+         for (uint32_t j = 0; j < 4; j++) {
+            if (j == 0)
+               idx = src->Register.SwizzleX;
+            else if (j == 1)
+               idx = src->Register.SwizzleY;
+            else if (j == 2)
+               idx = src->Register.SwizzleZ;
+            else if (j == 3)
+               idx = src->Register.SwizzleW;
+
+            if (inst->Instruction.Opcode == TGSI_OPCODE_TG4 && i == 1 && j == 0) {
+               if (imd->val[idx].ui > 0) {
+                  sinfo->tg4_has_component = true;
+                  if (!ctx->cfg->use_gles)
+                     ctx->shader_req_bits |= SHADER_REQ_GPU_SHADER5;
+               }
+            }
 
             switch (imd->type) {
-            case TGSI_IMM_INT32:
-               vtype = IVEC4;
-               if (stype == TGSI_TYPE_SIGNED)
-                  imm_stypeprefix = TYPE_CONVERSION_NONE;
-               else if (stype == TGSI_TYPE_UNSIGNED)
-                  imm_stypeprefix = UVEC4;
-               else if (stype == TGSI_TYPE_FLOAT || stype == TGSI_TYPE_UNTYPED)
-                  imm_stypeprefix = INT_BITS_TO_FLOAT;
+            case TGSI_IMM_FLOAT32:
+               if (isinf(imd->val[idx].f) || isnan(imd->val[idx].f)) {
+                  ctx->shader_req_bits |= SHADER_REQ_INTS;
+                  snprintf(temp, 48, "uintBitsToFloat(%uU)", imd->val[idx].ui);
+               } else
+                  snprintf(temp, 25, "%.8g", imd->val[idx].f);
                break;
             case TGSI_IMM_UINT32:
-               vtype = UVEC4;
-               if (stype == TGSI_TYPE_UNSIGNED)
-                  imm_stypeprefix = TYPE_CONVERSION_NONE;
-               else if (stype == TGSI_TYPE_SIGNED)
-                  imm_stypeprefix = IVEC4;
-               else if (stype == TGSI_TYPE_FLOAT || stype == TGSI_TYPE_UNTYPED)
-                  imm_stypeprefix = UINT_BITS_TO_FLOAT;
+               snprintf(temp, 25, "%uU", imd->val[idx].ui);
                break;
-            case TGSI_IMM_FLOAT64:
-               vtype = UVEC4;
-               if (stype == TGSI_TYPE_DOUBLE)
-                  imm_stypeprefix = TYPE_CONVERSION_NONE;
-               else
-                  imm_stypeprefix = UINT_BITS_TO_FLOAT;
-               break;
-            case TGSI_IMM_INT64:
-            case TGSI_IMM_UINT64:
-            case TGSI_IMM_FLOAT32:
-               break;
-            }
-
-            /* build up a vec4 of immediates */
-            strbuf_fmt(src_buf, "%s%s(%s(", prefix,
-                       get_string(imm_stypeprefix), get_string(vtype));
-
-            for (uint32_t j = 0; j < 4; j++) {
-               if (j == 0)
-                  idx = src->Register.SwizzleX;
-               else if (j == 1)
-                  idx = src->Register.SwizzleY;
-               else if (j == 2)
-                  idx = src->Register.SwizzleZ;
-               else if (j == 3)
-                  idx = src->Register.SwizzleW;
-
-               if (inst->Instruction.Opcode == TGSI_OPCODE_TG4 && i == 1 && j == 0) {
-                  if (imd->val[idx].ui > 0) {
-                     sinfo->tg4_has_component = true;
-                     if (!ctx->cfg->use_gles)
-                        ctx->shader_req_bits |= SHADER_REQ_GPU_SHADER5;
-                  }
-               }
-
-               switch (imd->type) {
-               case TGSI_IMM_FLOAT32:
-                  if (isinf(imd->val[idx].f) || isnan(imd->val[idx].f)) {
-                     ctx->shader_req_bits |= SHADER_REQ_INTS;
-                     snprintf(temp, 48, "uintBitsToFloat(%uU)", imd->val[idx].ui);
-                  } else
-                     snprintf(temp, 25, "%.8g", imd->val[idx].f);
-                  break;
-               case TGSI_IMM_UINT32:
-                  snprintf(temp, 25, "%uU", imd->val[idx].ui);
-                  break;
-               case TGSI_IMM_INT32:
+            case TGSI_IMM_INT32:
                   snprintf(temp, 25, "%d", imd->val[idx].i);
                   sinfo->imm_value = imd->val[idx].i;
                   break;
-               case TGSI_IMM_FLOAT64:
-                  snprintf(temp, 48, "%uU", imd->val[idx].ui);
+            case TGSI_IMM_FLOAT64:
+               snprintf(temp, 48, "%uU", imd->val[idx].ui);
                   break;
-               default:
-                  virgl_error("Unhandled imm type: %x\n", imd->type);
-                  return false;
-               }
-               strbuf_append(src_buf, temp);
-               if (j < 3)
-                  strbuf_append(src_buf, ",");
-               else {
-                  snprintf(temp, 4, "))%c", isfloatabsolute ? ')' : 0);
-                  strbuf_append(src_buf, temp);
-               }
+            case TGSI_IMM_FLOAT16:
+               uint16_to_float(temp, 48, imd->val[idx].ui);
+               break;
+            default:
+               virgl_error("Unhandled imm type: %x\n", imd->type);
+               return false;
             }
-      }  break;
+            strbuf_append(src_buf, temp);
+            if (j < 3)
+               strbuf_append(src_buf, ",");
+            else {
+               snprintf(temp, 4, "))%c", isfloatabsolute ? ')' : 0);
+               strbuf_append(src_buf, temp);
+            }
+         }
+         break;
+      }
       case  TGSI_FILE_SYSTEM_VALUE: {
          bool sysvalue_found = false;
          for (uint32_t j = 0; j < ctx->num_system_values; j++) {
@@ -5731,6 +5832,8 @@ iter_instruction(struct tgsi_iterate_context *iter,
       emit_buff(&ctx->glsl_strbufs, "%s = %s(inversesqrt(%s.x));\n", dsts[0], get_string(dinfo.dstconv), srcs[0]);
       break;
    case TGSI_OPCODE_FBFETCH:
+   case TGSI_OPCODE_F16TOF32:
+   case TGSI_OPCODE_F32TOF16:
    case TGSI_OPCODE_MOV:
       emit_buff(&ctx->glsl_strbufs, "%s = %s(%s(%s%s));\n", dsts[0], get_string(dinfo.dstconv), get_string(dinfo.dtypeprefix), srcs[0], sinfo.override_no_wm[0] ? "" : writemask);
       break;
@@ -6266,6 +6369,8 @@ static void emit_header(const struct dump_ctx *ctx, struct vrend_glsl_strbufs *g
       emit_hdr(glsl_strbufs, "precision highp float;\n");
       emit_hdr(glsl_strbufs, "precision highp int;\n");
    } else {
+      emit_hdr(glsl_strbufs, "#define highp\n");
+      emit_hdr(glsl_strbufs, "#define mediump\n");
       if (ctx->prog_type == TGSI_PROCESSOR_COMPUTE) {
          emit_ver_ext(glsl_strbufs, "#version 330\n");
          emit_ext(glsl_strbufs, "ARB_compute_shader", "require");
@@ -6639,15 +6744,19 @@ static int emit_ios_common(const struct dump_ctx *ctx,
    for (i = 0; i < ctx->num_temp_ranges; i++) {
       const char *precise = ctx->temp_ranges[i].precise_result ? "precise" : "";
       if (ctx->temp_ranges[i].array_id > 0) {
-         emit_hdrf(glsl_strbufs, "%s vec4 temp%d[%d];\n", precise, ctx->temp_ranges[i].first,
+         emit_hdrf(glsl_strbufs, "%s highp vec4 temp%d[%d];\n", precise, ctx->temp_ranges[i].first,
                    ctx->temp_ranges[i].last - ctx->temp_ranges[i].first + 1);
       } else {
-         emit_hdrf(glsl_strbufs, "%s vec4 temp%d;\n", precise, ctx->temp_ranges[i].first);
+         emit_hdrf(glsl_strbufs, "%s highp vec4 temp%d;\n", precise, ctx->temp_ranges[i].first);
       }
    }
 
    if (ctx->require_dummy_value)
       emit_hdr(glsl_strbufs, "vec4 dummy_value = vec4(0.0, 0.0, 0.0, 0.0);\n");
+
+   for (i = 0; i < ctx->num_temp16_ranges; i++) {
+      emit_hdrf(glsl_strbufs, "mediump vec4 temp_medp%d[%d];\n", ctx->temp16_ranges[i].first, ctx->temp16_ranges[i].last - ctx->temp16_ranges[i].first + 1);
+   }
 
    if (ctx->write_mul_utemp) {
       emit_hdr(glsl_strbufs, "uvec4 mul_utemp;\n");
@@ -6673,7 +6782,7 @@ static int emit_ios_common(const struct dump_ctx *ctx,
    }
    if (ctx->num_consts) {
       const char *cname = tgsi_proc_to_prefix(ctx->prog_type);
-      emit_hdrf(glsl_strbufs, "uniform uvec4 %sconst0[%d];\n", cname, ctx->num_consts);
+      emit_hdrf(glsl_strbufs, "uniform highp uvec4 %sconst0[%d];\n", cname, ctx->num_consts);
    }
 
    if (ctx->ubo_used_mask) {
@@ -6683,12 +6792,12 @@ static int emit_ios_common(const struct dump_ctx *ctx,
          glsl_ver_required = require_glsl_ver(ctx, 150);
          int first = ffs(ctx->ubo_used_mask) - 1;
          unsigned num_ubo = util_bitcount(ctx->ubo_used_mask);
-         emit_hdrf(glsl_strbufs, "uniform %subo { vec4 ubocontents[%d]; } %suboarr[%d];\n", cname, ctx->ubo_sizes[first], cname, num_ubo);
+         emit_hdrf(glsl_strbufs, "uniform %subo { highp vec4 ubocontents[%d]; } %suboarr[%d];\n", cname, ctx->ubo_sizes[first], cname, num_ubo);
       } else {
          unsigned mask = ctx->ubo_used_mask;
          while (mask) {
             uint32_t i = u_bit_scan(&mask);
-            emit_hdrf(glsl_strbufs, "uniform %subo%d { vec4 %subo%dcontents[%d]; };\n", cname, i, cname, i, ctx->ubo_sizes[i]);
+            emit_hdrf(glsl_strbufs, "uniform %subo%d { highp vec4 %subo%dcontents[%d]; };\n", cname, i, cname, i, ctx->ubo_sizes[i]);
          }
       }
    }
@@ -6764,14 +6873,14 @@ static void emit_ios_streamout(const struct dump_ctx *ctx,
                                struct vrend_glsl_strbufs *glsl_strbufs)
 {
    if (ctx->so) {
-      char outtype[6] = "";
+      char outtype[20] = "";
       for (uint32_t i = 0; i < ctx->so->num_outputs; i++) {
          if (!ctx->write_so_outputs[i])
             continue;
          if (ctx->so->output[i].num_components == 1)
-            snprintf(outtype, 6, "float");
+            snprintf(outtype, 20, "highp float");
          else
-            snprintf(outtype, 6, "vec%d", ctx->so->output[i].num_components);
+            snprintf(outtype, 20, "highp vec%d", ctx->so->output[i].num_components);
 
          if (ctx->so->output[i].stream && ctx->prog_type == TGSI_PROCESSOR_GEOMETRY)
             emit_hdrf(glsl_strbufs, "layout (stream=%d) out %s tfout%d;\n", ctx->so->output[i].stream, outtype, i);
@@ -6789,6 +6898,11 @@ static void emit_ios_streamout(const struct dump_ctx *ctx,
          }
       }
    }
+}
+
+static inline void emit_winsys_correction(struct vrend_glsl_strbufs *glsl_strbufs)
+{
+   emit_hdr(glsl_strbufs, "uniform highp float winsys_adjust_y;\n");
 }
 
 static void emit_ios_indirect_generics_output(const struct dump_ctx *ctx,
@@ -6810,7 +6924,7 @@ static void emit_ios_indirect_generics_output(const struct dump_ctx *ctx,
          char blockvarame[64];
          get_blockvarname(blockvarame, stage_prefix, &ctx->generic_ios.output_range.io, postfix);
 
-         emit_hdrf(glsl_strbufs, "out %s {\n  vec4 %s%s; \n} %s;\n", blockname,
+         emit_hdrf(glsl_strbufs, "out %s {\n highp vec4 %s%s; \n} %s;\n", blockname,
                    ctx->generic_ios.output_range.io.glsl_name, array_handle, blockvarame);
       } else
          emit_hdrf(glsl_strbufs, "out vec4 %s%s%s;\n",
@@ -6846,11 +6960,11 @@ static void emit_ios_indirect_generics_input(const struct dump_ctx *ctx,
          get_blockvarname(blockvarame, stage_prefix, &ctx->generic_ios.input_range.io,
                           postfix);
 
-         emit_hdrf(glsl_strbufs, "in %s {\n        vec4 %s%s; \n} %s;\n",
+         emit_hdrf(glsl_strbufs, "in %s {\n        highp vec4 %s%s; \n} %s;\n",
                    blockname, ctx->generic_ios.input_range.io.glsl_name,
                    array_handle, blockvarame);
       } else
-         emit_hdrf(glsl_strbufs, "in vec4 %s%s%s;\n",
+         emit_hdrf(glsl_strbufs, "in highp vec4 %s%s%s;\n",
                    ctx->generic_ios.input_range.io.glsl_name,
                    postfix,
                    array_handle);
@@ -6885,11 +6999,12 @@ emit_ios_generic(const struct dump_ctx *ctx,
    if (io->first == io->last) {
       emit_hdr(glsl_strbufs, layout);
       /* ugly leave spaces to patch interp in later */
-      emit_hdrf(glsl_strbufs, "%s%s %s  %s %s %s%s;\n",
+      emit_hdrf(glsl_strbufs, "%s%s %s      %s %s %s %s%s;\n",
                 io->precise ? "precise" : "",
                 io->invariant ? "invariant" : "",
                 prefix,
                 inout,
+                io->fp16 ?  "mediump" : "highp",
                 t,
                 io->glsl_name,
                 postfix);
@@ -6931,21 +7046,23 @@ emit_ios_generic(const struct dump_ctx *ctx,
 
          emit_hdrf(glsl_strbufs, "%s %s {\n", inout, blockname);
          emit_hdr(glsl_strbufs, layout);
-         emit_hdrf(glsl_strbufs, "%s%s\n%s     %s %s[%d]; \n} %s;\n",
+         emit_hdrf(glsl_strbufs, "%s%s\n%s       %s %s %s[%d]; \n} %s;\n",
                    io->precise ? "precise" : "",
                    io->invariant ? "invariant" : "",
                    prefix,
+                   io->fp16 ?  "mediump" : "highp",
                    t,
                    io->glsl_name,
                    array_size,
                    blockvarame);
       } else {
          emit_hdr(glsl_strbufs, layout);
-         emit_hdrf(glsl_strbufs, "%s%s\n%s       %s %s %s%s[%d];\n",
+         emit_hdrf(glsl_strbufs, "%s%s\n%s       %s   %s %s %s%s[%d];\n",
                    io->precise ? "precise" : "",
                    io->invariant ? "invariant" : "",
                    prefix,
                    inout,
+                   io->fp16 ?  "mediump" : "highp",
                    t,
                    io->glsl_name,
                    postfix,
@@ -7100,10 +7217,10 @@ emit_ios_patch(struct vrend_glsl_strbufs *glsl_strbufs,
       emit_hdrf(glsl_strbufs, "layout(location = %d) ", io->sid);
 
    if (io->last == io->first) {
-      emit_hdrf(glsl_strbufs, "%s %s vec4 %s;\n", prefix, inout, io->glsl_name);
+      emit_hdrf(glsl_strbufs, "%s %s highp vec4 %s;\n", prefix, inout, io->glsl_name);
       emitted_patches |= 1ul << io->sid;
    } else {
-      emit_hdrf(glsl_strbufs, "%s %s vec4 %s[%d];\n", prefix, inout,
+      emit_hdrf(glsl_strbufs, "%s %s highp vec4 %s[%d];\n", prefix, inout,
                 io->glsl_name, size);
       uint64_t mask = (1ul << size) - 1;
       emitted_patches |= mask << io->sid;
@@ -7135,7 +7252,8 @@ static void emit_ios_vs(const struct dump_ctx *ctx,
          if (ctx->inputs[i].first != ctx->inputs[i].last)
             snprintf(postfix, sizeof(postfix), "[%d]", ctx->inputs[i].last - ctx->inputs[i].first + 1);
          const char *vtype[3] = {"vec4", "ivec4", "uvec4"};
-         emit_hdrf(glsl_strbufs, "in %s %s%s;\n",
+         emit_hdrf(glsl_strbufs, "in %s %s %s%s;\n",
+                   ctx->inputs[i].fp16 ? "mediump" : "highp",
                    vtype[ctx->inputs[i].type], ctx->inputs[i].glsl_name, postfix);
       }
    }
@@ -7192,7 +7310,7 @@ static void emit_ios_vs(const struct dump_ctx *ctx,
       emit_fog_fixup_hdr(ctx, glsl_strbufs);
 
    if (ctx->has_clipvertex && ctx->is_last_vertex_stage) {
-      emit_hdrf(glsl_strbufs, "%svec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
+      emit_hdrf(glsl_strbufs, "%shighp vec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
    }
 
    char cull_buf[64] = "";
@@ -7207,21 +7325,22 @@ static void emit_ios_vs(const struct dump_ctx *ctx,
          num_clip_dists = ctx->num_out_clip_dist;
 
       if (num_clip_dists)
-         snprintf(clip_buf, 64, "out float gl_ClipDistance[%d];\n", num_clip_dists);
+         snprintf(clip_buf, 64, "out highp float gl_ClipDistance[%d];\n", num_clip_dists);
       if (num_cull_dists)
-         snprintf(cull_buf, 64, "out float gl_CullDistance[%d];\n", num_cull_dists);
+         snprintf(cull_buf, 64, "out highp float gl_CullDistance[%d];\n", num_cull_dists);
 
       if (ctx->is_last_vertex_stage) {
          emit_hdrf(glsl_strbufs, "%s%s", clip_buf, cull_buf);
       }
 
-      emit_hdr(glsl_strbufs, "vec4 clip_dist_temp[2];\n");      
+      emit_hdr(glsl_strbufs, "highp vec4 clip_dist_temp[2];\n");
    }
 
-   const char *psize_buf = ctx->has_pointsize_output ? "out float gl_PointSize;\n" : "";
+   const char *psize_buf = ctx->has_pointsize_output ? "out highp float gl_PointSize;\n" : "";
 
    if (!ctx->is_last_vertex_stage && ctx->key->use_pervertex_in) {
-      emit_hdrf(glsl_strbufs, "out gl_PerVertex {\n vec4 gl_Position;\n %s%s%s};\n", clip_buf, cull_buf, psize_buf);
+      emit_hdrf(glsl_strbufs, "out gl_PerVertex {\n highp vec4 gl_Position;\n %s%s%s};\n",
+                clip_buf, cull_buf, psize_buf);
    }
 }
 
@@ -7305,9 +7424,9 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
 
    if (ctx->key->color_two_side) {
       if (ctx->color_in_mask & 1)
-         emit_hdr(glsl_strbufs, "vec4 realcolor0;\n");
+         emit_hdr(glsl_strbufs, "highp vec4 realcolor0;\n");
       if (ctx->color_in_mask & 2)
-         emit_hdr(glsl_strbufs, "vec4 realcolor1;\n");
+         emit_hdr(glsl_strbufs, "highp vec4 realcolor1;\n");
    }
 
    unsigned choices = ctx->fs_blend_equation_advanced;
@@ -7317,7 +7436,7 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
    }
 
    if (ctx->write_all_cbufs) {
-      const char* type = "vec4";
+      const char* type = "highp vec4";
       if (ctx->key->fs.cbufs_unsigned_int_bitmask)
          type = "uvec4";
       else if (ctx->key->fs.cbufs_signed_int_bitmask)
@@ -7330,7 +7449,7 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
 
             if (logiop_require_inout(ctx->key)) {
                const char *noncoherent = ctx->cfg->has_fbfetch_coherent ? "" : ", noncoherent";
-               emit_hdrf(glsl_strbufs, "layout (location=%d%s) inout highp %s fsout_c%d;\n", i, noncoherent, type, i);
+               emit_hdrf(glsl_strbufs, "layout (location=%d%s) inout %s fsout_c%d;\n", i, noncoherent, type, i);
             } else
                emit_hdrf(glsl_strbufs, "layout (location=%d) out %s fsout_c%d;\n", i,
                          type, i);
@@ -7363,21 +7482,21 @@ static void emit_ios_fs(const struct dump_ctx *ctx,
    if (ctx->fs_depth_layout) {
       const char *depth_layout = get_depth_layout(ctx->fs_depth_layout);
       if (depth_layout)
-         emit_hdrf(glsl_strbufs, "layout (%s) out float gl_FragDepth;\n", depth_layout);
+         emit_hdrf(glsl_strbufs, "layout (%s) out highp float gl_FragDepth;\n", depth_layout);
    }
 
    if (ctx->num_in_clip_dist) {
       if (ctx->key->num_in_clip) {
-         emit_hdrf(glsl_strbufs, "in float gl_ClipDistance[%d];\n", ctx->key->num_in_clip);
+         emit_hdrf(glsl_strbufs, "in highp float gl_ClipDistance[%d];\n", ctx->key->num_in_clip);
       } else if (ctx->num_in_clip_dist > 4 && !ctx->key->num_in_cull) {
-         emit_hdrf(glsl_strbufs, "in float gl_ClipDistance[%d];\n", ctx->num_in_clip_dist);
+         emit_hdrf(glsl_strbufs, "in highp float gl_ClipDistance[%d];\n", ctx->num_in_clip_dist);
       }
 
       if (ctx->key->num_in_cull) {
-         emit_hdrf(glsl_strbufs, "in float gl_CullDistance[%d];\n", ctx->key->num_in_cull);
+         emit_hdrf(glsl_strbufs, "in highp float gl_CullDistance[%d];\n", ctx->key->num_in_cull);
       }
       if(ctx->fs_uses_clipdist_input)
-         emit_hdr(glsl_strbufs, "vec4 clip_dist_temp[2];\n");
+         emit_hdr(glsl_strbufs, "highp vec4 clip_dist_temp[2];\n");
    }
 }
 
@@ -7506,7 +7625,7 @@ static void emit_ios_geom(const struct dump_ctx *ctx,
    emit_ios_per_vertex_in(ctx, glsl_strbufs, has_pervertex);
 
    if (ctx->has_clipvertex) {
-      emit_hdrf(glsl_strbufs, "%svec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
+      emit_hdrf(glsl_strbufs, "%shighp vec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
    }
 
    if (ctx->num_out_clip_dist) {
@@ -7632,7 +7751,7 @@ static void emit_ios_tes(const struct dump_ctx *ctx,
    emit_ios_per_vertex_out(ctx, glsl_strbufs, "");
 
    if (ctx->has_clipvertex && !ctx->key->gs_present) {
-      emit_hdrf(glsl_strbufs, "%svec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
+      emit_hdrf(glsl_strbufs, "%shighp vec4 clipv_tmp;\n", ctx->has_clipvertex_so ? "out " : "");
    }
 
 }
@@ -8235,6 +8354,7 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
       goto fail;
 
    free(ctx.temp_ranges);
+   free(ctx.temp16_ranges);
 
    fill_sinfo(&ctx, sinfo);
    fill_var_sinfo(&ctx, var_sinfo);
@@ -8254,6 +8374,7 @@ bool vrend_convert_shader(const struct vrend_context *rctx,
    strbuf_free(&ctx.glsl_strbufs.glsl_ver_ext);
    free(ctx.so_names);
    free(ctx.temp_ranges);
+   free(ctx.temp16_ranges);
    return false;
 }
 
@@ -8457,6 +8578,7 @@ fail:
    strbuf_free(&ctx.glsl_strbufs.glsl_ver_ext);
    free(ctx.so_names);
    free(ctx.temp_ranges);
+   free(ctx.temp16_ranges);
    return false;
 }
 
