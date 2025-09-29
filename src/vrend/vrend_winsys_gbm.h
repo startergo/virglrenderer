@@ -75,7 +75,7 @@
 
 #endif
 
-#ifdef ENABLE_MINIGBM_ALLOCATION
+#ifdef ENABLE_GBM_ALLOCATION
 
 #define GBM_DEV_TYPE_FLAG_DISCRETE (1u << 0) /* Discrete GPU. Separate chip, dedicated VRAM. */
 #define GBM_DEV_TYPE_FLAG_DISPLAY (1u << 1) /* Device capable of display. */
@@ -111,7 +111,7 @@ struct gbm_device *minigbm_create_default_device(int *out_fd);
 #define gbm_detect_device_info_path(detect_flags, dev_node, info) -1
 #define minigbm_create_default_device(out_fd) NULL
 #endif /* MINIGBM */
-#endif /* ENABLE_MINIGBM_ALLOCATION */
+#endif /* ENABLE_GBM_ALLOCATION */
 
 /*
  * If fd >= 0, virglrenderer owns the fd since it was opened via a rendernode

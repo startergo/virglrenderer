@@ -43,7 +43,7 @@ vkr_physical_device_get_udmabuf_dev_fd(void)
 
 #endif /* HAVE_LINUX_UDMABUF_H */
 
-#ifdef ENABLE_MINIGBM_ALLOCATION
+#ifdef ENABLE_GBM_ALLOCATION
 #include <gbm.h>
 #ifdef MINIGBM
 #include <minigbm/minigbm_helpers.h>
@@ -83,7 +83,7 @@ vkr_physical_device_get_gbm_device(void)
    return NULL;
 }
 
-#endif /* ENABLE_MINIGBM_ALLOCATION */
+#endif /* ENABLE_GBM_ALLOCATION */
 
 void
 vkr_physical_device_destroy(struct vkr_context *ctx,

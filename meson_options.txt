@@ -35,7 +35,7 @@ option(
   'minigbm_allocation',
   type : 'boolean',
   value : 'false',
-  description : 'enable support for minigbm_allocations'
+  description : 'DEPRECATED: enable support for minigbm_allocations'
 )
 
 option(

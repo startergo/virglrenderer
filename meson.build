@@ -277,25 +277,20 @@ with_glx = require_glx or auto_egl_glx
 have_egl = false
 have_glx = false
 
-with_minigbm_allocation = get_option('minigbm_allocation')
-if with_minigbm_allocation
-   assert(not with_host_windows, 'minigbm allocation is not supported by windows host')
-   conf_data.set('ENABLE_MINIGBM_ALLOCATION', 1)
-   _gbm_ver = '18.0.0'
-else
-   _gbm_ver = '0.0.0'
-endif
-
 if with_egl
    if cc.has_header('epoxy/egl.h', dependencies: epoxy_dep) and epoxy_dep.get_variable(pkgconfig: 'epoxy_has_egl') == '1'
       if with_host_windows or with_host_darwin
          have_egl = true
       else
          if libdrm_dep.found()
-            gbm_dep = dependency('gbm', version: '>= ' + _gbm_ver, required: require_egl)
+            gbm_dep = dependency('gbm', version: '>= 18.0.0', required: require_egl)
          endif
          have_egl = gbm_dep.found() and cc.has_header('sys/mman.h', required: require_egl)
          conf_data.set('ENABLE_GBM', have_egl)
+
+         if have_egl
+            conf_data.set('ENABLE_GBM_ALLOCATION', 1)
+         endif
       endif
       conf_data.set('HAVE_EPOXY_EGL_H', have_egl)
    else
@@ -339,10 +334,6 @@ with_render_server = with_venus
 with_render_server_worker = get_option('render-server-worker')
 render_server_install_dir = get_option('prefix') / get_option('libexecdir')
 if with_venus
-   if with_minigbm_allocation
-      gbm_dep = dependency('gbm')
-   endif
-
    venus_dep = []
    if get_option('vulkan-dload')
       conf_data.set('ENABLE_VULKAN_DLOAD', 1)
@@ -443,7 +434,6 @@ summary({'c_args': (' ').join(get_option('c_args')),
         'egl': have_egl,
         'glx': have_glx,
         'gbm': gbm_dep.found(),
-        'minigbm_alloc': with_minigbm_allocation,
         'venus': with_venus,
         'drm-amdgpu': with_drm_amdgpu,
         'drm-asahi': with_drm_asahi,

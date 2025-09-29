@@ -196,7 +196,7 @@ static bool virgl_egl_check_extensions(struct virgl_egl *egl)
    return true;
 }
 
-#ifdef ENABLE_MINIGBM_ALLOCATION
+#ifdef ENABLE_GBM_ALLOCATION
 
 static EGLint virgl_egl_find_3d_device(struct gbm_device_info *dev_infos, EGLint num_devices, uint32_t flags)
 {
@@ -296,7 +296,7 @@ static bool virgl_egl_get_display(struct virgl_egl *egl)
    egl->egl_display = egl->funcs.eglGetPlatformDisplay(EGL_PLATFORM_DEVICE_EXT, device, NULL);
    return true;
 }
-#endif /* ENABLE_MINIGBM_ALLOCATION */
+#endif /* ENABLE_GBM_ALLOCATION */
 
 #ifdef ENABLE_GBM
 struct virgl_egl *virgl_egl_init(struct virgl_gbm *gbm, bool surfaceless, bool gles)
@@ -346,7 +346,7 @@ struct virgl_egl *virgl_egl_init(EGLNativeDisplayType display_id, bool surfacele
    if (!virgl_egl_add_extensions(egl, extensions))
       goto fail;
 
-#ifdef ENABLE_MINIGBM_ALLOCATION
+#ifdef ENABLE_GBM_ALLOCATION
    if (virgl_egl_get_display(egl)) {
      /* Make -Wdangling-else happy. */
    } else /* Fallback to surfaceless. */
@@ -845,7 +845,7 @@ void virgl_egl_image_destroy(struct virgl_egl *egl, void *image)
 }
 #endif
 
-#ifdef ENABLE_MINIGBM_ALLOCATION
+#ifdef ENABLE_GBM_ALLOCATION
 void *virgl_egl_image_from_gbm_bo(struct virgl_egl *egl, struct gbm_bo *bo)
 {
    int ret;
@@ -920,7 +920,7 @@ void *virgl_egl_aux_plane_image_from_gbm_bo(struct virgl_egl *egl, struct gbm_bo
 
    return image;
 }
-#endif /* ENABLE_MINIGBM_ALLOCATION */
+#endif /* ENABLE_GBM_ALLOCATION */
 
 bool virgl_egl_supports_fences(struct virgl_egl *egl)
 {

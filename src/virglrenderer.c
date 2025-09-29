@@ -917,6 +917,8 @@ int virgl_renderer_init(void *cookie, int flags, struct virgl_renderer_callbacks
          renderer_flags |= VREND_USE_COMPAT_CONTEXT;
       if (flags & VIRGL_RENDERER_USE_GLES)
          renderer_flags |= VREND_USE_GLES;
+      if (flags & VIRGL_RENDERER_VENUS)
+         renderer_flags |= VREND_USE_GBM_LAYOUT;
 
       ret = vrend_renderer_init(&vrend_cbs, renderer_flags);
       if (ret) {

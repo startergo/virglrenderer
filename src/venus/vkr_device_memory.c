@@ -134,7 +134,7 @@ vkr_udmabuf_get_fd_info_from_allocation_info(
 
 #endif /* HAVE_LINUX_UDMABUF_H && HAVE_MEMFD_CREATE */
 
-#ifdef ENABLE_MINIGBM_ALLOCATION
+#ifdef ENABLE_GBM_ALLOCATION
 #include <gbm.h>
 
 #define GBM_BO_USE_SW_READ_RARELY (1 << 10)
@@ -225,7 +225,7 @@ vkr_gbm_get_fd_info_from_allocation_info(UNUSED struct vkr_physical_device *phys
    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 }
 
-#endif /* ENABLE_MINIGBM_ALLOCATION */
+#endif /* ENABLE_GBM_ALLOCATION */
 
 static void
 vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,

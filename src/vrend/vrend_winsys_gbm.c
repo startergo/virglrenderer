@@ -203,7 +203,7 @@ static const struct planar_layout *layout_from_format(uint32_t format)
    }
 }
 
-#ifdef ENABLE_MINIGBM_ALLOCATION
+#ifdef ENABLE_GBM_ALLOCATION
 static void virgl_gbm_transfer_internal(uint32_t planar_bytes_per_pixel,
                                         uint32_t subsampled_width,
                                         uint32_t subsampled_height,
@@ -267,7 +267,7 @@ static void virgl_gbm_transfer_internal(uint32_t planar_bytes_per_pixel,
          current_height++;
    }
 }
-#endif /* ENABLE_MINIGBM_ALLOCATION */
+#endif /* ENABLE_GBM_ALLOCATION */
 
 struct virgl_gbm *virgl_gbm_init(int fd)
 {
@@ -277,7 +277,7 @@ struct virgl_gbm *virgl_gbm_init(int fd)
 
    gbm->fd = -1;
    if (fd < 0) {
-#ifdef ENABLE_MINIGBM_ALLOCATION
+#ifdef ENABLE_GBM_ALLOCATION
       gbm->device = minigbm_create_default_device(&gbm->fd);
       if (gbm->device)
          return gbm;
@@ -334,7 +334,7 @@ int virgl_gbm_convert_format(uint32_t *virgl_format, uint32_t *gbm_format)
     return -1;
 }
 
-#ifdef ENABLE_MINIGBM_ALLOCATION
+#ifdef ENABLE_GBM_ALLOCATION
 int virgl_gbm_transfer(struct gbm_bo *bo, uint32_t direction, const struct iovec *iovecs,
                        uint32_t num_iovecs, const struct vrend_transfer_info *info)
 {
@@ -564,7 +564,7 @@ uint32_t virgl_gbm_get_map_info(struct gbm_bo *bo) {
 #endif
    return map_info;
 }
-#endif // #ifdef ENABLE_MINIGBM_ALLOCATION
+#endif // #ifdef ENABLE_GBM_ALLOCATION
 
 int virgl_gbm_export_fd(struct gbm_device *gbm, uint32_t handle, int32_t *out_fd)
 {

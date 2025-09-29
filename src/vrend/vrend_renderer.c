@@ -402,6 +402,7 @@ struct global_renderer_state {
    bool use_egl_fence : 1;
 #endif
    bool d3d_share_texture : 1;
+   bool gbm_layout_feat : 1;
 };
 
 struct sysval_uniform_block {
@@ -901,7 +902,7 @@ static inline bool vrend_format_can_sample(enum virgl_formats format)
    if (tex_conv_table[format].bindings & VIRGL_BIND_SAMPLER_VIEW)
       return true;
 
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    uint32_t gbm_format = 0;
    if (virgl_gbm_convert_format(&format, &gbm_format))
       return false;
@@ -938,7 +939,7 @@ static inline bool vrend_format_is_ds(enum virgl_formats format)
 
 static inline bool vrend_format_can_scanout(enum virgl_formats format)
 {
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    uint32_t gbm_format = 0;
    if (virgl_gbm_convert_format(&format, &gbm_format))
       return false;
@@ -953,7 +954,7 @@ static inline bool vrend_format_can_scanout(enum virgl_formats format)
 #endif
 }
 
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
 static inline bool vrend_format_can_texture_view(enum virgl_formats format)
 {
    return has_feature(feat_texture_view) &&
@@ -7499,7 +7500,7 @@ static enum virgl_resource_fd_type vrend_pipe_resource_export_fd(UNUSED struct p
                                                                  UNUSED int *fd,
                                                                  UNUSED void *data)
 {
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    struct vrend_resource *res = (struct vrend_resource *)pres;
 
    if (res->storage_bits & VREND_STORAGE_GBM_BUFFER) {
@@ -7560,6 +7561,32 @@ static bool use_integer(void) {
    if (strcmp(a, "ARM") == 0)
       return true;
    return false;
+}
+
+static bool vrend_use_gbm_layout_feature(UNUSED uint32_t flags)
+{
+#if defined(ENABLE_GBM_ALLOCATION) && !defined(MINIGBM)
+   if (!gbm || !gbm->device)
+      return false;
+
+   if (debug_get_bool_option("VIRGL_GBM_LAYOUT_FORCE_ENABLE", false))
+      return true;
+
+   if (!debug_get_bool_option("VIRGL_GBM_LAYOUT_ENABLE", false))
+      return false;
+
+   if (!(flags & VREND_USE_GBM_LAYOUT))
+      return false;
+
+   /* gbm-layout needs a linear modifier quirk today, enable it by default only for
+    * drivers known to work properly */
+   if (!strstr((const char *) glGetString(GL_VERSION), "Mesa"))
+      return false;
+
+   return true;
+#else
+   return false;
+#endif
 }
 
 int vrend_renderer_init(const struct vrend_if_cbs *cbs, uint32_t flags)
@@ -7738,6 +7765,8 @@ int vrend_renderer_init(const struct vrend_if_cbs *cbs, uint32_t flags)
 #endif
 
    vrend_state.d3d_share_texture = flags & VREND_D3D11_SHARE_TEXTURE;
+
+   vrend_state.gbm_layout_feat = vrend_use_gbm_layout_feature(flags);
 
    return 0;
 cleanup_and_fail:
@@ -8166,7 +8195,7 @@ static int check_resource_valid(const struct vrend_renderer_resource_create_args
          return -1;
       }
 
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
       if (!virgl_gbm_gpu_import_required(args->bind)) {
          return 0;
       }
@@ -8280,7 +8309,7 @@ static void vrend_create_buffer(struct vrend_resource *gr, uint32_t width, uint3
          glBufferStorage(gr->target, width, NULL, buffer_storage_flags);
          gr->map_info = vrend_state.inferred_gl_caching_type;
       }
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
       else if (has_feature(feat_memory_object_fd) && has_feature(feat_memory_object)) {
          GLuint memobj = 0;
          int fd = -1;
@@ -8558,7 +8587,7 @@ fail:
  */
 static void vrend_resource_gbm_init(struct vrend_resource *gr, uint32_t format)
 {
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    uint32_t gbm_flags = virgl_gbm_convert_flags(gr->base.bind);
    uint32_t gbm_format = 0;
    if (virgl_gbm_convert_format(&format, &gbm_format))
@@ -8574,6 +8603,24 @@ static void vrend_resource_gbm_init(struct vrend_resource *gr, uint32_t format)
 
    if (!virgl_gbm_external_allocation_preferred(gr->base.bind))
       return;
+
+#if !defined(MINIGBM)
+   /*
+    * GBM allocation may be less optimal compared to a regular GL allocation.
+    * Skip GBM allocation when we don't actually need it.
+    */
+   if (!vrend_state.gbm_layout_feat)
+      return;
+
+   /*
+    * Kernel virtio-gpu driver doesn't support modifiers other than linear and
+    * venus needs a real modifier that backs GBM buffer when it imports vrend
+    * resource. Linear allocation is needed when venus works in KMS mode on guest
+    * and it wants to present vrend resources.
+    */
+   if (gr->base.bind & VIRGL_BIND_SHARED)
+      gbm_flags |= GBM_BO_USE_LINEAR;
+#endif
 
    if (!gbm_device_is_format_supported(gbm->device, gbm_format, gbm_flags))
       return;
@@ -8780,7 +8827,7 @@ static int vrend_resource_alloc_texture(struct vrend_resource *gr,
    glBindTexture(gr->target, 0);
 
    if (image_oes && gr->gbm_bo) {
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
       if (!has_bit(gr->storage_bits, VREND_STORAGE_GL_BUFFER) &&
             !vrend_format_can_texture_view(gr->base.format)) {
          for (int i = 0; i < gbm_bo_get_plane_count(gr->gbm_bo); i++) {
@@ -8882,7 +8929,7 @@ void vrend_renderer_resource_destroy(struct vrend_resource *res)
       }
    }
 #endif
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    if (res->gbm_bo)
       gbm_bo_destroy(res->gbm_bo);
 #endif
@@ -9951,7 +9998,7 @@ static int vrend_renderer_transfer_internal(struct vrend_context *ctx,
       num_iovs = res->num_iovs;
    }
 
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    if (res->gbm_bo && (transfer_mode == VIRGL_TRANSFER_TO_HOST ||
                        !has_bit(res->storage_bits, VREND_STORAGE_EGL_IMAGE))) {
       const bool success = virgl_gbm_transfer(res->gbm_bo, transfer_mode, iov, num_iovs, info) == 0;
@@ -10044,7 +10091,7 @@ int vrend_transfer_inline_write(struct vrend_context *ctx,
       return EINVAL;
    }
 
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    if (res->gbm_bo) {
       assert(!info->synchronized);
       return virgl_gbm_transfer(res->gbm_bo,
@@ -10076,7 +10123,7 @@ int vrend_renderer_copy_transfer3d(struct vrend_context *ctx,
       return EINVAL;
    }
 
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    if (dst_res->gbm_bo && !TRANSFER_NO_GBM_MAPPING(info)) {
       bool use_gbm = true;
 
@@ -10133,7 +10180,7 @@ int vrend_renderer_copy_transfer3d_from_host(struct vrend_context *ctx,
       return EINVAL;
    }
 
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    if (src_res->gbm_bo && !TRANSFER_NO_GBM_MAPPING(info)) {
       bool use_gbm = true;
 
@@ -12685,7 +12732,7 @@ static void vrend_renderer_fill_caps_v2(int gl_ver, int gles_ver,  union virgl_c
          caps->v2.capability_bits |= VIRGL_CAP_ARB_BUFFER_STORAGE;
    }
 
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    if (gbm) {
       if (has_feature(feat_memory_object) && has_feature(feat_memory_object_fd)) {
          if ((!strcmp(gbm_device_get_backend_name(gbm->device), "i915") ||
@@ -13242,7 +13289,7 @@ int vrend_renderer_export_query(struct pipe_resource *pres,
 {
    struct vrend_resource *res = (struct vrend_resource *)pres;
 
-#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_MINIGBM_ALLOCATION)
+#if defined(HAVE_EPOXY_EGL_H) && defined(ENABLE_GBM_ALLOCATION)
    if (res->gbm_bo)
       return virgl_gbm_export_query(res->gbm_bo, export_query);
 #else
