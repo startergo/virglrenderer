@@ -304,7 +304,7 @@ debian/x86_64_build_tracing:
     WRAP_DEBUG: default
     DEBIAN_FRONTEND: noninteractive
   script:
-    - apt-get update && apt-get install -y libsysprof-4-dev
+    - apt-get update && apt-get install -y libsysprof-capture-4-dev
     - TRACING_BACKEND=percetto .gitlab-ci/meson/build.sh
     - TRACING_BACKEND=perfetto .gitlab-ci/meson/build.sh
     - TRACING_BACKEND=sysprof .gitlab-ci/meson/build.sh
