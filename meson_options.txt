@@ -46,13 +46,6 @@ option(
 )
 
 option(
-  'venus-validate',
-  type : 'boolean',
-  value : 'false',
-  description : 'enable the validation layer for venus'
-)
-
-option(
   'vulkan-dload',
   type : 'boolean',
   value : 'false',

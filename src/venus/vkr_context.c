@@ -684,13 +684,8 @@ vkr_context_create(uint32_t ctx_id,
    memcpy(ctx->debug_name, debug_name, debug_len);
    ctx->debug_name[debug_len] = '\0';
 
-#ifdef ENABLE_VENUS_VALIDATE
-   ctx->validate_level = VKR_CONTEXT_VALIDATE_ON;
-   ctx->validate_fatal = false; /* TODO set this to true */
-#else
    ctx->validate_level = VKR_CONTEXT_VALIDATE_NONE;
    ctx->validate_fatal = false;
-#endif
    if (VKR_DEBUG(VALIDATE))
       ctx->validate_level = VKR_CONTEXT_VALIDATE_FULL;
 

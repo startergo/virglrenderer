@@ -359,11 +359,6 @@ if with_venus
    endif
 
    conf_data.set('ENABLE_VENUS', 1)
-
-   if get_option('venus-validate')
-      conf_data.set('ENABLE_VENUS_VALIDATE', 1)
-   endif
-
    conf_data.set('ENABLE_RENDER_SERVER', 1)
    conf_data.set('RENDER_SERVER_EXEC_PATH',
                  '"' + render_server_install_dir / 'virgl_render_server' + '"')
