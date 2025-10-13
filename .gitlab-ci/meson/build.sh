@@ -71,7 +71,6 @@ meson setup _build --native-file=native.file \
     ${DRI_LOADERS} \
     ${GALLIUM_ST} \
     -D tests=${ENABLE_TESTS:-true} \
-    -D render-server=true \
     -D render-server-worker=process \
     -D venus=true \
     -Dtracing=${TRACING_BACKEND:-none} \
