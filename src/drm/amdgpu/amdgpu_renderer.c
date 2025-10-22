@@ -118,6 +118,7 @@ amdgpu_renderer_probe(int fd, struct virgl_renderer_capset_drm *capset)
    strncpy(capset->u.amdgpu.marketing_name,
            amdgpu_get_marketing_name(dev),
            sizeof(capset->u.amdgpu.marketing_name) - 1);
+   capset->u.amdgpu.has_vm_always_valid = 1;
 
    amdgpu_device_deinitialize(dev);
 
