@@ -580,6 +580,7 @@ virgl-traces:
     PIGLIT_TRACES_FILE: "traces-virgl.yml"
     PIGLIT_REPLAY_DEVICE_NAME: "gl-virgl"
     PIGLIT_RESULTS: "virgl-replay"
+    KERNEL_TAG: "v6.16-mesa-9d85"
 
 .venus-lavapipe-test:
   extends:
