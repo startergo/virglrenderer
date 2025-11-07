@@ -20,6 +20,7 @@ dEQP-VK.glsl.builtin.precision_fp16_storage16b.tan.compute.vec4,Crash
 dEQP-VK.glsl.builtin.precision_fp16_storage32b.acosh.compute.vec3,Crash
 dEQP-VK.glsl.builtin.precision_fp16_storage32b.log2.compute.vec3,Crash
 dEQP-VK.glsl.builtin.precision_fp16_storage32b.sin.compute.vec3,Crash
+dEQP-VK.sparse_resources.image_block_shapes.2d.g8b8g8r8_422_unorm.samples_1,Fail
 dEQP-VK.spirv_assembly.instruction.compute.float_controls2.fp16.input_args.acosh_testedWithout_NotInf_arg1_inf_arg2_one_res_inf_deco,Crash
 dEQP-VK.spirv_assembly.instruction.compute.float_controls2.fp16.input_args.asinh_testedWithout_NotNaN_arg1_nan_arg2_one_res_nan_deco,Crash
 dEQP-VK.spirv_assembly.instruction.compute.float_controls2.fp16.input_args.asinh_testedWithout_NotNaN_arg1_nan_arg2_one_res_nan_exec,Crash
