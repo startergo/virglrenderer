@@ -24,7 +24,7 @@ void drm_renderer_reset(void);
 
 size_t drm_renderer_capset(void *capset);
 
-struct virgl_context *drm_renderer_create(size_t debug_len, const char *debug_name);
+struct virgl_context *drm_renderer_create(size_t debug_len, const char *debug_name, int drm_fd);
 
 #else /* ENABLE_DRM */
 
@@ -52,7 +52,7 @@ drm_renderer_capset(UNUSED void *capset)
 }
 
 static inline struct virgl_context *
-drm_renderer_create(UNUSED size_t debug_len, UNUSED const char *debug_name)
+drm_renderer_create(UNUSED size_t debug_len, UNUSED const char *debug_name, UNUSED int drm_fd)
 {
    return NULL;
 }

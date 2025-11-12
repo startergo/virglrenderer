@@ -246,7 +246,10 @@ int virgl_renderer_context_create_with_flags(uint32_t ctx_id,
    case VIRTGPU_DRM_CAPSET_DRM:
       if (!state.drm_initialized)
          return EINVAL;
-      ctx = drm_renderer_create(nlen, name);
+      if (state.cbs->version >= 2 && state.cbs->get_drm_fd)
+         ctx = drm_renderer_create(nlen, name, state.cbs->get_drm_fd(state.cookie));
+      else
+         ctx = drm_renderer_create(nlen, name, -1);
       break;
    default:
       return EINVAL;

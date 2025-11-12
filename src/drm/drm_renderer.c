@@ -141,7 +141,7 @@ drm_renderer_capset(void *_c)
 }
 
 struct virgl_context *
-drm_renderer_create(size_t debug_len, const char *debug_name)
+drm_renderer_create(size_t debug_len, const char *debug_name, int drm_fd)
 {
    for (unsigned i = 0; i < ARRAY_SIZE(backends); i++) {
       const struct backend *b = &backends[i];
@@ -149,7 +149,9 @@ drm_renderer_create(size_t debug_len, const char *debug_name)
       if (b->context_type != capset.context_type)
          continue;
 
-      int fd = drmOpenWithType(b->name, NULL, DRM_NODE_RENDER);
+      int fd = drm_fd;
+      if (fd < 0)
+         fd = drmOpenWithType(b->name, NULL, DRM_NODE_RENDER);
       if (fd < 0)
          return NULL;
 
