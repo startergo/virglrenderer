@@ -1235,8 +1235,10 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
 
    if (res->pipe_resource) {
       ret = vrend_renderer_resource_map(res->pipe_resource, &map, &map_size);
-      if (!ret)
+      if (!ret) {
          res->map_size = map_size;
+         res->mapped_from_pipe_resource = true;
+      }
    } else {
       enum virgl_resource_fd_type fd_type = res->fd_type;
       enum virgl_resource_fd_type export_fd_type = res->fd_type;
@@ -1347,7 +1349,8 @@ int virgl_renderer_resource_unmap(uint32_t res_handle)
    if (!res || !res->mapped)
       return -EINVAL;
 
-   if (res->pipe_resource) {
+   if (res->mapped_from_pipe_resource) {
+      assert(res->pipe_resource);
       ret = vrend_renderer_resource_unmap(res->pipe_resource);
    } else {
       switch (res->fd_type) {

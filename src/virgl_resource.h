@@ -25,6 +25,7 @@
 #ifndef VIRGL_RESOURCE_H
 #define VIRGL_RESOURCE_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 struct iovec;
@@ -100,6 +101,7 @@ struct virgl_resource {
 
    uint64_t map_size;
    void *mapped;
+   bool mapped_from_pipe_resource;
 
    struct virgl_resource_vulkan_info vulkan_info;
 
