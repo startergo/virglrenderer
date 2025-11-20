@@ -167,6 +167,8 @@ vkr_ring_destroy(struct vkr_ring *ring)
    list_del(&ring->head);
 
    assert(!ring->started);
+   vkr_cs_decoder_fini(&ring->decoder);
+   vkr_cs_encoder_fini(&ring->encoder);
    mtx_destroy(&ring->mutex);
    cnd_destroy(&ring->cond);
    free(ring->cmd);
