@@ -309,9 +309,7 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
             export_info = &local_export_info;
             alloc_info->pNext = &local_export_info;
 
-            if (handle_type == VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT &&
-                !vkr_find_struct(alloc_info->pNext,
-                                 VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO)) {
+            if (handle_type == VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT) {
                /* Guest virtgpu kernel aligns up blob mem size to the page boundary. No
                 * matter dma-buf or opaque fd export allocation, the actual allocation
                 * in most cases would follow the same padding. For dma-buf, we are able
