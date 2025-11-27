@@ -6909,7 +6909,7 @@ static inline void vn_decode_vkCmdSetSampleMaskEXT_args_temp(struct vn_cs_decode
         if (!args->pSampleMask) return;
         vn_decode_VkSampleMask_array(dec, (VkSampleMask *)args->pSampleMask, array_size);
     } else {
-        vn_decode_array_size(dec, (args->samples + 31) / 32);
+        vn_decode_array_size_unchecked(dec);
         args->pSampleMask = NULL;
     }
 }

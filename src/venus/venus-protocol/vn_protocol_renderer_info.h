@@ -12,7 +12,7 @@
 
 struct vn_info_extension_table {
    union {
-      bool enabled[178];
+      bool enabled[179];
       struct {
          bool ARM_rasterization_order_attachment_access;
          bool EXT_4444_formats;
@@ -160,6 +160,7 @@ struct vn_info_extension_table {
          bool KHR_ray_tracing_pipeline;
          bool KHR_ray_tracing_position_fetch;
          bool KHR_relaxed_block_layout;
+         bool KHR_robustness2;
          bool KHR_sampler_mirror_clamp_to_edge;
          bool KHR_sampler_ycbcr_conversion;
          bool KHR_separate_depth_stencil_layouts;
@@ -196,7 +197,7 @@ struct vn_info_extension_table {
    };
 };
 
-#define VN_INFO_EXTENSION_MAX_NUMBER (605)
+#define VN_INFO_EXTENSION_MAX_NUMBER (613)
 
 struct vn_info_extension {
    const char *name;
@@ -205,8 +206,8 @@ struct vn_info_extension {
 };
 
 /* sorted by extension names for bsearch */
-static const uint32_t _vn_info_extension_count = 178;
-static const struct vn_info_extension _vn_info_extensions[178] = {
+static const uint32_t _vn_info_extension_count = 179;
+static const struct vn_info_extension _vn_info_extensions[179] = {
    { "VK_ARM_rasterization_order_attachment_access", 343, 1 },
    { "VK_EXT_4444_formats", 341, 1 },
    { "VK_EXT_attachment_feedback_loop_dynamic_state", 525, 1 },
@@ -353,6 +354,7 @@ static const struct vn_info_extension _vn_info_extensions[178] = {
    { "VK_KHR_ray_tracing_pipeline", 348, 1 },
    { "VK_KHR_ray_tracing_position_fetch", 482, 1 },
    { "VK_KHR_relaxed_block_layout", 145, 1 },
+   { "VK_KHR_robustness2", 613, 1 },
    { "VK_KHR_sampler_mirror_clamp_to_edge", 15, 3 },
    { "VK_KHR_sampler_ycbcr_conversion", 157, 14 },
    { "VK_KHR_separate_depth_stencil_layouts", 242, 1 },
@@ -396,7 +398,7 @@ vn_info_wire_format_version(void)
 static inline uint32_t
 vn_info_vk_xml_version(void)
 {
-    return VK_MAKE_API_VERSION(0, 1, 4, 307);
+    return VK_MAKE_API_VERSION(0, 1, 4, 334);
 }
 
 static inline int
