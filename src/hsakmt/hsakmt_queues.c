@@ -127,10 +127,12 @@ vhsakmt_queue_mem_convert(struct vhsakmt_context *ctx, uint32_t res_id,
 }
 
 static int
-vhsakmt_call_create_queue_api(struct vhsakmt_ccmd_queue_req *req, vHsaQueueResource *vqueue_res)
+vhsakmt_call_create_queue_api(UNUSED struct vhsakmt_context *ctx, struct vhsakmt_ccmd_queue_req *req,
+                               vHsaQueueResource *vqueue_res)
 {
    if (vhsakmt_valid_sdmaid(req->create_queue_args.SdmaEngineId))
-      return hsaKmtCreateQueueExt(
+      return HSAKMT_CALL(hsaKmtCreateQueueExt)(
+         HSAKMT_CTX_ARG(ctx)
          req->create_queue_args.NodeId, req->create_queue_args.Type,
          req->create_queue_args.QueuePercentage, req->create_queue_args.Priority,
          req->create_queue_args.SdmaEngineId,
@@ -138,7 +140,8 @@ vhsakmt_call_create_queue_api(struct vhsakmt_ccmd_queue_req *req, vHsaQueueResou
          req->create_queue_args.QueueSizeInBytes, req->create_queue_args.Event,
          &(vqueue_res->r));
    else
-      return hsaKmtCreateQueue(
+      return HSAKMT_CALL(hsaKmtCreateQueue)(
+         HSAKMT_CTX_ARG(ctx)
          req->create_queue_args.NodeId, req->create_queue_args.Type,
          req->create_queue_args.QueuePercentage, req->create_queue_args.Priority,
          (void *)req->create_queue_args.QueueAddress,
@@ -170,7 +173,7 @@ vhsakmt_queue_create(struct vhsakmt_context *ctx, struct vhsakmt_ccmd_queue_req 
    vqueue_res->r.Queue_write_ptr_aql = req->create_queue_args.Queue_write_ptr_aql;
    vqueue_res->r.Queue_read_ptr_aql = req->create_queue_args.Queue_read_ptr_aql;
 
-   ret = vhsakmt_call_create_queue_api(req, vqueue_res);
+   ret = vhsakmt_call_create_queue_api(ctx, req, vqueue_res);
    if (ret) {
       vhsa_err("failed to create queue, ret: %d", ret);
       goto out_free;
@@ -235,7 +238,7 @@ vhsakmt_queue_create(struct vhsakmt_context *ctx, struct vhsakmt_ccmd_queue_req 
    return 0;
 
 out_destroy_queue:
-   hsaKmtDestroyQueue(vqueue_res->r.QueueId);
+   HSAKMT_CALL(hsaKmtDestroyQueue)(HSAKMT_CTX_ARG(ctx) vqueue_res->r.QueueId);
 out_free:
    free(vqueue_res);
    return ret;
@@ -277,7 +280,7 @@ vhsakmt_ccmd_queue(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req *h
          break;
       }
 
-      rsp->ret = hsaKmtDestroyQueue(req->QueueId);
+      rsp->ret = HSAKMT_CALL(hsaKmtDestroyQueue)(HSAKMT_CTX_ARG(ctx) req->QueueId);
       break;
    }
    default:
@@ -297,7 +300,7 @@ vhsakmt_free_queue_obj(struct vhsakmt_context *ctx, struct vhsakmt_object *obj)
    if (!obj || !ctx)
       return;
 
-   hsaKmtDestroyQueue(obj->queue->r.QueueId);
+   HSAKMT_CALL(hsaKmtDestroyQueue)(HSAKMT_CTX_ARG(ctx) obj->queue->r.QueueId);
 
    if (obj->queue_rw_mem) {
       obj->queue_rw_mem->queue_obj = NULL;

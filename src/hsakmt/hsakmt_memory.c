@@ -42,9 +42,9 @@ vhsakmt_check_va_valid(UNUSED struct vhsakmt_context *ctx, UNUSED uint64_t value
 }
 
 int
-vhsakmt_gpu_unmap(struct vhsakmt_object *obj)
+vhsakmt_gpu_unmap(UNUSED struct vhsakmt_context *ctx, struct vhsakmt_object *obj)
 {
-   return hsaKmtUnmapMemoryToGPU(obj->bo);
+   return HSAKMT_CALL(hsaKmtUnmapMemoryToGPU)(HSAKMT_CTX_ARG(ctx) obj->bo);
 }
 
 int
@@ -67,7 +67,7 @@ vhsakmt_free_scratch_map_mem(struct vhsakmt_context *ctx, struct vhsakmt_object 
 
    vhsa_dbg("free scratch memory %p, size 0x%lx", obj->bo, obj->base.size);
 
-   return vhsakmt_gpu_unmap(obj);
+   return vhsakmt_gpu_unmap(ctx, obj);
 }
 
 int
@@ -136,8 +136,8 @@ vhsakmt_free_host_mem(struct vhsakmt_context *ctx, struct vhsakmt_object *obj)
    if (vhsakmt_is_scratch_obj(obj)) {
       vhsakmt_free_scratch_reserve_mem(ctx, obj);
    } else {
-      vhsakmt_gpu_unmap(obj);
-      hsaKmtFreeMemory(obj->bo, obj->base.size);
+      vhsakmt_gpu_unmap(ctx, obj);
+      HSAKMT_CALL(hsaKmtFreeMemory)(HSAKMT_CTX_ARG(ctx) obj->bo, obj->base.size);
 
 #ifdef HSAKMT_VIRTIO
       if (vhsakmt_reserve_va((uint64_t)obj->bo, obj->base.size))
@@ -180,9 +180,10 @@ vhsakmt_scratch_init(struct vhsakmt_context *ctx, struct vhsakmt_node *node,
 
    mem = (void *)node->scratch_vamgr.vm_va_base_addr;
 
-   ret = hsaKmtAllocMemory(req->alloc_args.PreferredNode,
-                           node->scratch_vamgr.reserve_size,
-                           req->alloc_args.MemFlags, &mem);
+   ret = HSAKMT_CALL(hsaKmtAllocMemory)(HSAKMT_CTX_ARG(ctx) 
+                                         req->alloc_args.PreferredNode,
+                                         node->scratch_vamgr.reserve_size,
+                                         req->alloc_args.MemFlags, &mem);
    if (ret) {
       vhsa_err("alloc scratch failed, ret %d (%s)", ret, strerror(errno));
       goto out;
@@ -265,8 +266,10 @@ vhsakmt_alloc_align(struct vhsakmt_context *ctx,
 
    *MemoryAddress = mem;
 
-   ret = hsaKmtAllocMemory(req->alloc_args.PreferredNode, req->alloc_args.SizeInBytes,
-                           req->alloc_args.MemFlags, MemoryAddress);
+   ret = HSAKMT_CALL(hsaKmtAllocMemory)(HSAKMT_CTX_ARG(ctx) 
+                                         req->alloc_args.PreferredNode,
+                                         req->alloc_args.SizeInBytes,
+                                         req->alloc_args.MemFlags, MemoryAddress);
 
    if (ret) {
       vhsa_err("alloc memory failed, target %p, size 0x%lx, ret %d (%s)",
@@ -283,7 +286,7 @@ vhsakmt_alloc_align(struct vhsakmt_context *ctx,
    return 0;
 
 failed_free_mem:
-   hsaKmtFreeMemory(*MemoryAddress, req->alloc_args.SizeInBytes);
+   HSAKMT_CALL(hsaKmtFreeMemory)(HSAKMT_CTX_ARG(ctx) *MemoryAddress, req->alloc_args.SizeInBytes);
 failed_free_vamgr:
    hsakmt_free_from_vamgr(&ctx->vamgr, (uint64_t)mem);
    return ret;
@@ -364,7 +367,8 @@ vhsakmt_ccmd_memory(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req *
    case VHSAKMT_CCMD_MEMORY_MAP_TO_GPU_NODES: {
       HSAuint64 AlternateVAGPU = 0;
       VHSA_CHECK_VA(req->map_to_GPU_nodes_args.MemoryAddress);
-      rsp->ret = hsaKmtMapMemoryToGPUNodes(
+      rsp->ret = HSAKMT_CALL(hsaKmtMapMemoryToGPUNodes)(
+          HSAKMT_CTX_ARG(ctx)
           (void *)req->map_to_GPU_nodes_args.MemoryAddress,
           req->map_to_GPU_nodes_args.MemorySizeInBytes, &AlternateVAGPU,
           req->map_to_GPU_nodes_args.MemMapFlags,
@@ -374,25 +378,29 @@ vhsakmt_ccmd_memory(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req *
    }
    case VHSAKMT_CCMD_MEMORY_FREE: {
       VHSA_CHECK_VA(req->free_args.MemoryAddress);
-      rsp->ret = hsaKmtFreeMemory((void *)req->free_args.MemoryAddress,
-                                  req->free_args.SizeInBytes);
+      rsp->ret = HSAKMT_CALL(hsaKmtFreeMemory)(HSAKMT_CTX_ARG(ctx) 
+                                                (void *)req->free_args.MemoryAddress,
+                                                req->free_args.SizeInBytes);
       break;
    }
    case VHSAKMT_CCMD_MEMORY_UNMAP_TO_GPU: {
       VHSA_CHECK_VA(req->MemoryAddress);
-      rsp->ret = hsaKmtUnmapMemoryToGPU((void *)req->MemoryAddress);
+      rsp->ret = HSAKMT_CALL(hsaKmtUnmapMemoryToGPU)(HSAKMT_CTX_ARG(ctx) 
+                                                      (void *)req->MemoryAddress);
       break;
    }
    case VHSAKMT_CCMD_MEMORY_AVAIL_MEM: {
-      rsp->ret = hsaKmtAvailableMemory(req->Node, &rsp->available_bytes);
+      rsp->ret = HSAKMT_CALL(hsaKmtAvailableMemory)(HSAKMT_CTX_ARG(ctx) 
+                                                     req->Node, &rsp->available_bytes);
       break;
    }
    case VHSAKMT_CCMD_MEMORY_MAP_MEM_TO_GPU: {
       HSAuint64 AlternateVAGPU = 0;
       VHSA_CHECK_VA(req->map_to_GPU_args.MemoryAddress);
       rsp->ret =
-          hsaKmtMapMemoryToGPU((void *)req->map_to_GPU_args.MemoryAddress,
-                               req->map_to_GPU_args.MemorySizeInBytes, &AlternateVAGPU);
+          HSAKMT_CALL(hsaKmtMapMemoryToGPU)(HSAKMT_CTX_ARG(ctx) 
+                                             (void *)req->map_to_GPU_args.MemoryAddress,
+                                             req->map_to_GPU_args.MemorySizeInBytes, &AlternateVAGPU);
       rsp->alternate_vagpu = AlternateVAGPU;
 
       if (req->map_to_GPU_args.need_create_bo) {
@@ -424,22 +432,25 @@ vhsakmt_ccmd_memory(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req *
       }
 
       if (obj && obj->iov && obj->iov_count) {
-         rsp->ret = hsaKmtRegisterRangesWithFlags(obj->bo,
-                                                  req->reg_mem_with_flag.MemorySizeInBytes,
-                                                  (HsaMemoryRange *)obj->iov,
-                                                  obj->iov_count,
-                                                  req->reg_mem_with_flag.MemFlags);
+         rsp->ret = HSAKMT_CALL(hsaKmtRegisterRangesWithFlags)(HSAKMT_CTX_ARG(ctx) 
+                                                                obj->bo,
+                                                                req->reg_mem_with_flag.MemorySizeInBytes,
+                                                                (HsaMemoryRange *)obj->iov,
+                                                                obj->iov_count,
+                                                                req->reg_mem_with_flag.MemFlags);
       } else {
-         rsp->ret = hsaKmtRegisterMemoryWithFlags((void *)req->reg_mem_with_flag.MemoryAddress,
-                                                  req->reg_mem_with_flag.MemorySizeInBytes,
-                                                  req->reg_mem_with_flag.MemFlags);
+         rsp->ret = HSAKMT_CALL(hsaKmtRegisterMemoryWithFlags)(HSAKMT_CTX_ARG(ctx) 
+                                                                (void *)req->reg_mem_with_flag.MemoryAddress,
+                                                                req->reg_mem_with_flag.MemorySizeInBytes,
+                                                                req->reg_mem_with_flag.MemFlags);
       }
 
       break;
    }
    case VHSAKMT_CCMD_MEMORY_DEREG_MEM: {
       VHSA_CHECK_VA(req->MemoryAddress);
-      rsp->ret = hsaKmtDeregisterMemory((void *)req->MemoryAddress);
+      rsp->ret = HSAKMT_CALL(hsaKmtDeregisterMemory)(HSAKMT_CTX_ARG(ctx) 
+                                                      (void *)req->MemoryAddress);
       if (req->res_id) {
          struct vhsakmt_object *obj =
              vhsakmt_context_get_object_from_res_id(ctx, req->res_id);
@@ -496,7 +507,8 @@ vhsakmt_ccmd_gl_inter(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req
          break;
       }
 
-      ret = hsaKmtRegisterGraphicsHandleToNodes(
+      ret = HSAKMT_CALL(hsaKmtRegisterGraphicsHandleToNodes)(
+          HSAKMT_CTX_ARG(ctx)
           obj->fd, &info, req->reg_ghd_to_nodes.NumberOfNodes, (HSAuint32 *)req->payload);
 
       if (ret) {

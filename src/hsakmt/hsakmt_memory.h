@@ -12,7 +12,7 @@ int vhsakmt_ccmd_memory(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_r
 
 int vhsakmt_ccmd_gl_inter(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req *hdr);
 
-int vhsakmt_gpu_unmap(struct vhsakmt_object *obj);
+int vhsakmt_gpu_unmap(struct vhsakmt_context *ctx, struct vhsakmt_object *obj);
 
 int vhsakmt_free_userptr(UNUSED struct vhsakmt_object *obj);
 

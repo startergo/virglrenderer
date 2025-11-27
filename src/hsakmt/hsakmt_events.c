@@ -30,8 +30,8 @@ vhsakmt_free_event_obj(UNUSED struct vhsakmt_context *ctx, struct vhsakmt_object
    if (!obj || obj->type != VHSAKMT_OBJ_EVENT)
       return;
 
-   hsaKmtSetEvent(obj->bo);
-   hsaKmtDestroyEvent(obj->bo);
+   HSAKMT_CALL(hsaKmtSetEvent)(HSAKMT_CTX_ARG(ctx) obj->bo);
+   HSAKMT_CALL(hsaKmtDestroyEvent)(HSAKMT_CTX_ARG(ctx) obj->bo);
 }
 
 int
@@ -49,9 +49,10 @@ vhsakmt_ccmd_event(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req *h
       VHSA_RSP_ALLOC(ctx, hdr, sizeof(*rsp));
       event = NULL;
 
-      rsp->ret = hsaKmtCreateEvent(&req->create_args.EventDesc,
-                                   req->create_args.ManualReset,
-                                   req->create_args.IsSignaled, &event);
+      rsp->ret = HSAKMT_CALL(hsaKmtCreateEvent)(HSAKMT_CTX_ARG(ctx) 
+                                                 &req->create_args.EventDesc,
+                                                 req->create_args.ManualReset,
+                                                 req->create_args.IsSignaled, &event);
       if (rsp->ret) {
          vhsa_err("create event failed, ret: %d", rsp->ret);
          break;
@@ -62,7 +63,7 @@ vhsakmt_ccmd_event(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req *h
 
       obj = vhsakmt_context_object_create(event, 0, sizeof(*event), VHSAKMT_OBJ_EVENT);
       if (!obj) {
-         hsaKmtDestroyEvent(event);
+         HSAKMT_CALL(hsaKmtDestroyEvent)(HSAKMT_CTX_ARG(ctx) event);
          return -ENOMEM;
       }
 
@@ -75,7 +76,7 @@ vhsakmt_ccmd_event(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req *h
       obj = vhsakmt_context_get_object_from_res_id(ctx, req->res_id);
       if (!obj) {
          if (req->event_hanele) {
-            ret = hsaKmtDestroyEvent(req->event_hanele);
+            ret = HSAKMT_CALL(hsaKmtDestroyEvent)(HSAKMT_CTX_ARG(ctx) req->event_hanele);
             rsp->ret = ret;
          } else {
             vhsa_err("invalid event res_id %d, handle %p",
@@ -90,17 +91,17 @@ vhsakmt_ccmd_event(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req *h
 
    case VHSAKMT_CCMD_EVENT_SET:
       VHSA_RSP_ALLOC(ctx, hdr, sizeof(*rsp));
-      rsp->ret = hsaKmtSetEvent(req->event_hanele);
+      rsp->ret = HSAKMT_CALL(hsaKmtSetEvent)(HSAKMT_CTX_ARG(ctx) req->event_hanele);
       break;
 
    case VHSAKMT_CCMD_EVENT_RESET:
       VHSA_RSP_ALLOC(ctx, hdr, sizeof(*rsp));
-      rsp->ret = hsaKmtResetEvent(req->event_hanele);
+      rsp->ret = HSAKMT_CALL(hsaKmtResetEvent)(HSAKMT_CTX_ARG(ctx) req->event_hanele);
       break;
 
    case VHSAKMT_CCMD_EVENT_QUERY_STATE:
       VHSA_RSP_ALLOC(ctx, hdr, sizeof(*rsp));
-      rsp->ret = hsaKmtQueryEventState(req->event_hanele);
+      rsp->ret = HSAKMT_CALL(hsaKmtQueryEventState)(HSAKMT_CTX_ARG(ctx) req->event_hanele);
       break;
 
    case VHSAKMT_CCMD_EVENT_WAIT_ON_MULTI_EVENTS:
@@ -115,7 +116,8 @@ vhsakmt_ccmd_event(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_req *h
       VHSA_CHECK_VA(req->set_trap_handler_args.TrapHandlerBaseAddress);
       VHSA_CHECK_VA(req->set_trap_handler_args.TrapBufferBaseAddress);
 
-      rsp->ret = hsaKmtSetTrapHandler(
+      rsp->ret = HSAKMT_CALL(hsaKmtSetTrapHandler)(
+         HSAKMT_CTX_ARG(ctx)
          req->set_trap_handler_args.NodeId,
          (void *)req->set_trap_handler_args.TrapHandlerBaseAddress,
          req->set_trap_handler_args.TrapHandlerSizeInBytes,

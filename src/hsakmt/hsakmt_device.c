@@ -73,6 +73,9 @@ vhsakmt_device_destroy(struct virgl_context *vctx)
    }
 
    free((void *)ctx->debug_name);
+#ifdef USE_HSAKMT_CTX_API
+   HSAKMT_CLOSE_SECONDARY_KFD(ctx);
+#endif
    free(ctx);
 }
 
@@ -403,7 +406,7 @@ vhsakmt_device_init(void)
    const char *dump_env;
    int ret;
 
-   ret = hsaKmtOpenKFD();
+   ret = HSAKMT_OPEN_KFD(b);
    if (ret) {
       fprintf(stderr, "hsakmt: open KFD failed, ret %d\n", ret);
       return ret;
@@ -467,7 +470,7 @@ vhsakmt_device_fini(void)
    vhsakmt_device_destroy_scratch_vamgr(b);
 
    hsaKmtReleaseSystemProperties();
-   hsaKmtCloseKFD();
+   HSAKMT_CLOSE_KFD();
 }
 
 void
@@ -503,6 +506,15 @@ vhsakmt_device_create(UNUSED size_t debug_len, UNUSED const char *debug_name)
       free(ctx);
       return NULL;
    }
+
+#ifdef USE_HSAKMT_CTX_API
+   HSAKMT_OPEN_SECONDARY_KFD(ctx);
+   if (!ctx->kfd_ctx) {
+      fprintf(stderr, "hsakmt: create kfd context failed\n");
+      free(ctx);
+      return NULL;
+   }
+#endif
 
    ctx->debug_name = strdup(debug_name);
    debug_env = getenv("VHSA_DEBUG");

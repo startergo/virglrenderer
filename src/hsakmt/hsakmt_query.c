@@ -119,7 +119,9 @@ vhsakmt_ccmd_query_info(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_r
       rsp->tile_config_rsp.MacroTileConfig =
          (void *)((uint8_t *)rsp->payload + num_tile_configs * sizeof(HSAuint32));
 
-      rsp->ret = hsaKmtGetTileConfig(req->tile_config_args.NodeId, &rsp->tile_config_rsp);
+      rsp->ret = HSAKMT_CALL(hsaKmtGetTileConfig)(HSAKMT_CTX_ARG(ctx) 
+                                                   req->tile_config_args.NodeId,
+                                                   &rsp->tile_config_rsp);
 
       rsp->tile_config_rsp.TileConfig = temp_tile_config;
       rsp->tile_config_rsp.MacroTileConfig = temp_macro_tile_config;
@@ -138,17 +140,19 @@ vhsakmt_ccmd_query_info(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_r
    }
    case VHSAKMT_CCMD_QUERY_GET_SYS_PROP: {
       VHSA_RSP_ALLOC(ctx, hdr, rsp_len);
-      rsp->ret = hsaKmtAcquireSystemProperties(&rsp->sys_props);
+      rsp->ret = HSAKMT_CALL(hsaKmtAcquireSystemProperties)(HSAKMT_CTX_ARG(ctx) 
+                                                             &rsp->sys_props);
       break;
    }
    case VHSAKMT_CCMD_QUERY_GET_NODE_PROP: {
       VHSA_RSP_ALLOC(ctx, hdr, rsp_len);
-      rsp->ret = hsaKmtGetNodeProperties(req->NodeID, &rsp->node_props);
+      rsp->ret = HSAKMT_CALL(hsaKmtGetNodeProperties)(HSAKMT_CTX_ARG(ctx) 
+                                                       req->NodeID, &rsp->node_props);
       break;
    }
    case VHSAKMT_CCMD_QUERY_GET_XNACK_MODE: {
       VHSA_RSP_ALLOC(ctx, hdr, rsp_len);
-      rsp->ret = hsaKmtGetXNACKMode(&rsp->xnack_mode);
+      rsp->ret = HSAKMT_CALL(hsaKmtGetXNACKMode)(HSAKMT_CTX_ARG(ctx) &rsp->xnack_mode);
       break;
    }
    case VHSAKMT_CCMD_QUERY_RUN_TIME_ENABLE: {
@@ -187,7 +191,8 @@ vhsakmt_ccmd_query_info(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_r
          break;
       }
 
-      rsp->ret = hsaKmtGetNodeMemoryProperties(node_id, num_banks, mem_prop);
+      rsp->ret = HSAKMT_CALL(hsaKmtGetNodeMemoryProperties)(HSAKMT_CTX_ARG(ctx) 
+                                                             node_id, num_banks, mem_prop);
       memcpy(rsp->payload, mem_prop, num_banks * sizeof(HsaMemoryProperties));
       free(mem_prop);
       break;
@@ -212,9 +217,10 @@ vhsakmt_ccmd_query_info(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_r
          break;
       }
 
-      rsp->ret = hsaKmtGetNodeCacheProperties(req->node_cache_prop_args.NodeId,
-                                              req->node_cache_prop_args.ProcessorId,
-                                              num_caches, cache_prop);
+      rsp->ret = HSAKMT_CALL(hsaKmtGetNodeCacheProperties)(HSAKMT_CTX_ARG(ctx) 
+                                                            req->node_cache_prop_args.NodeId,
+                                                            req->node_cache_prop_args.ProcessorId,
+                                                            num_caches, cache_prop);
       memcpy(rsp->payload, cache_prop, num_caches * sizeof(HsaCacheProperties));
       free(cache_prop);
       break;
@@ -240,7 +246,8 @@ vhsakmt_ccmd_query_info(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_r
          break;
       }
 
-      rsp->ret = hsaKmtGetNodeIoLinkProperties(node_id, num_io_links, io_link_prop);
+      rsp->ret = HSAKMT_CALL(hsaKmtGetNodeIoLinkProperties)(HSAKMT_CTX_ARG(ctx) 
+                                                             node_id, num_io_links, io_link_prop);
       memcpy(rsp->payload, io_link_prop, num_io_links * sizeof(HsaIoLinkProperties));
       free(io_link_prop);
       break;
@@ -254,7 +261,8 @@ vhsakmt_ccmd_query_info(struct vhsakmt_base_context *bctx, struct vhsakmt_ccmd_r
       HsaPointerInfo info = {0};
       int ret;
 
-      ret = hsaKmtQueryPointerInfo((void *)req->pointer, &info);
+      ret = HSAKMT_CALL(hsaKmtQueryPointerInfo)(HSAKMT_CTX_ARG(ctx) 
+                                                 (void *)req->pointer, &info);
       rsp_len = size_add(info.NMappedNodes * sizeof(HSAuint32), rsp_len);
       VHSA_RSP_ALLOC(ctx, hdr, rsp_len);
       rsp->ret = ret;

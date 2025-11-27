@@ -34,6 +34,10 @@ struct vhsakmt_backend {
    const char *name;
    struct virgl_renderer_capset_hsakmt hsakmt_capset;
 
+#ifdef USE_HSAKMT_CTX_API
+   HsaKFDContext *primary_ctx;  /* Primary KFD context for backend operations */
+#endif
+
    hsakmt_vamgr_t vamgr;
 
    uint32_t vamgr_vm_base_addr_type;
@@ -64,6 +68,10 @@ struct vhsakmt_context {
    int debug;
 
    struct hash_table_u64 *id_to_ctx;
+
+#ifdef USE_HSAKMT_CTX_API
+   HsaKFDContext *kfd_ctx;  /* Per-context KFD context */
+#endif
 
    hsakmt_vamgr_t vamgr;
    uint64_t scratch_base;
