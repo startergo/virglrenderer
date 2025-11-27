@@ -48,7 +48,7 @@ option(
 option(
   'vulkan-dload',
   type : 'boolean',
-  value : 'false',
+  value : 'true',
   description : 'enable loading libvulkan dynamically at runtime instead of linking to it at build-time'
 )
 
