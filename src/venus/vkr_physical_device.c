@@ -789,6 +789,20 @@ vkr_dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR(
 }
 
 static void
+vkr_dispatch_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR(
+   UNUSED struct vn_dispatch_context *ctx,
+   struct vn_command_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR *args)
+{
+   struct vkr_physical_device *physical_dev =
+      vkr_physical_device_from_handle(args->physicalDevice);
+   struct vn_physical_device_proc_table *vk = &physical_dev->proc_table;
+
+   vn_replace_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR_args_handle(args);
+   args->ret = vk->GetPhysicalDeviceCooperativeMatrixPropertiesKHR(
+      args->physicalDevice, args->pPropertyCount, args->pProperties);
+}
+
+static void
 vkr_dispatch_vkGetPhysicalDeviceFragmentShadingRatesKHR(
    UNUSED struct vn_dispatch_context *ctx,
    struct vn_command_vkGetPhysicalDeviceFragmentShadingRatesKHR *args)
@@ -867,6 +881,10 @@ vkr_context_init_physical_device_dispatch(struct vkr_context *ctx)
       vkr_dispatch_vkGetPhysicalDeviceExternalFenceProperties;
    dispatch->dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR =
       vkr_dispatch_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR;
+
+   /* VK_KHR_cooperative_matrix */
+   dispatch->dispatch_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR =
+      vkr_dispatch_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR;
 
    /* VK_KHR_fragment_shading_rate */
    dispatch->dispatch_vkGetPhysicalDeviceFragmentShadingRatesKHR =
