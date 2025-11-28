@@ -30,6 +30,7 @@ struct vn_physical_device_proc_table {
    PFN_vkEnumerateDeviceLayerProperties EnumerateDeviceLayerProperties;
    PFN_vkGetDeviceProcAddr GetDeviceProcAddr;
    PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsKHR GetPhysicalDeviceCalibrateableTimeDomainsKHR;
+   PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR GetPhysicalDeviceCooperativeMatrixPropertiesKHR;
    PFN_vkGetPhysicalDeviceExternalBufferProperties GetPhysicalDeviceExternalBufferProperties;
    PFN_vkGetPhysicalDeviceExternalFenceProperties GetPhysicalDeviceExternalFenceProperties;
    PFN_vkGetPhysicalDeviceExternalSemaphoreProperties GetPhysicalDeviceExternalSemaphoreProperties;
@@ -375,6 +376,7 @@ vn_util_init_physical_device_proc_table(VkInstance instance,
    proc_table->GetPhysicalDeviceCalibrateableTimeDomainsKHR = VN_GIPA(instance, vkGetPhysicalDeviceCalibrateableTimeDomainsKHR);
    if (!proc_table->GetPhysicalDeviceCalibrateableTimeDomainsKHR)
       proc_table->GetPhysicalDeviceCalibrateableTimeDomainsKHR = VN_GIPA(instance, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT);
+   proc_table->GetPhysicalDeviceCooperativeMatrixPropertiesKHR = VN_GIPA(instance, vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR);
    proc_table->GetPhysicalDeviceExternalBufferProperties = VN_GIPA(instance, vkGetPhysicalDeviceExternalBufferProperties);
    if (!proc_table->GetPhysicalDeviceExternalBufferProperties)
       proc_table->GetPhysicalDeviceExternalBufferProperties = VN_GIPA(instance, vkGetPhysicalDeviceExternalBufferPropertiesKHR);

@@ -333,6 +333,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     case VK_COMMAND_TYPE_vkCmdSetDepthBias2EXT_EXT: return "vkCmdSetDepthBias2EXT";
     case VK_COMMAND_TYPE_vkGetDeviceImageSubresourceLayout_EXT: return "vkGetDeviceImageSubresourceLayout";
     case VK_COMMAND_TYPE_vkUnmapMemory2_EXT: return "vkUnmapMemory2";
+    case VK_COMMAND_TYPE_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR_EXT: return "vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR";
     case VK_COMMAND_TYPE_vkCmdBindDescriptorSets2_EXT: return "vkCmdBindDescriptorSets2";
     case VK_COMMAND_TYPE_vkCmdPushConstants2_EXT: return "vkCmdPushConstants2";
     case VK_COMMAND_TYPE_vkCmdPushDescriptorSet2_EXT: return "vkCmdPushDescriptorSet2";
@@ -377,7 +378,7 @@ static inline const char *vn_dispatch_command_name(VkCommandTypeEXT type)
     }
 }
 
-static void (*const vn_dispatch_table[331])(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags) = {
+static void (*const vn_dispatch_table[332])(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags) = {
     [VK_COMMAND_TYPE_vkCreateInstance_EXT] = vn_dispatch_vkCreateInstance,
     [VK_COMMAND_TYPE_vkDestroyInstance_EXT] = vn_dispatch_vkDestroyInstance,
     [VK_COMMAND_TYPE_vkEnumeratePhysicalDevices_EXT] = vn_dispatch_vkEnumeratePhysicalDevices,
@@ -668,6 +669,7 @@ static void (*const vn_dispatch_table[331])(struct vn_dispatch_context *ctx, VkC
     [VK_COMMAND_TYPE_vkCmdSetDepthBias2EXT_EXT] = vn_dispatch_vkCmdSetDepthBias2EXT,
     [VK_COMMAND_TYPE_vkGetDeviceImageSubresourceLayout_EXT] = vn_dispatch_vkGetDeviceImageSubresourceLayout,
     [VK_COMMAND_TYPE_vkUnmapMemory2_EXT] = vn_dispatch_vkUnmapMemory2,
+    [VK_COMMAND_TYPE_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR_EXT] = vn_dispatch_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR,
     [VK_COMMAND_TYPE_vkCmdBindDescriptorSets2_EXT] = vn_dispatch_vkCmdBindDescriptorSets2,
     [VK_COMMAND_TYPE_vkCmdPushConstants2_EXT] = vn_dispatch_vkCmdPushConstants2,
     [VK_COMMAND_TYPE_vkCmdPushDescriptorSet2_EXT] = vn_dispatch_vkCmdPushDescriptorSet2,
@@ -701,7 +703,7 @@ static inline void vn_dispatch_command(struct vn_dispatch_context *ctx)
     vn_decode_VkFlags(ctx->decoder, &cmd_flags);
 
     {
-        if (cmd_type < 331 && vn_dispatch_table[cmd_type])
+        if (cmd_type < 332 && vn_dispatch_table[cmd_type])
             vn_dispatch_table[cmd_type](ctx, cmd_flags);
         else
             vn_cs_decoder_set_fatal(ctx->decoder);
