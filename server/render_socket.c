@@ -12,6 +12,30 @@
 
 #define RENDER_SOCKET_MAX_FD_COUNT 8
 
+#if !defined(MSG_CMSG_CLOEXEC) || !defined(SOCK_CLOEXEC)
+#include <fcntl.h>
+static int
+render_socket_set_cloexec(int fd)
+{
+   long flags;
+
+   if (fd == -1)
+      return -1;
+
+   flags = fcntl(fd, F_GETFD);
+   if (flags == -1)
+      goto err;
+
+   if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1)
+      goto err;
+
+   return 0;
+
+err:
+   return -1;
+}
+#endif
+
 /* The socket pair between the server process and the client process is set up
  * by the client process (or yet another process).  Because render_server_run
  * does not poll yet, the fd is expected to be blocking.
@@ -28,7 +52,20 @@
 bool
 render_socket_pair(int out_fds[static 2])
 {
-   int ret = socketpair(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0, out_fds);
+   int type = SOCK_SEQPACKET;
+#ifdef SOCK_CLOEXEC
+   type |= SOCK_CLOEXEC;
+#endif
+
+   int ret = socketpair(AF_UNIX, type, 0, out_fds);
+#ifndef SOCK_CLOEXEC
+   if (!ret) {
+      ret = render_socket_set_cloexec(out_fds[0]);
+   }
+   if (!ret) {
+      ret = render_socket_set_cloexec(out_fds[1]);
+   }
+#endif
    if (ret) {
       render_log("failed to create socket pair");
       return false;
@@ -79,8 +116,12 @@ get_received_fds(const struct msghdr *msg, int *out_count)
 static bool
 render_socket_recvmsg(struct render_socket *socket, struct msghdr *msg, size_t *out_size)
 {
+   int flags = 0;
+#ifdef MSG_CMSG_CLOEXEC
+   flags = MSG_CMSG_CLOEXEC;
+#endif
    do {
-      const ssize_t s = recvmsg(socket->fd, msg, MSG_CMSG_CLOEXEC);
+      const ssize_t s = recvmsg(socket->fd, msg, flags);
       if (unlikely(s <= 0)) {
          if (!s)
             return false;
@@ -102,6 +143,20 @@ render_socket_recvmsg(struct render_socket *socket, struct msghdr *msg, size_t *
 
          return false;
       }
+#ifndef MSG_CMSG_CLOEXEC
+      int fd_count;
+      int ret = 0;
+      const int *fds = get_received_fds(msg, &fd_count);
+      for (int i = 0; !ret && i < fd_count; i++) {
+         ret = render_socket_set_cloexec(fds[i]);
+      }
+      if (ret) {
+         for (int i = 0; i < fd_count; i++) {
+            close(fds[i]);
+         }
+         return false;
+      }
+#endif
 
       *out_size = s;
       return true;

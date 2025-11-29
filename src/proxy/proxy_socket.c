@@ -13,6 +13,30 @@
 
 #define PROXY_SOCKET_MAX_FD_COUNT 8
 
+#ifndef MSG_CMSG_CLOEXEC
+#include <fcntl.h>
+static int
+proxy_socket_set_cloexec(int fd)
+{
+   long flags;
+
+   if (fd == -1)
+      return -1;
+
+   flags = fcntl(fd, F_GETFD);
+   if (flags == -1)
+      goto err;
+
+   if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1)
+      goto err;
+
+   return 0;
+
+err:
+   return -1;
+}
+#endif
+
 /* this is only used when the render server is started on demand */
 bool
 proxy_socket_pair(int out_fds[static 2])
@@ -99,8 +123,12 @@ get_received_fds(const struct msghdr *msg, int *out_count)
 static bool
 proxy_socket_recvmsg(struct proxy_socket *socket, struct msghdr *msg)
 {
+   int flags = 0;
+#ifdef MSG_CMSG_CLOEXEC
+   flags = MSG_CMSG_CLOEXEC;
+#endif
    do {
-      const ssize_t s = recvmsg(socket->fd, msg, MSG_CMSG_CLOEXEC);
+      const ssize_t s = recvmsg(socket->fd, msg, flags);
       if (unlikely(s < 0)) {
          if (errno == EAGAIN || errno == EINTR)
             continue;
@@ -121,6 +149,20 @@ proxy_socket_recvmsg(struct proxy_socket *socket, struct msghdr *msg)
 
          return false;
       }
+#ifndef MSG_CMSG_CLOEXEC
+      int fd_count;
+      int ret = 0;
+      const int *fds = get_received_fds(msg, &fd_count);
+      for (int i = 0; !ret && i < fd_count; i++) {
+         ret = proxy_socket_set_cloexec(fds[i]);
+      }
+      if (ret) {
+         for (int i = 0; i < fd_count; i++) {
+            close(fds[i]);
+         }
+         return false;
+      }
+#endif
 
       return true;
    } while (true);
