@@ -107,6 +107,9 @@ struct vn_device_proc_table {
    PFN_vkCmdDrawIndirect CmdDrawIndirect;
    PFN_vkCmdDrawIndirectByteCountEXT CmdDrawIndirectByteCountEXT;
    PFN_vkCmdDrawIndirectCount CmdDrawIndirectCount;
+   PFN_vkCmdDrawMeshTasksEXT CmdDrawMeshTasksEXT;
+   PFN_vkCmdDrawMeshTasksIndirectCountEXT CmdDrawMeshTasksIndirectCountEXT;
+   PFN_vkCmdDrawMeshTasksIndirectEXT CmdDrawMeshTasksIndirectEXT;
    PFN_vkCmdDrawMultiEXT CmdDrawMultiEXT;
    PFN_vkCmdDrawMultiIndexedEXT CmdDrawMultiIndexedEXT;
    PFN_vkCmdEndConditionalRenderingEXT CmdEndConditionalRenderingEXT;
@@ -550,6 +553,15 @@ vn_util_init_device_proc_table(VkDevice dev,
    proc_table->CmdDrawIndirectCount =
       api_version >= VK_API_VERSION_1_2 ? VN_GDPA(dev, vkCmdDrawIndirectCount) :
       ext_table->KHR_draw_indirect_count ? VN_GDPA(dev, vkCmdDrawIndirectCountKHR) :
+      NULL;
+   proc_table->CmdDrawMeshTasksEXT =
+      ext_table->EXT_mesh_shader ? VN_GDPA(dev, vkCmdDrawMeshTasksEXT) :
+      NULL;
+   proc_table->CmdDrawMeshTasksIndirectCountEXT =
+      ext_table->EXT_mesh_shader ? VN_GDPA(dev, vkCmdDrawMeshTasksIndirectCountEXT) :
+      NULL;
+   proc_table->CmdDrawMeshTasksIndirectEXT =
+      ext_table->EXT_mesh_shader ? VN_GDPA(dev, vkCmdDrawMeshTasksIndirectEXT) :
       NULL;
    proc_table->CmdDrawMultiEXT =
       ext_table->EXT_multi_draw ? VN_GDPA(dev, vkCmdDrawMultiEXT) :

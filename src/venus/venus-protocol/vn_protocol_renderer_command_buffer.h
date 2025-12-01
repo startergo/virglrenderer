@@ -5902,6 +5902,96 @@ static inline void vn_encode_vkCmdDrawIndirectByteCountEXT_reply(struct vn_cs_en
     /* skip args->vertexStride */
 }
 
+static inline void vn_decode_vkCmdDrawMeshTasksEXT_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdDrawMeshTasksEXT *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    vn_decode_uint32_t(dec, &args->groupCountX);
+    vn_decode_uint32_t(dec, &args->groupCountY);
+    vn_decode_uint32_t(dec, &args->groupCountZ);
+}
+
+static inline void vn_replace_vkCmdDrawMeshTasksEXT_args_handle(struct vn_command_vkCmdDrawMeshTasksEXT *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    /* skip args->groupCountX */
+    /* skip args->groupCountY */
+    /* skip args->groupCountZ */
+}
+
+static inline void vn_encode_vkCmdDrawMeshTasksEXT_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdDrawMeshTasksEXT *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdDrawMeshTasksEXT_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->groupCountX */
+    /* skip args->groupCountY */
+    /* skip args->groupCountZ */
+}
+
+static inline void vn_decode_vkCmdDrawMeshTasksIndirectEXT_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdDrawMeshTasksIndirectEXT *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    vn_decode_VkBuffer_lookup(dec, &args->buffer);
+    vn_decode_VkDeviceSize(dec, &args->offset);
+    vn_decode_uint32_t(dec, &args->drawCount);
+    vn_decode_uint32_t(dec, &args->stride);
+}
+
+static inline void vn_replace_vkCmdDrawMeshTasksIndirectEXT_args_handle(struct vn_command_vkCmdDrawMeshTasksIndirectEXT *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    vn_replace_VkBuffer_handle(&args->buffer);
+    /* skip args->offset */
+    /* skip args->drawCount */
+    /* skip args->stride */
+}
+
+static inline void vn_encode_vkCmdDrawMeshTasksIndirectEXT_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdDrawMeshTasksIndirectEXT *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdDrawMeshTasksIndirectEXT_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->buffer */
+    /* skip args->offset */
+    /* skip args->drawCount */
+    /* skip args->stride */
+}
+
+static inline void vn_decode_vkCmdDrawMeshTasksIndirectCountEXT_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdDrawMeshTasksIndirectCountEXT *args)
+{
+    vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
+    vn_decode_VkBuffer_lookup(dec, &args->buffer);
+    vn_decode_VkDeviceSize(dec, &args->offset);
+    vn_decode_VkBuffer_lookup(dec, &args->countBuffer);
+    vn_decode_VkDeviceSize(dec, &args->countBufferOffset);
+    vn_decode_uint32_t(dec, &args->maxDrawCount);
+    vn_decode_uint32_t(dec, &args->stride);
+}
+
+static inline void vn_replace_vkCmdDrawMeshTasksIndirectCountEXT_args_handle(struct vn_command_vkCmdDrawMeshTasksIndirectCountEXT *args)
+{
+    vn_replace_VkCommandBuffer_handle(&args->commandBuffer);
+    vn_replace_VkBuffer_handle(&args->buffer);
+    /* skip args->offset */
+    vn_replace_VkBuffer_handle(&args->countBuffer);
+    /* skip args->countBufferOffset */
+    /* skip args->maxDrawCount */
+    /* skip args->stride */
+}
+
+static inline void vn_encode_vkCmdDrawMeshTasksIndirectCountEXT_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCmdDrawMeshTasksIndirectCountEXT *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCmdDrawMeshTasksIndirectCountEXT_EXT});
+
+    /* skip args->commandBuffer */
+    /* skip args->buffer */
+    /* skip args->offset */
+    /* skip args->countBuffer */
+    /* skip args->countBufferOffset */
+    /* skip args->maxDrawCount */
+    /* skip args->stride */
+}
+
 static inline void vn_decode_vkCmdCopyAccelerationStructureKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCmdCopyAccelerationStructureKHR *args)
 {
     vn_decode_VkCommandBuffer_lookup(dec, &args->commandBuffer);
@@ -9947,6 +10037,90 @@ static inline void vn_dispatch_vkCmdDrawIndirectByteCountEXT(struct vn_dispatch_
     if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
         if (vn_cs_encoder_acquire(ctx->encoder)) {
             vn_encode_vkCmdDrawIndirectByteCountEXT_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdDrawMeshTasksEXT(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdDrawMeshTasksEXT args;
+
+    if (!ctx->dispatch_vkCmdDrawMeshTasksEXT) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdDrawMeshTasksEXT_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdDrawMeshTasksEXT(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdDrawMeshTasksEXT_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdDrawMeshTasksIndirectEXT(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdDrawMeshTasksIndirectEXT args;
+
+    if (!ctx->dispatch_vkCmdDrawMeshTasksIndirectEXT) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdDrawMeshTasksIndirectEXT_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdDrawMeshTasksIndirectEXT(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdDrawMeshTasksIndirectEXT_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkCmdDrawMeshTasksIndirectCountEXT(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCmdDrawMeshTasksIndirectCountEXT args;
+
+    if (!ctx->dispatch_vkCmdDrawMeshTasksIndirectCountEXT) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCmdDrawMeshTasksIndirectCountEXT_args_temp(ctx->decoder, &args);
+    if (!args.commandBuffer) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCmdDrawMeshTasksIndirectCountEXT(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkCmdDrawMeshTasksIndirectCountEXT_reply(ctx->encoder, &args);
             vn_cs_encoder_release(ctx->encoder);
         }
     }
