@@ -1190,6 +1190,14 @@ int virgl_renderer_resource_create_blob(const struct virgl_renderer_resource_cre
       return 0;
    }
 
+#ifdef ENABLE_HSAKMT_AMDGPU
+   if (args->blob_flags & VIRGL_RENDERER_BLOB_FLAG_USE_USERPTR) {
+       blob.iov = (struct iovec *)args->iovecs;
+       blob.iov_count = args->num_iovs;
+       blob.u.va_handle = NULL;
+   }
+#endif
+
    ctx = virgl_context_lookup(args->ctx_id);
    if (!ctx)
       return -EINVAL;

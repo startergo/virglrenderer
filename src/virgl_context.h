@@ -47,6 +47,11 @@ struct virgl_context_blob {
       void *va_handle;
    } u;
 
+#ifdef ENABLE_HSAKMT_AMDGPU
+   struct iovec *iov;
+   int iov_count;
+#endif
+
    uint32_t map_info;
 
    struct virgl_resource_vulkan_info vulkan_info;
