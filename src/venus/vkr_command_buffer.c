@@ -1219,6 +1219,33 @@ vkr_dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT(
    VKR_CMD_CALL(CmdSetAttachmentFeedbackLoopEnableEXT, args, args->aspectMask);
 }
 
+static void
+vkr_dispatch_vkCmdDrawMeshTasksEXT(UNUSED struct vn_dispatch_context *dispatch,
+                                   struct vn_command_vkCmdDrawMeshTasksEXT *args)
+{
+   VKR_CMD_CALL(CmdDrawMeshTasksEXT, args, args->groupCountX, args->groupCountY,
+                args->groupCountZ);
+}
+
+static void
+vkr_dispatch_vkCmdDrawMeshTasksIndirectEXT(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdDrawMeshTasksIndirectEXT *args)
+{
+   VKR_CMD_CALL(CmdDrawMeshTasksIndirectEXT, args, args->buffer, args->offset,
+                args->drawCount, args->stride);
+}
+
+static void
+vkr_dispatch_vkCmdDrawMeshTasksIndirectCountEXT(
+   UNUSED struct vn_dispatch_context *dispatch,
+   struct vn_command_vkCmdDrawMeshTasksIndirectCountEXT *args)
+{
+   VKR_CMD_CALL(CmdDrawMeshTasksIndirectCountEXT, args, args->buffer, args->offset,
+                args->countBuffer, args->countBufferOffset, args->maxDrawCount,
+                args->stride);
+}
+
 void
 vkr_context_init_command_pool_dispatch(struct vkr_context *ctx)
 {
@@ -1467,4 +1494,11 @@ vkr_context_init_command_buffer_dispatch(struct vkr_context *ctx)
    /* VK_EXT_attachment_feedback_loop_dynamic_state */
    dispatch->dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT =
       vkr_dispatch_vkCmdSetAttachmentFeedbackLoopEnableEXT;
+
+   /* VK_EXT_mesh_shader */
+   dispatch->dispatch_vkCmdDrawMeshTasksEXT = vkr_dispatch_vkCmdDrawMeshTasksEXT;
+   dispatch->dispatch_vkCmdDrawMeshTasksIndirectEXT =
+      vkr_dispatch_vkCmdDrawMeshTasksIndirectEXT;
+   dispatch->dispatch_vkCmdDrawMeshTasksIndirectCountEXT =
+      vkr_dispatch_vkCmdDrawMeshTasksIndirectCountEXT;
 }

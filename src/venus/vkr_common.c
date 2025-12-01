@@ -172,6 +172,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .EXT_line_rasterization = true,
    .EXT_load_store_op_none = true,
    .EXT_memory_budget = true,
+   .EXT_mesh_shader = true,
    .EXT_multi_draw = true,
    .EXT_multisampled_render_to_single_sampled = true,
    .EXT_mutable_descriptor_type = true,
