@@ -49,11 +49,11 @@ struct vhsakmt_backend {
    uint64_t expected_doorbell_base_addr;
 
    uint32_t vhsakmt_open_count;
+   HsaSystemProperties sys_props;
+   pthread_mutex_t hsakmt_mutex;
    uint32_t vhsakmt_num_nodes;
    uint32_t vhsakmt_gpu_count;
-   HsaSystemProperties sys_props;
    struct vhsakmt_node *vhsakmt_nodes;
-   pthread_mutex_t hsakmt_mutex;
 };
 
 struct vhsakmt_context {
@@ -71,10 +71,12 @@ struct vhsakmt_context {
 
 #ifdef USE_HSAKMT_CTX_API
    HsaKFDContext *kfd_ctx;  /* Per-context KFD context */
+   uint32_t vhsakmt_num_nodes;
+   uint32_t vhsakmt_gpu_count;
+   struct vhsakmt_node *vhsakmt_nodes;
 #endif
 
    hsakmt_vamgr_t vamgr;
-   uint64_t scratch_base;
    uint64_t last_fence_id;
 };
 DEFINE_CAST(vhsakmt_base_context, vhsakmt_context)
@@ -183,6 +185,11 @@ vhsakmt_device_get_node(struct vhsakmt_backend *b, uint32_t node_id);
 
 struct vhsakmt_backend *
 vhsakmt_device_backend(void);
+
+#ifdef USE_HSAKMT_CTX_API
+struct vhsakmt_node *
+vhsakmt_device_ctx_get_node(struct vhsakmt_context *ctx, uint32_t node_id);
+#endif
 
 #define VHSA_RSP_ALLOC(ctx, hdr, size)                                         \
    rsp = vhsakmt_context_rsp(ctx, hdr, size);                                  \

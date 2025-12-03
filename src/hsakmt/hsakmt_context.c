@@ -36,10 +36,12 @@ static struct vhsakmt_backend backend = {
     .vamgr_vm_kfd_size = VHSA_DEV_RESERVE_SIZE,
     .vamgr_vm_scratch_size = VHSA_DEV_SCRATCH_RESERVE_SIZE,
     .vamgr_vm_context_size = VHSA_CTX_RESERVE_SIZE,
-    .vhsakmt_open_count = 0,
-    .vhsakmt_num_nodes = 0,
-    .vhsakmt_nodes = NULL,
     .hsakmt_mutex = PTHREAD_MUTEX_INITIALIZER,
+#ifndef USE_HSAKMT_CTX_API
+    .vhsakmt_num_nodes = 0,
+    .vhsakmt_gpu_count = 0,
+    .vhsakmt_nodes = NULL,
+#endif
 };
 
 /* Object type name strings for debugging */
@@ -62,6 +64,17 @@ vhsakmt_device_backend(void)
 {
    return &backend;
 }
+
+#ifdef USE_HSAKMT_CTX_API
+struct vhsakmt_node *
+vhsakmt_device_ctx_get_node(struct vhsakmt_context *ctx, uint32_t node_id)
+{
+   if (!ctx || !ctx->vhsakmt_num_nodes || node_id >= ctx->vhsakmt_num_nodes)
+      return NULL;
+
+   return &ctx->vhsakmt_nodes[node_id];
+}
+#endif
 
 struct vhsakmt_node *
 vhsakmt_device_get_node(struct vhsakmt_backend *b, uint32_t node_id)

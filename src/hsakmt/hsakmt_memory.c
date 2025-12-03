@@ -75,13 +75,18 @@ vhsakmt_free_scratch_reserve_mem(struct vhsakmt_context *ctx, struct vhsakmt_obj
 {
    uint32_t i;
 
-   for (i = 0; i < vhsakmt_device_backend()->vhsakmt_num_nodes; i++) {
-      struct vhsakmt_node *node = &vhsakmt_device_backend()->vhsakmt_nodes[i];
-      if (obj->bo >= (void *)node->scratch_vamgr.vm_va_base_addr &&
-          obj->bo < (void *)node->scratch_vamgr.vm_va_high_addr) {
+   for (i = 0; i < HSAKMT_NODE_COUNT(ctx); i++) {
+      hsakmt_vamgr_t *scratch_vamgr = HSAKMT_NODE_SCRATCH_VAMGR(i);
+      if (obj->bo >= (void *)scratch_vamgr->vm_va_base_addr &&
+          obj->bo < (void *)scratch_vamgr->vm_va_high_addr) {
          vhsa_dbg("free scratch reserve memory node %d, addr %p, size 0x%lx",
                   i, obj->bo, obj->base.size);
-         hsakmt_free_from_vamgr(&node->scratch_vamgr, (uint64_t)obj->bo);
+         hsakmt_free_from_vamgr(scratch_vamgr, (uint64_t)obj->bo);
+#ifdef USE_HSAKMT_CTX_API
+         HSAKMT_CALL(hsaKmtUnmapMemoryToGPU)(HSAKMT_CTX_ARG(ctx) (void*)obj->bo);
+         HSAKMT_CALL(hsaKmtFreeMemory)(HSAKMT_CTX_ARG(ctx) (void*)obj->bo,
+                                       obj->base.size);
+#endif
          break;
       }
    }
@@ -205,6 +210,64 @@ out:
    return ret;
 }
 
+#ifdef USE_HSAKMT_CTX_API
+static int
+vhsakmt_alloc_scratch(struct vhsakmt_context *ctx,
+                      struct vhsakmt_ccmd_memory_req *req, void **MemoryAddress)
+{
+   int ret = 0;
+   void *mem, *target;
+
+   hsakmt_vamgr_t *scratch_vamgr = HSAKMT_NODE_SCRATCH_VAMGR(req->alloc_args.PreferredNode); 
+
+   struct vhsakmt_node *node = HSAKMT_GET_NODE(ctx, req->alloc_args.PreferredNode);
+   if (!node) {
+      vhsa_err("invalid node %d", req->alloc_args.PreferredNode);
+      return HSAKMT_STATUS_INVALID_NODE_UNIT;
+   }
+
+   if (node->scratch_base) {
+      return -EEXIST;
+   }
+
+   mem = (void *)hsakmt_alloc_from_vamgr(scratch_vamgr,
+                                         req->alloc_args.SizeInBytes);
+   if (!mem) {
+      vhsa_err("cannot alloc scratch from vamgr, size 0x%lx",
+               req->alloc_args.SizeInBytes);
+      return -ENOMEM;
+   }
+   target = mem;
+
+   ret = HSAKMT_CALL(hsaKmtAllocMemory)(HSAKMT_CTX_ARG(ctx) 
+                                         req->alloc_args.PreferredNode,
+                                         req->alloc_args.SizeInBytes,
+                                         req->alloc_args.MemFlags, &mem);
+   if (ret) {
+      vhsa_err("alloc scratch memory failed, target %p, size 0x%lx, ret %d (%s)",
+               target, req->alloc_args.SizeInBytes, ret, strerror(errno));
+      goto failed_free_vamgr;
+   }
+
+   if (mem != target) {
+      vhsa_err("alloc scratch memory mismatch: target %p != real %p",
+               target, mem);
+      ret = -ENOMEM;
+      goto failed_free_vamgr;
+   }
+
+   node->scratch_base = mem;
+   vhsa_dbg("scratch alloc node %d, addr %p, size 0x%lx",
+            req->alloc_args.PreferredNode, mem, req->alloc_args.SizeInBytes);
+
+   *MemoryAddress = mem;
+   return 0;
+
+failed_free_vamgr:
+   hsakmt_free_from_vamgr(scratch_vamgr, (uint64_t)mem);
+   return ret;
+}
+#else
 static int
 vhsakmt_alloc_scratch(struct vhsakmt_context *ctx,
                       struct vhsakmt_ccmd_memory_req *req, void **MemoryAddress)
@@ -239,6 +302,7 @@ vhsakmt_alloc_scratch(struct vhsakmt_context *ctx,
    *MemoryAddress = mem;
    return 0;
 }
+#endif
 
 static int
 vhsakmt_alloc_align(struct vhsakmt_context *ctx,

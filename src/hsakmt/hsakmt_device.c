@@ -37,6 +37,42 @@
 #include "hsakmt_queues.h"
 #include "hsakmt_context.h"
 
+#ifdef USE_HSAKMT_CTX_API
+static int
+vhsakmt_device_init_ctx_nodes(struct vhsakmt_context *ctx)
+{
+   struct vhsakmt_backend *backend = vhsakmt_device_backend();
+
+   ctx->vhsakmt_num_nodes = backend->vhsakmt_num_nodes;
+   ctx->vhsakmt_gpu_count = backend->vhsakmt_gpu_count;
+   ctx->vhsakmt_nodes = calloc(ctx->vhsakmt_num_nodes, sizeof(struct vhsakmt_node));
+   if (!ctx->vhsakmt_nodes) {
+      vhsa_err("failed to alloc context nodes\n");
+      return -ENOMEM;
+   }
+
+   for (uint32_t i = 0; i < ctx->vhsakmt_num_nodes; i++) {
+      struct vhsakmt_node *node = &ctx->vhsakmt_nodes[i];
+      node->node_props = backend->vhsakmt_nodes[i].node_props;
+      node->doorbell_base_addr = NULL;
+      node->scratch_base = NULL;
+      /*scratch vamgr won't used in ctx node*/
+   }
+
+   return 0;
+}
+
+static void
+vhsakmt_device_free_ctx_nodes(struct vhsakmt_context *ctx)
+{
+   if (!ctx || !ctx->vhsakmt_nodes)
+      return;
+
+   free(ctx->vhsakmt_nodes);
+   ctx->vhsakmt_nodes = NULL;
+}
+#endif
+
 static void
 vhsakmt_device_detach_resource(struct virgl_context *vctx,
                                struct virgl_resource *res)
@@ -59,23 +95,26 @@ vhsakmt_device_destroy(struct virgl_context *vctx)
 {
    struct vhsakmt_context *ctx = to_vhsakmt_context(to_drm_context(vctx));
    struct vhsakmt_backend *backend = vhsakmt_device_backend();
-   uint32_t i;
 
    vhsakmt_context_deinit(ctx);
 
    hsakmt_free_from_vamgr(&backend->vamgr, ctx->vamgr.vm_va_base_addr);
 
-   for (i = 0; i < backend->vhsakmt_num_nodes; i++) {
+#ifndef USE_HSAKMT_CTX_API
+   for (int i = 0; i < backend->vhsakmt_num_nodes; i++) {
       struct vhsakmt_node *node = &backend->vhsakmt_nodes[i];
       if (vhsakmt_device_is_gpu_node(node))
          hsakmt_free_from_vamgr(&node->scratch_vamgr,
                                 (uint64_t)node->scratch_base);
    }
+#endif
 
-   free((void *)ctx->debug_name);
 #ifdef USE_HSAKMT_CTX_API
    HSAKMT_CLOSE_SECONDARY_KFD(ctx);
+   vhsakmt_device_free_ctx_nodes(ctx);
 #endif
+
+   free((void *)ctx->debug_name);
    free(ctx);
 }
 
@@ -514,6 +553,7 @@ vhsakmt_device_create(UNUSED size_t debug_len, UNUSED const char *debug_name)
       free(ctx);
       return NULL;
    }
+   vhsakmt_device_init_ctx_nodes(ctx);
 #endif
 
    ctx->debug_name = strdup(debug_name);
