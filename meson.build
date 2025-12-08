@@ -334,8 +334,13 @@ if with_check_gl_errors
    conf_data.set('CHECK_GL_ERRORS', 1)
 endif
 
+with_apir = get_option('apir')
+if with_apir
+    conf_data.set('ENABLE_APIR', 1)
+endif
+
 with_venus = get_option('venus')
-with_render_server = with_venus
+with_render_server = with_venus or with_apir
 with_render_server_worker = get_option('render-server-worker')
 render_server_install_dir = get_option('prefix') / get_option('libexecdir')
 if with_venus
@@ -350,34 +355,24 @@ if with_venus
       venus_dep = dependency('vulkan')
    endif
 
-   if host_machine.system() in ['freebsd', 'openbsd']
-      # When building for FreeBSD, epoll(7) is provided by a userspace
-      # wrapper around kqueue(2).
-      epoll_dep = dependency('epoll-shim')
-   else
-      epoll_dep = []
-   endif
-
    conf_data.set('ENABLE_VENUS', 1)
 
    if get_option('venus-validate')
       conf_data.set('ENABLE_VENUS_VALIDATE', 1)
    endif
 
-   conf_data.set('ENABLE_RENDER_SERVER', 1)
-   conf_data.set('RENDER_SERVER_EXEC_PATH',
-                 '"' + render_server_install_dir / 'virgl_render_server' + '"')
-   if meson.version().version_compare('>= 0.58')
-      devenv = environment()
-      devenv.append('RENDER_SERVER_EXEC_PATH',
-                    meson.current_build_dir() / 'server/virgl_render_server')
-      meson.add_devenv(devenv)
-   else
-      warning('set RENDER_SERVER_EXEC_PATH env if not install')
-   endif
-
    if get_option('vulkan-preload')
       conf_data.set('ENABLE_VULKAN_PRELOAD', 1)
+   endif
+endif
+
+if with_venus or with_apir
+   if host_machine.system() in ['freebsd', 'openbsd']
+      # When building for FreeBSD, epoll(7) is provided by a userspace
+      # wrapper around kqueue(2).
+      epoll_dep = dependency('epoll-shim')
+   else
+      epoll_dep = []
    endif
 
    if with_render_server_worker == 'process'
@@ -392,6 +387,18 @@ if with_venus
       minijail_dep = dependency('libminijail')
    else
      error('unknown render server worker ' + with_render_server_worker)
+   endif
+
+   conf_data.set('ENABLE_RENDER_SERVER', 1)
+   conf_data.set('RENDER_SERVER_EXEC_PATH',
+                 '"' + render_server_install_dir / 'virgl_render_server' + '"')
+   if meson.version().version_compare('>= 0.58')
+      devenv = environment()
+      devenv.append('RENDER_SERVER_EXEC_PATH',
+                    meson.current_build_dir() / 'server/virgl_render_server')
+      meson.add_devenv(devenv)
+   else
+      warning('set RENDER_SERVER_EXEC_PATH env if not install')
    endif
 endif
 
