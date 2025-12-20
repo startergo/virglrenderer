@@ -180,13 +180,6 @@ proxy_server_create(bool in_process)
       }
    }
 
-   if (!proxy_socket_is_seqpacket(srv->client_fd)) {
-      proxy_log("invalid client fd type");
-      close(srv->client_fd);
-      free(srv);
-      return NULL;
-   }
-
    proxy_log("proxy server with pid %d", srv->pid);
 
    return srv;

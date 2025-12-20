@@ -52,7 +52,11 @@ err:
 bool
 render_socket_pair(int out_fds[static 2])
 {
+#ifdef __APPLE__
+   int type = SOCK_STREAM;
+#else
    int type = SOCK_SEQPACKET;
+#endif
 #ifdef SOCK_CLOEXEC
    type |= SOCK_CLOEXEC;
 #endif
@@ -87,9 +91,11 @@ render_socket_is_seqpacket(int fd)
 void
 render_socket_init(struct render_socket *socket, int fd)
 {
+   bool is_seqpacket = render_socket_is_seqpacket(fd);
    assert(fd >= 0);
    *socket = (struct render_socket){
       .fd = fd,
+      .is_seqpacket = is_seqpacket,
    };
 }
 
@@ -113,6 +119,12 @@ get_received_fds(const struct msghdr *msg, int *out_count)
    return (const int *)CMSG_DATA(cmsg);
 }
 
+enum socket_state {
+   SOCKET_STATE_FIRST_MSG,
+   SOCKET_STATE_HEADER,
+   SOCKET_STATE_DATA,
+};
+
 static bool
 render_socket_recvmsg(struct render_socket *socket, struct msghdr *msg, size_t *out_size)
 {
@@ -120,12 +132,34 @@ render_socket_recvmsg(struct render_socket *socket, struct msghdr *msg, size_t *
 #ifdef MSG_CMSG_CLOEXEC
    flags = MSG_CMSG_CLOEXEC;
 #endif
-   do {
-      const ssize_t s = recvmsg(socket->fd, msg, flags);
-      if (unlikely(s <= 0)) {
-         if (!s)
-            return false;
 
+   enum socket_state state = SOCKET_STATE_FIRST_MSG;
+   struct render_context_socket_header hdr = {0};
+   ssize_t want = sizeof(hdr);
+   struct msghdr _msg = {
+      .msg_iov =
+         &(struct iovec){
+            .iov_base = &hdr,
+            .iov_len = want,
+         },
+      .msg_iovlen = 1,
+      .msg_control = msg->msg_control,
+      .msg_controllen = msg->msg_controllen,
+   };
+	socklen_t _msg_controllen;
+
+   assert(msg->msg_iovlen == 1);
+
+   if (socket->is_seqpacket) {
+      _msg.msg_iov[0].iov_base = msg->msg_iov[0].iov_base;
+      _msg.msg_iov[0].iov_len = msg->msg_iov[0].iov_len;
+      want = 0;
+   }
+
+   *out_size = 0;
+   do {
+      const ssize_t s = recvmsg(socket->fd, &_msg, flags);
+      if (unlikely(s < 0)) {
          if (errno == EAGAIN || errno == EINTR)
             continue;
 
@@ -133,34 +167,65 @@ render_socket_recvmsg(struct render_socket *socket, struct msghdr *msg, size_t *
          return false;
       }
 
-      if (unlikely(msg->msg_flags & (MSG_TRUNC | MSG_CTRUNC))) {
-         render_log("failed to receive message: truncated");
+      if (state == SOCKET_STATE_FIRST_MSG) {
+         _msg_controllen = _msg.msg_controllen;
+         state = socket->is_seqpacket ? SOCKET_STATE_DATA : SOCKET_STATE_HEADER;
+      } else {
+         /* retain the cmsg from first message */
+         assert(_msg.msg_controllen == 0);
+      }
+
+      if (unlikely(_msg.msg_flags & MSG_CTRUNC ||
+                   (socket->is_seqpacket &&
+                     (_msg.msg_flags & MSG_TRUNC) ||
+                      _msg.msg_iov[0].iov_len != (size_t)s))) {
+         render_log("failed to receive message: truncated or incomplete");
 
          int fd_count;
-         const int *fds = get_received_fds(msg, &fd_count);
+         const int *fds = get_received_fds(&_msg, &fd_count);
          for (int i = 0; i < fd_count; i++)
             close(fds[i]);
 
          return false;
       }
+
+      if (s <= want) {
+         _msg.msg_iov[0].iov_base = (char *)_msg.msg_iov[0].iov_base + s;
+         _msg.msg_iov[0].iov_len -= s;
+         want -= s;
+      }
+
+      if (state == SOCKET_STATE_DATA) {
+         *out_size += s;
+      }
+
+      if (!want && state == SOCKET_STATE_HEADER) {
+         want = ntohl(hdr.length);
+         _msg.msg_iov[0].iov_base = msg->msg_iov[0].iov_base;
+         _msg.msg_iov[0].iov_len = want;
+         state = SOCKET_STATE_DATA;
+      } else if (!want && state == SOCKET_STATE_DATA) {
+         msg->msg_controllen = _msg_controllen;
+         break;
+      }
+   } while (true);
+
 #ifndef MSG_CMSG_CLOEXEC
-      int fd_count;
-      int ret = 0;
-      const int *fds = get_received_fds(msg, &fd_count);
-      for (int i = 0; !ret && i < fd_count; i++) {
-         ret = render_socket_set_cloexec(fds[i]);
+   int fd_count;
+   int ret = 0;
+   const int *fds = get_received_fds(msg, &fd_count);
+   for (int i = 0; !ret && i < fd_count; i++) {
+      ret = render_socket_set_cloexec(fds[i]);
+   }
+   if (ret) {
+      for (int i = 0; i < fd_count; i++) {
+         close(fds[i]);
       }
-      if (ret) {
-         for (int i = 0; i < fd_count; i++) {
-            close(fds[i]);
-         }
-         return false;
-      }
+      return false;
+   }
 #endif
 
-      *out_size = s;
-      return true;
-   } while (true);
+   return true;
 }
 
 static bool
@@ -251,8 +316,32 @@ render_socket_receive_data(struct render_socket *socket, void *data, size_t size
 static bool
 render_socket_sendmsg(struct render_socket *socket, const struct msghdr *msg)
 {
+   enum socket_state state = SOCKET_STATE_FIRST_MSG;
+   struct render_context_socket_header hdr = {
+      .length = htonl(msg->msg_iov[0].iov_len),
+   };
+   ssize_t want = sizeof(hdr);
+   struct msghdr _msg = {
+      .msg_iov =
+         &(struct iovec){
+            .iov_base = &hdr,
+            .iov_len = want,
+         },
+      .msg_iovlen = 1,
+      .msg_control = msg->msg_control,
+      .msg_controllen = msg->msg_controllen,
+   };
+
+   assert(msg->msg_iovlen == 1);
+
+   if (socket->is_seqpacket) {
+      _msg.msg_iov[0].iov_base = msg->msg_iov[0].iov_base;
+      _msg.msg_iov[0].iov_len = msg->msg_iov[0].iov_len;
+      want = 0;
+   }
+
    do {
-      const ssize_t s = sendmsg(socket->fd, msg, MSG_NOSIGNAL);
+      const ssize_t s = sendmsg(socket->fd, &_msg, MSG_NOSIGNAL);
       if (unlikely(s < 0)) {
          if (errno == EAGAIN || errno == EINTR)
             continue;
@@ -261,9 +350,30 @@ render_socket_sendmsg(struct render_socket *socket, const struct msghdr *msg)
          return false;
       }
 
-      /* no partial send since the socket type is SOCK_SEQPACKET */
-      assert(msg->msg_iovlen == 1 && msg->msg_iov[0].iov_len == (size_t)s);
-      return true;
+      if (socket->is_seqpacket) {
+         /* no partial send since the socket type is SOCK_SEQPACKET */
+         assert(_msg.msg_iovlen == 1 && _msg.msg_iov[0].iov_len == (size_t)s);
+         state = SOCKET_STATE_DATA;
+      } else if (state == SOCKET_STATE_FIRST_MSG) {
+         _msg.msg_controllen = 0;
+         _msg.msg_control = NULL;
+         state = SOCKET_STATE_HEADER;
+      }
+
+      if (s <= want) {
+         _msg.msg_iov[0].iov_base = (char *)_msg.msg_iov[0].iov_base + s;
+         _msg.msg_iov[0].iov_len -= s;
+         want -= s;
+      }
+
+      if (!want && state == SOCKET_STATE_HEADER) {
+         want = ntohl(hdr.length);
+         _msg.msg_iov[0].iov_base = msg->msg_iov[0].iov_base;
+         _msg.msg_iov[0].iov_len = want;
+         state = SOCKET_STATE_DATA;
+      } else if (!want && state == SOCKET_STATE_DATA) {
+         return true;
+      }
    } while (true);
 }
 
