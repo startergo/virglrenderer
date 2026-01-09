@@ -223,7 +223,9 @@ render_client_dispatch_init(struct render_client *client,
                             const union render_client_op_request *req)
 {
    client->init_flags = req->init.flags;
+#ifdef ENABLE_VENUS
    vkr_library_preload_icd();
+#endif
    return true;
 }
 

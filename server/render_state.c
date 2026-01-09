@@ -11,8 +11,12 @@
 #include "c11/threads.h"
 #endif
 
+#include "../src/drm/drm-uapi/virtgpu_drm.h"
 #include "render_context.h"
 #include "vkr_renderer.h"
+#ifdef ENABLE_APIR
+#include "apir/apir-renderer.h"
+#endif
 
 /* Workers call into vkr renderer.  When they are processes, not much care is
  * required. But when workers are threads, we need to grab a lock to protect
@@ -93,6 +97,7 @@ render_state_lookup_context(uint32_t ctx_id)
    return ctx;
 }
 
+#ifdef ENABLE_VENUS
 static void
 render_state_cb_debug_logger(UNUSED enum virgl_log_level_flags log_level,
                              const char *message,
@@ -115,6 +120,7 @@ static const struct vkr_renderer_callbacks render_state_cbs = {
    .debug_logger = render_state_cb_debug_logger,
    .retire_fence = render_state_cb_retire_fence,
 };
+#endif
 
 static void
 render_state_add_context(struct render_context *ctx)
@@ -136,26 +142,45 @@ render_state_fini(void)
    SCOPE_LOCK_STATE();
    if (state.init_count) {
       state.init_count--;
-      if (!state.init_count)
-         vkr_renderer_fini();
+#ifdef ENABLE_VENUS
+      vkr_renderer_fini();
+#endif
+#ifdef ENABLE_APIR
+      apir_renderer_fini();
+#endif
    }
 }
 
 bool
 render_state_init(uint32_t init_flags)
 {
-   static const uint32_t required_flags = VIRGL_RENDERER_VENUS | VIRGL_RENDERER_NO_VIRGL;
-   if ((init_flags & required_flags) != required_flags)
+   static const uint32_t required_flags = (VIRGL_RENDERER_VENUS | VIRGL_RENDERER_NO_VIRGL
+#ifdef ENABLE_APIR
+      | VIRGL_RENDERER_APIR
+#endif
+      );
+
+   if ((init_flags & required_flags) != required_flags) {
       return false;
+   }
 
    SCOPE_LOCK_STATE();
    if (!state.init_count) {
-      /* always use sync thread and async fence cb for low latency */
-      static const uint32_t vkr_flags =
-         VKR_RENDERER_THREAD_SYNC | VKR_RENDERER_ASYNC_FENCE_CB;
-      if (!vkr_renderer_init(vkr_flags, &render_state_cbs))
-         return false;
-
+#ifdef ENABLE_VENUS
+      if (init_flags | VIRGL_RENDERER_VENUS) {
+         /* always use sync thread and async fence cb for low latency */
+         static const uint32_t vkr_flags =
+            VKR_RENDERER_THREAD_SYNC | VKR_RENDERER_ASYNC_FENCE_CB;
+         if (!vkr_renderer_init(vkr_flags, &render_state_cbs))
+            return false;
+      }
+#endif
+#ifdef ENABLE_APIR
+      if (init_flags | VIRGL_RENDERER_APIR) {
+         if (!apir_renderer_init())
+           return false;
+      }
+#endif
       list_inithead(&state.contexts);
    }
 
@@ -170,10 +195,22 @@ render_state_create_context(struct render_context *ctx,
                             uint32_t name_len,
                             const char *name)
 {
+   uint32_t capset_id = flags & VIRGL_RENDERER_CONTEXT_FLAG_CAPSET_ID_MASK;
+   ctx->capset_id = capset_id;  // Store for command routing
    {
       SCOPE_LOCK_RENDERER();
-      if (!vkr_renderer_create_context(ctx->ctx_id, flags, name_len, name))
-         return false;
+#ifdef ENABLE_APIR
+      if (capset_id == VIRTGPU_DRM_CAPSET_APIR) {
+         if (!apir_renderer_create_context(ctx->ctx_id, flags, name_len, name))
+            return false;
+      }
+#endif
+#ifdef ENABLE_VENUS
+      if (capset_id == VIRTGPU_DRM_CAPSET_VENUS) {
+         if (!vkr_renderer_create_context(ctx->ctx_id, flags, name_len, name))
+            return false;
+      }
+#endif
    }
 
    render_state_add_context(ctx);
@@ -190,7 +227,16 @@ render_state_destroy_context(uint32_t ctx_id)
 
    {
       SCOPE_LOCK_RENDERER();
-      vkr_renderer_destroy_context(ctx_id);
+#ifdef ENABLE_APIR
+      if (ctx->capset_id == VIRTGPU_DRM_CAPSET_APIR) {
+         apir_renderer_destroy_context(ctx_id);
+      }
+#endif
+#ifdef ENABLE_VENUS
+      if (ctx->capset_id == VIRTGPU_DRM_CAPSET_VENUS) {
+         vkr_renderer_destroy_context(ctx_id);
+      }
+#endif
    }
 
    render_state_remove_context(ctx);
@@ -199,8 +245,23 @@ render_state_destroy_context(uint32_t ctx_id)
 bool
 render_state_submit_cmd(uint32_t ctx_id, void *cmd, uint32_t size)
 {
+   struct render_context *ctx = render_state_lookup_context(ctx_id);
+   if (!ctx) {
+      return false;
+   }
+
    SCOPE_LOCK_RENDERER();
-   return vkr_renderer_submit_cmd(ctx_id, cmd, size);
+#ifdef ENABLE_APIR
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_APIR) {
+      return apir_renderer_submit_cmd(ctx_id, cmd, size);
+   }
+#endif
+#ifdef ENABLE_VENUS
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_VENUS) {
+      return vkr_renderer_submit_cmd(ctx_id, cmd, size);
+   }
+#endif
+   return false;
 }
 
 bool
@@ -209,8 +270,23 @@ render_state_submit_fence(uint32_t ctx_id,
                           uint64_t ring_idx,
                           uint64_t fence_id)
 {
+   struct render_context *ctx = render_state_lookup_context(ctx_id);
+   if (!ctx) {
+      return false;
+   }
+
    SCOPE_LOCK_RENDERER();
-   return vkr_renderer_submit_fence(ctx_id, flags, ring_idx, fence_id);
+#ifdef ENABLE_APIR
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_APIR) {
+      return apir_renderer_submit_fence(ctx_id, flags, ring_idx, fence_id);
+   }
+#endif
+#ifdef ENABLE_VENUS
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_VENUS) {
+      return vkr_renderer_submit_fence(ctx_id, flags, ring_idx, fence_id);
+   }
+#endif
+   return false;
 }
 
 bool
@@ -224,10 +300,27 @@ render_state_create_resource(uint32_t ctx_id,
                              uint32_t *out_map_info,
                              struct virgl_resource_vulkan_info *out_vulkan_info)
 {
+   struct render_context *ctx = render_state_lookup_context(ctx_id);
+   if (!ctx) {
+      return false;
+   }
+
    SCOPE_LOCK_RENDERER();
-   return vkr_renderer_create_resource(ctx_id, res_id, blob_id, blob_size, blob_flags,
-                                       out_fd_type, out_res_fd, out_map_info,
-                                       out_vulkan_info);
+#ifdef ENABLE_APIR
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_APIR) {
+      return apir_renderer_create_resource(ctx_id, res_id, blob_id, blob_size, blob_flags,
+                                           out_fd_type, out_res_fd, out_map_info,
+                                           out_vulkan_info);
+   }
+#endif
+#ifdef ENABLE_VENUS
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_VENUS) {
+      return vkr_renderer_create_resource(ctx_id, res_id, blob_id, blob_size, blob_flags,
+                                          out_fd_type, out_res_fd, out_map_info,
+                                          out_vulkan_info);
+   }
+#endif
+   return false;
 }
 
 bool
@@ -237,13 +330,38 @@ render_state_import_resource(uint32_t ctx_id,
                              int fd,
                              uint64_t size)
 {
+   struct render_context *ctx = render_state_lookup_context(ctx_id);
+   if (!ctx) return false;
+
    SCOPE_LOCK_RENDERER();
-   return vkr_renderer_import_resource(ctx_id, res_id, fd_type, fd, size);
+#ifdef ENABLE_APIR
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_APIR) {
+      return apir_renderer_import_resource(ctx_id, res_id, fd_type, fd, size);
+   }
+#endif
+#ifdef ENABLE_VENUS
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_VENUS) {
+      return vkr_renderer_import_resource(ctx_id, res_id, fd_type, fd, size);
+   }
+#endif
+   return false;
 }
 
 void
 render_state_destroy_resource(uint32_t ctx_id, uint32_t res_id)
 {
+   struct render_context *ctx = render_state_lookup_context(ctx_id);
+   if (!ctx) return;
+
    SCOPE_LOCK_RENDERER();
-   vkr_renderer_destroy_resource(ctx_id, res_id);
+#ifdef ENABLE_APIR
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_APIR) {
+      apir_renderer_destroy_resource(ctx_id, res_id);
+   }
+#endif
+#ifdef ENABLE_VENUS
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_VENUS) {
+      vkr_renderer_destroy_resource(ctx_id, res_id);
+   }
+#endif
 }

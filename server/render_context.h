@@ -12,6 +12,8 @@
 
 struct render_context {
    uint32_t ctx_id;
+   uint32_t capset_id;
+   
    struct render_socket socket;
    struct list_head head;
 
