@@ -11,6 +11,9 @@
 #include "proxy_renderer.h"
 #include "proxy_server.h"
 #include "vkr_renderer.h"
+#ifdef ENABLE_APIR
+#include "apir/apir-renderer.h"
+#endif
 
 int
 proxy_renderer_init(const struct proxy_renderer_cbs *cbs, uint32_t flags)
@@ -58,8 +61,14 @@ size_t
 proxy_get_capset(uint32_t set, void *caps)
 {
    switch (set) {
+#ifdef ENABLE_VENUS
    case VIRTGPU_DRM_CAPSET_VENUS:
       return vkr_get_capset(caps, proxy_renderer.flags);
+#endif
+#ifdef ENABLE_APIR
+   case VIRTGPU_DRM_CAPSET_APIR:
+      return apir_renderer_get_capset(caps, proxy_renderer.flags);
+#endif
    default:
       break;
    }
