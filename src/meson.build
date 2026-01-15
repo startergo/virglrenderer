@@ -61,6 +61,7 @@ vrend_winsys_glx_sources = [
 ]
 
 apir_sources = [
+    'apir/apir.h',
     'apir/apir.c',
     'apir/apir-context.c',
     'apir/apir-context.h',
