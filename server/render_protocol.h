@@ -39,6 +39,7 @@ enum render_context_op {
    RENDER_CONTEXT_OP_DESTROY_RESOURCE,
    RENDER_CONTEXT_OP_SUBMIT_CMD,
    RENDER_CONTEXT_OP_SUBMIT_FENCE,
+   RENDER_CONTEXT_OP_CONFIGURE,
 
    RENDER_CONTEXT_OP_COUNT,
 };
@@ -208,6 +209,17 @@ struct render_context_op_submit_fence_request {
    uint32_t seqno;
 };
 
+/* Configure a context with key-value pairs.
+ *
+ * This allows the hypervisor to send configuration data to the proxy process.
+ * Used specifically for APIR configuration.
+ */
+struct render_context_op_configure_request {
+   struct render_context_op_header header;
+   char key[64];    /* Configuration key */
+   char value[256]; /* Configuration value */
+};
+
 union render_context_op_request {
    struct render_context_op_header header;
    struct render_context_op_nop_request nop;
@@ -217,6 +229,7 @@ union render_context_op_request {
    struct render_context_op_destroy_resource_request destroy_resource;
    struct render_context_op_submit_cmd_request submit_cmd;
    struct render_context_op_submit_fence_request submit_fence;
+   struct render_context_op_configure_request configure;
 };
 
 #endif /* RENDER_PROTOCOL_H */

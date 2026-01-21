@@ -7,6 +7,9 @@
 #include "apir-renderer.h"
 #include "apir-protocol.h"
 #include "apir-context.h"
+#include "virgl_context.h"
+#include "virglrenderer.h"
+#include "proxy/proxy_context.h"
 #include "apir-resource.h"
 #include "apir-codec.h"
 #include "apir-lib-impl.h"
@@ -230,6 +233,31 @@ dlopen_validated_library_name(struct apir_context *ctx, const char *library_name
 }
 
 int virgl_apir_configure_kv(uint32_t ctx_id, const char *key, const char *value) {
+#ifdef ENABLE_RENDER_SERVER
+   // PROXY IMPLEMENTATION: Send configuration to proxy via secure IPC
+   struct virgl_context *virgl_ctx = virgl_context_lookup(ctx_id);
+   if (!virgl_ctx) {
+      APIR_ERROR("Cannot configure KV: context %u not found", ctx_id);
+      return -1;
+   }
+
+   if (!key || !value) {
+      APIR_ERROR("Cannot configure KV: key or value is NULL");
+      return -1;
+   }
+
+   // Cast to proxy context and send configuration via secure IPC
+   struct proxy_context *proxy_ctx = (struct proxy_context *)virgl_ctx;
+   int result = proxy_context_configure(proxy_ctx, key, value);
+
+   return result;
+#else
+   // IN-PROCESS IMPLEMENTATION: Store configuration directly in local APIR context
+   return apir_renderer_configure_kv(ctx_id, key, value);
+#endif
+}
+
+int apir_renderer_configure_kv(uint32_t ctx_id, const char *key, const char *value) {
    struct apir_context *ctx = apir_context_lookup(ctx_id);
    if (!ctx) {
       APIR_ERROR("Cannot configure KV: context %u not found", ctx_id);
@@ -274,6 +302,5 @@ int virgl_apir_configure_kv(uint32_t ctx_id, const char *key, const char *value)
    ctx->configured = true;
    mtx_unlock(&ctx->config_mutex);
 
-   printf("CONFIGURE: %s --> %s (ctx: %u)\n", key, value, ctx_id);
    return 0;
 }

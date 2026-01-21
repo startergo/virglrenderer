@@ -92,3 +92,5 @@ static inline bool use_apir_backend_instead_of_vk(void) {
 
    return vk_use_apir_backend == 1;
 }
+
+int apir_renderer_configure_kv(uint32_t ctx_id, const char *key, const char *value);

@@ -27,6 +27,9 @@ bool
 render_state_submit_cmd(uint32_t ctx_id, void *cmd, uint32_t size);
 
 bool
+render_state_configure(uint32_t ctx_id, const char *key, const char *value);
+
+bool
 render_state_submit_fence(uint32_t ctx_id,
                           uint32_t flags,
                           uint64_t ring_idx,

@@ -297,6 +297,33 @@ proxy_context_submit_cmd(struct virgl_context *base, const void *buffer, size_t 
    return 0;
 }
 
+int
+proxy_context_configure(struct proxy_context *ctx, const char *key, const char *value)
+{
+   if (!key || !value) {
+      proxy_log("failed to configure: key or value is NULL");
+      return -1;
+   }
+
+   struct render_context_op_configure_request req = {
+      .header.op = RENDER_CONTEXT_OP_CONFIGURE,
+   };
+
+   // Copy key and value, ensuring null termination
+   strncpy(req.key, key, sizeof(req.key) - 1);
+   req.key[sizeof(req.key) - 1] = '\0';
+
+   strncpy(req.value, value, sizeof(req.value) - 1);
+   req.value[sizeof(req.value) - 1] = '\0';
+
+   if (!proxy_socket_send_request(&ctx->socket, &req, sizeof(req))) {
+      proxy_log("failed to configure %s=%s", key, value);
+      return -1;
+   }
+
+   return 0;
+}
+
 static bool
 validate_resource_fd_shm(int fd, uint64_t expected_size)
 {

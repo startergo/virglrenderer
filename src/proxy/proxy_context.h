@@ -61,4 +61,15 @@ struct proxy_context {
    } sync_thread;
 };
 
+struct virgl_context *
+proxy_context_create(uint32_t ctx_id,
+                     uint32_t ctx_flags,
+                     size_t debug_len,
+                     const char *debug_name);
+
+int
+proxy_context_configure(struct proxy_context *ctx,
+                        const char *key,
+                        const char *value);
+
 #endif /* PROXY_CONTEXT_H */

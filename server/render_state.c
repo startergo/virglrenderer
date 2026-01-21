@@ -265,6 +265,23 @@ render_state_submit_cmd(uint32_t ctx_id, void *cmd, uint32_t size)
 }
 
 bool
+render_state_configure(uint32_t ctx_id, const char *key, const char *value)
+{
+   struct render_context *ctx = render_state_lookup_context(ctx_id);
+   if (!ctx) {
+      return false;
+   }
+
+   SCOPE_LOCK_RENDERER();
+#ifdef ENABLE_APIR
+   if (ctx->capset_id == VIRTGPU_DRM_CAPSET_APIR) {
+      return apir_renderer_configure_kv(ctx_id, key, value) == 0;
+   }
+#endif
+   return false;
+}
+
+bool
 render_state_submit_fence(uint32_t ctx_id,
                           uint32_t flags,
                           uint64_t ring_idx,

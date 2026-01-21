@@ -80,6 +80,17 @@ render_context_dispatch_destroy_resource(struct render_context *ctx,
 }
 
 static bool
+render_context_dispatch_configure(struct render_context *ctx,
+                                 const union render_context_op_request *request,
+                                 UNUSED const int *fds,
+                                 UNUSED int fd_count)
+{
+   const struct render_context_op_configure_request *req = &request->configure;
+
+   return render_state_configure(ctx->ctx_id, req->key, req->value);
+}
+
+static bool
 render_context_dispatch_import_resource(struct render_context *ctx,
                                         const union render_context_op_request *request,
                                         const int *fds,
@@ -192,6 +203,7 @@ static const struct render_context_dispatch_entry
       RENDER_CONTEXT_DISPATCH(DESTROY_RESOURCE, destroy_resource, 0),
       RENDER_CONTEXT_DISPATCH(SUBMIT_CMD, submit_cmd, 0),
       RENDER_CONTEXT_DISPATCH(SUBMIT_FENCE, submit_fence, 0),
+      RENDER_CONTEXT_DISPATCH(CONFIGURE, configure, 0),
 #undef RENDER_CONTEXT_DISPATCH
    };
 
