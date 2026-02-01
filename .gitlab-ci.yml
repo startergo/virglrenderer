@@ -17,7 +17,7 @@ variables:
   #
   # Pick a pipeline on https://gitlab.freedesktop.org/mesa/mesa/-/pipelines/
   #
-  MESA_PIPELINE_ID: 1594204
+  MESA_PIPELINE_ID: 1595334
 
   MESA_PROJECT_PATH: mesa/mesa
   S3_JWT_FILE: /s3_jwt
@@ -59,7 +59,7 @@ include:
     # IMPORTANT: Use a recent Mesa Git revision
     # The commit ref must be in sync with the pipeline picked above
     # It can be found on the pipeline page below the commit message
-    ref: 042348895560dea1109617facb61bdd618967284
+    ref: 0e9d29f51850e96b8dc1fc0b299017f5958a9a9f
     file:
       - '/.gitlab-ci/image-tags.yml'
 
