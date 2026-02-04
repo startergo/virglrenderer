@@ -80,6 +80,7 @@ option(
     'panfrost-experimental',
     'asahi',
     'msm',
+    'i915-experimental',
   ],
   description : 'List of drm native-context renderers to build'
 )

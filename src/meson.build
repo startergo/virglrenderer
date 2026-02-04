@@ -131,6 +131,19 @@ drm_panfrost_sources = [
    'drm/panfrost/panfrost_ccmd.c',
 ]
 
+drm_i915_sources = [
+   'drm/drm-uapi/i915_drm.h',
+   'drm/i915/i915_ccmd.c',
+   'drm/i915/i915_ccmd.h',
+   'drm/i915/i915_proto.h',
+   'drm/i915/i915_object.c',
+   'drm/i915/i915_object.h',
+   'drm/i915/i915_resource.c',
+   'drm/i915/i915_resource.h',
+   'drm/i915/i915_renderer.c',
+   'drm/i915/i915_renderer.h',
+]
+
 proxy_sources = [
    'proxy/proxy_client.c',
    'proxy/proxy_common.c',
@@ -206,6 +219,10 @@ endif
 
 if with_drm_panfrost
    virgl_sources += drm_panfrost_sources
+endif
+
+if with_drm_i915
+   virgl_sources += drm_i915_sources
 endif
 
 if with_render_server
