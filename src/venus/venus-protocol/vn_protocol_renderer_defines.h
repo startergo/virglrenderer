@@ -468,6 +468,15 @@ typedef enum VkCommandTypeEXT {
     VK_COMMAND_TYPE_vkCmdDrawMeshTasksEXT_EXT = 332,
     VK_COMMAND_TYPE_vkCmdDrawMeshTasksIndirectEXT_EXT = 333,
     VK_COMMAND_TYPE_vkCmdDrawMeshTasksIndirectCountEXT_EXT = 334,
+    VK_COMMAND_TYPE_vkWriteSamplerDescriptorsEXT_EXT = 335,
+    VK_COMMAND_TYPE_vkWriteResourceDescriptorsEXT_EXT = 336,
+    VK_COMMAND_TYPE_vkCmdBindSamplerHeapEXT_EXT = 337,
+    VK_COMMAND_TYPE_vkCmdBindResourceHeapEXT_EXT = 338,
+    VK_COMMAND_TYPE_vkCmdPushDataEXT_EXT = 339,
+    VK_COMMAND_TYPE_vkGetImageOpaqueCaptureDataEXT_EXT = 340,
+    VK_COMMAND_TYPE_vkGetPhysicalDeviceDescriptorSizeEXT_EXT = 341,
+    VK_COMMAND_TYPE_vkRegisterCustomBorderColorEXT_EXT = 342,
+    VK_COMMAND_TYPE_vkUnregisterCustomBorderColorEXT_EXT = 343,
 } VkCommandTypeEXT;
 
 typedef enum VkCommandFlagBitsEXT {
@@ -2869,6 +2878,69 @@ struct vn_command_vkCmdSetDepthClampRangeEXT {
     const VkDepthClampRangeEXT* pDepthClampRange;
 };
 
+struct vn_command_vkWriteSamplerDescriptorsEXT {
+    VkDevice device;
+    uint32_t samplerCount;
+    const VkSamplerCreateInfo* pSamplers;
+    const VkHostAddressRangeEXT* pDescriptors;
+
+    VkResult ret;
+};
+
+struct vn_command_vkWriteResourceDescriptorsEXT {
+    VkDevice device;
+    uint32_t resourceCount;
+    const VkResourceDescriptorInfoEXT* pResources;
+    const VkHostAddressRangeEXT* pDescriptors;
+
+    VkResult ret;
+};
+
+struct vn_command_vkCmdBindSamplerHeapEXT {
+    VkCommandBuffer commandBuffer;
+    const VkBindHeapInfoEXT* pBindInfo;
+};
+
+struct vn_command_vkCmdBindResourceHeapEXT {
+    VkCommandBuffer commandBuffer;
+    const VkBindHeapInfoEXT* pBindInfo;
+};
+
+struct vn_command_vkCmdPushDataEXT {
+    VkCommandBuffer commandBuffer;
+    const VkPushDataInfoEXT* pPushDataInfo;
+};
+
+struct vn_command_vkRegisterCustomBorderColorEXT {
+    VkDevice device;
+    const VkSamplerCustomBorderColorCreateInfoEXT* pBorderColor;
+    VkBool32 requestIndex;
+    uint32_t* pIndex;
+
+    VkResult ret;
+};
+
+struct vn_command_vkUnregisterCustomBorderColorEXT {
+    VkDevice device;
+    uint32_t index;
+};
+
+struct vn_command_vkGetImageOpaqueCaptureDataEXT {
+    VkDevice device;
+    uint32_t imageCount;
+    const VkImage* pImages;
+    VkHostAddressRangeEXT* pDatas;
+
+    VkResult ret;
+};
+
+struct vn_command_vkGetPhysicalDeviceDescriptorSizeEXT {
+    VkPhysicalDevice physicalDevice;
+    VkDescriptorType descriptorType;
+
+    VkDeviceSize ret;
+};
+
 struct vn_command_vkSetReplyCommandStreamMESA {
     const VkCommandStreamDescriptionMESA* pStream;
 };
@@ -3285,6 +3357,15 @@ struct vn_dispatch_context {
     void (*dispatch_vkCmdSetRenderingAttachmentLocations)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetRenderingAttachmentLocations *args);
     void (*dispatch_vkCmdSetRenderingInputAttachmentIndices)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetRenderingInputAttachmentIndices *args);
     void (*dispatch_vkCmdSetDepthClampRangeEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetDepthClampRangeEXT *args);
+    void (*dispatch_vkWriteSamplerDescriptorsEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkWriteSamplerDescriptorsEXT *args);
+    void (*dispatch_vkWriteResourceDescriptorsEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkWriteResourceDescriptorsEXT *args);
+    void (*dispatch_vkCmdBindSamplerHeapEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdBindSamplerHeapEXT *args);
+    void (*dispatch_vkCmdBindResourceHeapEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdBindResourceHeapEXT *args);
+    void (*dispatch_vkCmdPushDataEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdPushDataEXT *args);
+    void (*dispatch_vkRegisterCustomBorderColorEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkRegisterCustomBorderColorEXT *args);
+    void (*dispatch_vkUnregisterCustomBorderColorEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkUnregisterCustomBorderColorEXT *args);
+    void (*dispatch_vkGetImageOpaqueCaptureDataEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkGetImageOpaqueCaptureDataEXT *args);
+    void (*dispatch_vkGetPhysicalDeviceDescriptorSizeEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceDescriptorSizeEXT *args);
     void (*dispatch_vkSetReplyCommandStreamMESA)(struct vn_dispatch_context *ctx, struct vn_command_vkSetReplyCommandStreamMESA *args);
     void (*dispatch_vkSeekReplyCommandStreamMESA)(struct vn_dispatch_context *ctx, struct vn_command_vkSeekReplyCommandStreamMESA *args);
     void (*dispatch_vkExecuteCommandStreamsMESA)(struct vn_dispatch_context *ctx, struct vn_command_vkExecuteCommandStreamsMESA *args);
