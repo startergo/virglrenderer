@@ -164,6 +164,7 @@ virgl_depends = [
    libdrm_dep,
    thread_dep,
    m_dep,
+   dl_dep,
 ]
 
 if with_tracing == 'perfetto'

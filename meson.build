@@ -79,11 +79,20 @@ add_project_arguments(cc.get_supported_arguments(flags), language : 'c')
 
 prog_python = import('python').find_installation('python3')
 
+with_host_windows = host_machine.system() == 'windows'
+with_host_darwin = host_machine.system() == 'darwin'
+
 not_found = dependency('', required: false)
 gbm_dep = not_found
 thread_dep = dependency('threads')
 epoxy_dep = dependency('epoxy', version: '>= 1.5.4')
 m_dep = cc.find_library('m', required : false)
+dl_dep = not_found
+if not with_host_windows and not with_host_darwin
+  if not cc.has_function('dlopen')
+    dl_dep = cc.find_library('dl', required : true)
+  endif
+endif
 
 conf_data = configuration_data()
 conf_data.set('VERSION', meson.project_version())
@@ -179,9 +188,6 @@ endif
 if cc.has_header('dlfcn.h')
    conf_data.set('HAVE_DLFCN_H', 1)
 endif
-
-with_host_windows = host_machine.system() == 'windows'
-with_host_darwin = host_machine.system() == 'darwin'
 
 if thread_dep.found() and not with_host_windows
   conf_data.set('HAVE_PTHREAD', 1)
