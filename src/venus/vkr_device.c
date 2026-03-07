@@ -130,7 +130,16 @@ vkr_dispatch_vkCreateDevice(struct vn_dispatch_context *dispatch,
    /* append extensions for our own use */
    const char **exts = NULL;
    uint32_t ext_count = args->pCreateInfo->enabledExtensionCount;
+#ifdef __APPLE__
+   /* Replace the emulated KHR_external_memory_fd with the real
+    * Metal extensions that MoltenVK supports.
+    */
+   ext_count += physical_dev->EXT_external_memory_metal;
+   ext_count += physical_dev->EXT_metal_objects;
+   ext_count += 1; /* room for filtering guest's KHR_external_memory_fd */
+#else
    ext_count += physical_dev->KHR_external_memory_fd;
+#endif
    ext_count += physical_dev->EXT_external_memory_dma_buf;
    ext_count += physical_dev->KHR_external_fence_fd;
    if (ext_count > args->pCreateInfo->enabledExtensionCount) {
@@ -139,12 +148,31 @@ vkr_dispatch_vkCreateDevice(struct vn_dispatch_context *dispatch,
          args->ret = VK_ERROR_OUT_OF_HOST_MEMORY;
          return;
       }
+#ifdef __APPLE__
+      /* Filter the emulated KHR_external_memory_fd from the guest's list */
+      ext_count = 0;
+      for (uint32_t i = 0; i < args->pCreateInfo->enabledExtensionCount; i++) {
+         if (!strcmp(args->pCreateInfo->ppEnabledExtensionNames[i],
+                     "VK_KHR_external_memory_fd"))
+            continue;
+         exts[ext_count++] = args->pCreateInfo->ppEnabledExtensionNames[i];
+      }
+#else
       for (uint32_t i = 0; i < args->pCreateInfo->enabledExtensionCount; i++)
          exts[i] = args->pCreateInfo->ppEnabledExtensionNames[i];
 
       ext_count = args->pCreateInfo->enabledExtensionCount;
+#endif
+
+#ifdef __APPLE__
+      if (physical_dev->EXT_external_memory_metal)
+         exts[ext_count++] = "VK_EXT_external_memory_metal";
+      if (physical_dev->EXT_metal_objects)
+         exts[ext_count++] = "VK_EXT_metal_objects";
+#else
       if (physical_dev->KHR_external_memory_fd)
          exts[ext_count++] = "VK_KHR_external_memory_fd";
+#endif
       if (physical_dev->EXT_external_memory_dma_buf)
          exts[ext_count++] = "VK_EXT_external_memory_dma_buf";
       if (physical_dev->KHR_external_fence_fd)

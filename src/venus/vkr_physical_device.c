@@ -220,6 +220,12 @@ vkr_physical_device_init_memory_properties(struct vkr_physical_device *physical_
    }
 
    if (physical_dev->KHR_external_memory_fd) {
+#ifdef __APPLE__
+      /* MoltenVK does not support opaque fd handles; memory export
+       * on macOS uses the Metal+SHM path instead.
+       */
+      physical_dev->is_opaque_fd_export_supported = false;
+#else
       info.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
       vk->GetPhysicalDeviceExternalBufferProperties(handle, &info, &props);
       physical_dev->is_opaque_fd_export_supported =
@@ -227,6 +233,7 @@ vkr_physical_device_init_memory_properties(struct vkr_physical_device *physical_
           VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT) &&
          (props.externalMemoryProperties.exportFromImportedHandleTypes &
           VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT);
+#endif
    }
 
    /* fallback to gbm allocation with dma-buf import */
@@ -282,6 +289,12 @@ vkr_physical_device_init_extensions(struct vkr_physical_device *physical_dev)
          physical_dev->EXT_external_memory_dma_buf = true;
       else if (!strcmp(props->extensionName, "VK_KHR_external_fence_fd"))
          physical_dev->KHR_external_fence_fd = true;
+#ifdef __APPLE__
+      else if (!strcmp(props->extensionName, "VK_EXT_external_memory_metal"))
+         physical_dev->EXT_external_memory_metal = true;
+      else if (!strcmp(props->extensionName, "VK_EXT_metal_objects"))
+         physical_dev->EXT_metal_objects = true;
+#endif
 
       const uint32_t spec_ver = vkr_extension_get_spec_version(props->extensionName);
       if (spec_ver) {
@@ -304,6 +317,32 @@ vkr_physical_device_init_extensions(struct vkr_physical_device *physical_dev)
       if (!(fence_props.externalFenceFeatures & VK_EXTERNAL_FENCE_FEATURE_EXPORTABLE_BIT))
          physical_dev->KHR_external_fence_fd = false;
    }
+
+#ifdef __APPLE__
+   /* On macOS, VK_KHR_external_memory_fd is emulated via Metal shared memory.
+    * MoltenVK doesn't natively support it, but virglrenderer implements
+    * fd-based memory export using Metal buffers backed by POSIX SHM.
+    * Inject it into the advertised list so the guest Venus driver accepts
+    * the physical device (it's a hard requirement in vn_physical_device.c).
+    */
+   if (physical_dev->EXT_external_memory_metal && !physical_dev->KHR_external_memory_fd) {
+      const uint32_t spec_ver =
+         vkr_extension_get_spec_version("VK_KHR_external_memory_fd");
+      VkExtensionProperties *new_exts = NULL;
+      if (spec_ver)
+         new_exts = realloc(exts, sizeof(*exts) * (advertised_count + 1));
+      if (new_exts) {
+         exts = new_exts;
+         snprintf(new_exts[advertised_count].extensionName, VK_MAX_EXTENSION_NAME_SIZE,
+                  "VK_KHR_external_memory_fd");
+         new_exts[advertised_count].specVersion = spec_ver;
+         advertised_count++;
+         physical_dev->KHR_external_memory_fd = true;
+      } else {
+         vkr_log("failed to inject VK_KHR_external_memory_fd");
+      }
+   }
+#endif
 
    physical_dev->extensions = realloc(exts, sizeof(*exts) * advertised_count);
    physical_dev->extension_count = advertised_count;
