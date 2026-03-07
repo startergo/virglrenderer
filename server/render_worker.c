@@ -432,6 +432,171 @@ render_worker_jail_detach_workers(struct render_worker_jail *jail)
       render_worker_jail_remove_worker(jail, worker);
 }
 
+#if defined(ENABLE_RENDER_SERVER_WORKER_PROCESS) && defined(__APPLE__)
+
+#include <crt_externs.h>
+#include <getopt.h>
+#include <limits.h>
+#include <mach-o/dyld.h>
+#include <spawn.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "render_context.h"
+
+/* On macOS, fork() without exec() inherits stale XPC connections
+ * (Mach port based), breaking Metal shader compilation in worker
+ * subprocesses.  posix_spawn() atomically creates a fresh process
+ * image without an intermediate forked state.
+ *
+ * POSIX_SPAWN_CLOEXEC_DEFAULT closes all fds by default in the child;
+ * only ctx_fd is explicitly inherited via addinherit_np.
+ */
+
+static bool
+render_worker_get_self_path(char *buf, size_t bufsize)
+{
+   uint32_t size = (uint32_t)bufsize;
+   if (_NSGetExecutablePath(buf, &size) != 0)
+      return false;
+   return true;
+}
+
+static pid_t
+render_worker_spawn(const struct render_context_args *ctx_args)
+{
+   char self_path[4096];
+   if (!render_worker_get_self_path(self_path, sizeof(self_path))) {
+      render_log("failed to get executable path");
+      return -1;
+   }
+
+   char fd_str[16];
+   char id_str[16];
+   char flags_str[16];
+   snprintf(fd_str, sizeof(fd_str), "%d", ctx_args->ctx_fd);
+   snprintf(id_str, sizeof(id_str), "%u", ctx_args->ctx_id);
+   snprintf(flags_str, sizeof(flags_str), "%u", ctx_args->init_flags);
+
+   char *const argv[] = {
+      self_path,
+      "--worker-mode",
+      "--ctx-fd", fd_str,
+      "--ctx-id", id_str,
+      "--init-flags", flags_str,
+      "--ctx-name", (char *)ctx_args->ctx_name,
+      NULL,
+   };
+
+   posix_spawnattr_t attr;
+   if (posix_spawnattr_init(&attr) != 0)
+      return -1;
+   posix_spawnattr_setflags(&attr, POSIX_SPAWN_CLOEXEC_DEFAULT);
+
+   posix_spawn_file_actions_t file_actions;
+   if (posix_spawn_file_actions_init(&file_actions) != 0) {
+      posix_spawnattr_destroy(&attr);
+      return -1;
+   }
+   posix_spawn_file_actions_addinherit_np(&file_actions, STDIN_FILENO);
+   posix_spawn_file_actions_addinherit_np(&file_actions, STDOUT_FILENO);
+   posix_spawn_file_actions_addinherit_np(&file_actions, STDERR_FILENO);
+   posix_spawn_file_actions_addinherit_np(&file_actions, ctx_args->ctx_fd);
+
+   pid_t pid;
+   int ret = posix_spawn(&pid, self_path, &file_actions, &attr, argv,
+                         *_NSGetEnviron());
+
+   posix_spawn_file_actions_destroy(&file_actions);
+   posix_spawnattr_destroy(&attr);
+
+   if (ret != 0) {
+      render_log("posix_spawn failed: %s", strerror(ret));
+      return -1;
+   }
+
+   return pid;
+}
+
+bool
+render_worker_parse_args(int argc, char **argv, struct render_context_args *ctx_args)
+{
+   enum {
+      OPT_WORKER_MODE = 1000,
+      OPT_CTX_FD,
+      OPT_CTX_ID,
+      OPT_INIT_FLAGS,
+      OPT_CTX_NAME,
+   };
+   static const struct option options[] = {
+      { "worker-mode", no_argument,       NULL, OPT_WORKER_MODE },
+      { "ctx-fd",      required_argument, NULL, OPT_CTX_FD },
+      { "ctx-id",      required_argument, NULL, OPT_CTX_ID },
+      { "init-flags",  required_argument, NULL, OPT_INIT_FLAGS },
+      { "ctx-name",    required_argument, NULL, OPT_CTX_NAME },
+      { NULL, 0, NULL, 0 },
+   };
+
+   memset(ctx_args, 0, sizeof(*ctx_args));
+   ctx_args->ctx_fd = -1;
+
+   char *endptr;
+   long lval;
+   unsigned long ulval;
+
+   optind = 1;
+   while (true) {
+      const int ret = getopt_long(argc, argv, "", options, NULL);
+      if (ret == -1)
+         break;
+
+      switch (ret) {
+      case OPT_WORKER_MODE:
+         break;
+      case OPT_CTX_FD:
+         errno = 0;
+         lval = strtol(optarg, &endptr, 10);
+         if (endptr == optarg || *endptr != '\0' || errno ||
+             lval < 0 || lval > INT_MAX)
+            ctx_args->ctx_fd = -1;
+         else
+            ctx_args->ctx_fd = (int)lval;
+         break;
+      case OPT_CTX_ID:
+         errno = 0;
+         ulval = strtoul(optarg, &endptr, 10);
+         ctx_args->ctx_id = (endptr != optarg && *endptr == '\0' && !errno &&
+                             ulval <= UINT32_MAX) ? (uint32_t)ulval : 0;
+         break;
+      case OPT_INIT_FLAGS:
+         errno = 0;
+         ulval = strtoul(optarg, &endptr, 10);
+         ctx_args->init_flags = (endptr != optarg && *endptr == '\0' && !errno &&
+                                 ulval <= UINT32_MAX) ? (uint32_t)ulval : 0;
+         break;
+      case OPT_CTX_NAME:
+         strncpy(ctx_args->ctx_name, optarg, sizeof(ctx_args->ctx_name) - 1);
+         ctx_args->ctx_name[sizeof(ctx_args->ctx_name) - 1] = '\0';
+         break;
+      default:
+         render_log("unknown worker option");
+         return false;
+      }
+   }
+
+   if (ctx_args->ctx_fd < 0 || ctx_args->ctx_id == 0) {
+      render_log("worker-mode requires --ctx-fd (got %d) and --ctx-id (got %u)",
+                 ctx_args->ctx_fd, ctx_args->ctx_id);
+      return false;
+   }
+
+   ctx_args->valid = true;
+   return true;
+}
+
+#endif /* ENABLE_RENDER_SERVER_WORKER_PROCESS && __APPLE__ */
+
 struct render_worker *
 render_worker_create(struct render_worker_jail *jail,
                      int (*thread_func)(void *thread_data),
@@ -451,8 +616,17 @@ render_worker_create(struct render_worker_jail *jail,
 
    bool ok;
 #if defined(ENABLE_RENDER_SERVER_WORKER_PROCESS)
+#ifdef __APPLE__
+   {
+      const struct render_context_args *ctx_args =
+         (const struct render_context_args *)worker->thread_data;
+      worker->pid = render_worker_spawn(ctx_args);
+      ok = worker->pid >= 0;
+   }
+#else
    worker->pid = fork();
    ok = worker->pid >= 0;
+#endif
    (void)thread_func;
 #elif defined(ENABLE_RENDER_SERVER_WORKER_THREAD)
    ok = thrd_create(&worker->thread, thread_func, worker->thread_data) == thrd_success;
