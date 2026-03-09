@@ -282,19 +282,28 @@ vkr_context_create_resource_from_shm(struct vkr_context *ctx,
 {
    assert(!vkr_context_get_resource(ctx, res_id));
 
-   int fd = os_create_anonymous_file(blob_size, "vkr-shmem");
+   /* Round up to host page size so the fd's logical size matches
+    * the actual page-aligned region mapped by mmap.
+    */
+   const size_t page_size = getpagesize();
+   const uint64_t alloc_size = (blob_size + page_size - 1) & ~(page_size - 1);
+
+   int fd = os_create_anonymous_file(alloc_size, "vkr-shmem");
    if (fd < 0)
       return false;
 
-   void *mmap_ptr = mmap(NULL, blob_size, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
+   void *mmap_ptr = mmap(NULL, alloc_size, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
    if (mmap_ptr == MAP_FAILED) {
       close(fd);
       return false;
    }
 
+   /* Pass original blob_size, not the page-aligned alloc_size.
+    * The guest expects the exact requested size.
+    */
    if (!vkr_context_import_resource_internal(ctx, res_id, blob_size,
                                              VIRGL_RESOURCE_FD_SHM, -1, mmap_ptr)) {
-      munmap(mmap_ptr, blob_size);
+      munmap(mmap_ptr, alloc_size);
       close(fd);
       return false;
    }

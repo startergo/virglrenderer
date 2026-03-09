@@ -12,6 +12,93 @@
 #include "vkr_device_memory_gen.h"
 #include "vkr_physical_device.h"
 
+#ifdef __APPLE__
+#include <sys/mman.h>
+#include <unistd.h>
+
+#include "util/anon_file.h"
+
+#include "vkr_metal_helpers.h"
+
+/* Get MTLDevice from a VkDevice via VK_EXT_metal_objects, caching in physical_dev. */
+static void *
+vkr_get_mtl_device(struct vkr_device *dev)
+{
+   struct vkr_physical_device *physical_dev = dev->physical_device;
+   if (physical_dev->mtl_device)
+      return physical_dev->mtl_device;
+
+   if (!physical_dev->EXT_metal_objects)
+      return NULL;
+
+   VkDevice vk_device = dev->base.handle.device;
+   PFN_vkExportMetalObjectsEXT pfn =
+      (PFN_vkExportMetalObjectsEXT)physical_dev->proc_table.GetDeviceProcAddr(
+         vk_device, "vkExportMetalObjectsEXT");
+   if (!pfn)
+      return NULL;
+
+   VkExportMetalDeviceInfoEXT device_info = {
+      .sType = VK_STRUCTURE_TYPE_EXPORT_METAL_DEVICE_INFO_EXT,
+   };
+   VkExportMetalObjectsInfoEXT objects_info = {
+      .sType = VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECTS_INFO_EXT,
+      .pNext = &device_info,
+   };
+   pfn(vk_device, &objects_info);
+
+   physical_dev->mtl_device = device_info.mtlDevice;
+   return physical_dev->mtl_device;
+}
+
+/* Allocate shared memory, wrap as MTLBuffer, prepare for Vulkan import. */
+static bool
+vkr_metal_alloc_shared_memory(struct vkr_device *dev,
+                              uint64_t size,
+                              int *out_shm_fd,
+                              void **out_shm_ptr,
+                              size_t *out_shm_size,
+                              void **out_mtl_buffer)
+{
+   void *mtl_device = vkr_get_mtl_device(dev);
+   if (!mtl_device) {
+      vkr_log("failed to get MTLDevice for shared memory allocation");
+      return false;
+   }
+
+   const size_t page_size = vkr_metal_get_page_size();
+   const size_t aligned_size = (size + page_size - 1) & ~(page_size - 1);
+
+   int shm_fd = os_create_anonymous_file(aligned_size, "vkr-metal-mem");
+   if (shm_fd < 0) {
+      vkr_log("failed to create anonymous file for Metal shared memory");
+      return false;
+   }
+
+   void *shm_ptr =
+      mmap(NULL, aligned_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+   if (shm_ptr == MAP_FAILED) {
+      vkr_log("failed to mmap shared memory for Metal buffer");
+      close(shm_fd);
+      return false;
+   }
+
+   void *mtl_buffer = vkr_metal_create_buffer(mtl_device, shm_ptr, aligned_size);
+   if (!mtl_buffer) {
+      vkr_log("failed to create MTLBuffer from shared memory");
+      munmap(shm_ptr, aligned_size);
+      close(shm_fd);
+      return false;
+   }
+
+   *out_shm_fd = shm_fd;
+   *out_shm_ptr = shm_ptr;
+   *out_shm_size = aligned_size;
+   *out_mtl_buffer = mtl_buffer;
+   return true;
+}
+#endif /* __APPLE__ */
+
 static bool
 vkr_get_fd_info_from_resource_info(struct vkr_context *ctx,
                                    const VkImportMemoryResourceInfoMESA *res_info,
@@ -296,7 +383,50 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
    uint32_t valid_fd_types = 0;
    int udmabuf_fd = -1;
    void *gbm_bo = NULL;
+#ifndef __APPLE__
    VkExportMemoryAllocateInfo local_export_info;
+#endif
+
+#ifdef __APPLE__
+   /* macOS: use shared memory + Metal buffer for HOST_VISIBLE cross-process sharing.
+    * DMA-BUF, GBM, and UDMABUF do not exist on macOS.
+    */
+   int metal_shm_fd = -1;
+   void *metal_shm_ptr = NULL;
+   size_t metal_shm_size = 0;
+   void *metal_mtl_buffer = NULL;
+   VkImportMemoryMetalHandleInfoEXT local_metal_import = {
+      .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_METAL_HANDLE_INFO_EXT,
+   };
+
+   if ((property_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) && !res_info &&
+       physical_dev->EXT_external_memory_metal) {
+      if (!vkr_metal_alloc_shared_memory(dev, alloc_info->allocationSize, &metal_shm_fd,
+                                         &metal_shm_ptr, &metal_shm_size,
+                                         &metal_mtl_buffer)) {
+         args->ret = VK_ERROR_OUT_OF_HOST_MEMORY;
+         return;
+      }
+
+      /* Strip any Linux-style export info from the pNext chain */
+      if (export_info) {
+         VkBaseInStructure *prev_of_export_info = vkr_find_prev_struct(
+            alloc_info, VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO);
+         if (prev_of_export_info)
+            prev_of_export_info->pNext = export_info->pNext;
+         export_info = NULL;
+      }
+
+      /* Chain Metal import into alloc_info */
+      local_metal_import.pNext = alloc_info->pNext;
+      local_metal_import.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_EXT;
+      local_metal_import.handle = metal_mtl_buffer;
+      alloc_info->pNext = &local_metal_import;
+      alloc_info->allocationSize = metal_shm_size;
+
+      valid_fd_types = 1 << VIRGL_RESOURCE_FD_SHM;
+   }
+#else  /* !__APPLE__ */
    if ((property_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) && !res_info) {
       /* An implementation can support dma_buf import along with opaque fd export/import.
        * If the client driver is using external memory and requesting dma_buf, without
@@ -374,6 +504,7 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
          valid_fd_types = 1 << VIRGL_RESOURCE_FD_DMABUF;
       }
    }
+#endif /* __APPLE__ */
 
    if (export_info) {
       if (export_info->handleTypes & VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
@@ -388,6 +519,14 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
          close(local_import_info.fd);
       if (gbm_bo)
          vkr_gbm_bo_destroy(gbm_bo);
+#ifdef __APPLE__
+      if (metal_mtl_buffer)
+         vkr_metal_release_buffer(metal_mtl_buffer);
+      if (metal_shm_ptr)
+         munmap(metal_shm_ptr, metal_shm_size);
+      if (metal_shm_fd >= 0)
+         close(metal_shm_fd);
+#endif
       return;
    }
 
@@ -399,6 +538,13 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
    mem->gbm_bo = gbm_bo;
    mem->allocation_size = alloc_info->allocationSize;
    mem->memory_type_index = mem_type_index;
+
+#ifdef __APPLE__
+   mem->shm_fd = metal_shm_fd;
+   mem->shm_ptr = metal_shm_ptr;
+   mem->shm_size = metal_shm_size;
+   mem->mtl_buffer = metal_mtl_buffer;
+#endif
 }
 
 static void
@@ -505,6 +651,14 @@ vkr_context_init_device_memory_dispatch(struct vkr_context *ctx)
 void
 vkr_device_memory_release(struct vkr_device_memory *mem)
 {
+#ifdef __APPLE__
+   if (mem->mtl_buffer)
+      vkr_metal_release_buffer(mem->mtl_buffer);
+   if (mem->shm_ptr)
+      munmap(mem->shm_ptr, mem->shm_size);
+   if (mem->shm_fd >= 0)
+      close(mem->shm_fd);
+#endif
    if (mem->gbm_bo)
       vkr_gbm_bo_destroy(mem->gbm_bo);
    if (mem->udmabuf_fd >= 0)
@@ -541,6 +695,18 @@ vkr_device_memory_export_blob(struct vkr_device_memory *mem,
       map_info = (coherent && cached) ? VIRGL_RENDERER_MAP_CACHE_CACHED
                                       : VIRGL_RENDERER_MAP_CACHE_WC;
    }
+
+#ifdef __APPLE__
+   if (mem->shm_fd >= 0) {
+      mem->exported = true;
+      *out_blob = (struct virgl_context_blob){
+         .type = VIRGL_RESOURCE_FD_SHM,
+         .u.fd = os_dupfd_cloexec(mem->shm_fd),
+         .map_info = map_info,
+      };
+      return out_blob->u.fd >= 0;
+   }
+#endif
 
    const bool can_export_dma_buf = mem->valid_fd_types & (1 << VIRGL_RESOURCE_FD_DMABUF);
    const bool can_export_opaque = mem->valid_fd_types & (1 << VIRGL_RESOURCE_FD_OPAQUE);

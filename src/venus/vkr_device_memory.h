@@ -26,6 +26,14 @@ struct vkr_device_memory {
    /* udmabuf backing non-external mappable memory */
    int udmabuf_fd;
 
+#ifdef __APPLE__
+   /* Metal buffer backed by POSIX shared memory */
+   int shm_fd;
+   void *shm_ptr;
+   size_t shm_size;
+   void *mtl_buffer;
+#endif
+
    uint64_t allocation_size;
    uint32_t memory_type_index;
 
