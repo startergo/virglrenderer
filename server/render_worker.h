@@ -47,4 +47,11 @@ render_worker_destroy(struct render_worker_jail *jail, struct render_worker *wor
 bool
 render_worker_is_record(const struct render_worker *worker);
 
+#ifdef __APPLE__
+struct render_context_args;
+
+bool
+render_worker_parse_args(int argc, char **argv, struct render_context_args *ctx_args);
+#endif
+
 #endif /* RENDER_WORKER_H */
