@@ -27,6 +27,12 @@ struct vkr_physical_device {
    bool KHR_external_fence_fd;
    bool KHR_external_semaphore_fd;
 
+#ifdef __APPLE__
+   bool EXT_external_memory_metal;
+   bool EXT_metal_objects;
+   void *mtl_device;
+#endif
+
    VkPhysicalDeviceMemoryProperties memory_properties;
    VkPhysicalDeviceIDProperties id_properties;
    bool is_dma_buf_fd_export_supported;

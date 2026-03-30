@@ -7,6 +7,7 @@
 
 #include <fcntl.h>
 #include <poll.h>
+#include <sys/stat.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -310,10 +311,18 @@ validate_resource_fd_shm(int fd, uint64_t expected_size)
    }
 #endif
 
-   const uint64_t size = lseek(fd, 0, SEEK_END);
-   if (size != expected_size) {
-      proxy_log("failed to validate shm size(%" PRIu64 ") expected(%" PRIu64 ")", size,
-                expected_size);
+   struct stat st;
+   if (fstat(fd, &st) < 0) {
+      proxy_log("failed to fstat shm fd");
+      return false;
+   }
+   const uint64_t size = st.st_size;
+   const uint64_t page_size = getpagesize();
+   const uint64_t expected_aligned = (expected_size + page_size - 1) & ~(page_size - 1);
+   if (size != expected_aligned) {
+      proxy_log("failed to validate shm size(%" PRIu64 ") expected(%" PRIu64
+                ") aligned(%" PRIu64 ")",
+                size, expected_size, expected_aligned);
       return false;
    }
 
