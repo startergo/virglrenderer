@@ -5072,6 +5072,7 @@ get_source_info(struct dump_ctx *ctx,
                case TGSI_SEMANTIC_VERTICESIN:
                case TGSI_SEMANTIC_INVOCATIONID:
                case TGSI_SEMANTIC_SAMPLEID:
+               case TGSI_SEMANTIC_DRAWID:
                   if (inst->Instruction.Opcode == TGSI_OPCODE_INTERP_SAMPLE && i == 1)
                      strbuf_fmt(src_buf, "ivec4(%s)", ctx->system_values[j].glsl_name);
                   else
