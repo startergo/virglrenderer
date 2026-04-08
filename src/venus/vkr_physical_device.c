@@ -313,6 +313,29 @@ vkr_physical_device_init_extensions(struct vkr_physical_device *physical_dev)
          physical_dev->KHR_external_fence_fd = false;
    }
 
+   /* On macOS, VK_KHR_external_memory_fd is emulated via Metal shared memory.
+    * MoltenVK doesn't natively support it, but virglrenderer implements
+    * fd-based memory export using Metal buffers backed by POSIX SHM.
+    * Inject it into the advertised list so the guest Venus driver accepts
+    * the physical device (it's a hard requirement in vn_physical_device.c).
+    *
+    * TODO: Remove after mesa!40478 has had sufficient distro uptake.
+    */
+   if (physical_dev->EXT_external_memory_metal && !physical_dev->KHR_external_memory_fd) {
+      VkExtensionProperties *new_exts =
+         realloc(exts, sizeof(*exts) * (advertised_count + 1));
+      if (new_exts) {
+         exts = new_exts;
+         strcpy(new_exts[advertised_count].extensionName,
+                VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+         new_exts[advertised_count].specVersion = 0;
+         advertised_count++;
+         physical_dev->KHR_external_memory_fd = true;
+      } else {
+         vkr_log("failed to inject VK_KHR_external_memory_fd");
+      }
+   }
+
    physical_dev->extensions = realloc(exts, sizeof(*exts) * advertised_count);
    physical_dev->extension_count = advertised_count;
 }
