@@ -10,6 +10,7 @@
 #include "vkr_context.h"
 #include "vkr_device.h"
 #include "vkr_instance.h"
+#include "vkr_metal_helpers.h"
 
 #ifdef HAVE_LINUX_UDMABUF_H
 #include <fcntl.h>
@@ -219,7 +220,7 @@ vkr_physical_device_init_memory_properties(struct vkr_physical_device *physical_
           VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
    }
 
-   if (physical_dev->KHR_external_memory_fd) {
+   if (physical_dev->KHR_external_memory_fd && !physical_dev->EXT_external_memory_metal) {
       info.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
       vk->GetPhysicalDeviceExternalBufferProperties(handle, &info, &props);
       physical_dev->is_opaque_fd_export_supported =
@@ -234,6 +235,9 @@ vkr_physical_device_init_memory_properties(struct vkr_physical_device *physical_
        !physical_dev->is_opaque_fd_export_supported &&
        physical_dev->EXT_external_memory_dma_buf)
       physical_dev->gbm_device = vkr_physical_device_get_gbm_device();
+
+   if (physical_dev->EXT_external_memory_metal)
+      physical_dev->mtl_device = vkr_metal_get_default_device();
 
    physical_dev->udmabuf_dev_fd = -1;
    if (VKR_DEBUG(UDMABUF)) {
@@ -282,6 +286,10 @@ vkr_physical_device_init_extensions(struct vkr_physical_device *physical_dev)
          physical_dev->EXT_external_memory_dma_buf = true;
       else if (!strcmp(props->extensionName, "VK_KHR_external_fence_fd"))
          physical_dev->KHR_external_fence_fd = true;
+      else if (!strcmp(props->extensionName, "VK_EXT_external_memory_metal"))
+         physical_dev->EXT_external_memory_metal = true;
+      else if (!strcmp(props->extensionName, "VK_EXT_metal_objects"))
+         physical_dev->EXT_metal_objects = true;
 
       const uint32_t spec_ver = vkr_extension_get_spec_version(props->extensionName);
       if (spec_ver) {
